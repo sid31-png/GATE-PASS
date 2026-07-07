@@ -9,7 +9,7 @@ import {
   formatDuration,
   GatePassWithRelations,
 } from "@/lib/gatepass";
-import { Card, KpiCard, SectionHeader } from "@/components/ui";
+import { Card, KpiCard, SectionHeader, HeroBand, HeroStat } from "@/components/ui";
 import {
   SubmittedVsCollectedChart,
   StatusPieChart,
@@ -35,85 +35,77 @@ export default async function DashboardPage() {
   return (
     <div>
       <SectionHeader
-        title="🛂 Gate Pass Management — Tableau de bord"
-        subtitle="Suivi des soumissions et collectes • Mise à jour automatique"
+        title="🛂 Gate Pass Dashboard"
+        subtitle="Submission & collection tracking · updates automatically"
       />
 
-      <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-6">
-        <KpiCard label="Total soumis" value={String(kpis.total)} accent="slate" />
-        <KpiCard label="Collectés" value={String(kpis.collected)} accent="green" />
-        <KpiCard label="En attente" value={String(kpis.pending)} accent="amber" />
-        <KpiCard label="Annulés" value={String(kpis.cancelled)} accent="red" />
-        <KpiCard
-          label="Taux de collecte"
-          value={`${(kpis.collectionRate * 100).toFixed(0)}%`}
-          accent="blue"
-        />
-        <KpiCard
-          label="Temps moyen"
+      <HeroBand>
+        <HeroStat label="Total Submitted" value={String(kpis.total)} />
+        <HeroStat label="Collected" value={String(kpis.collected)} tone="good" />
+        <HeroStat label="Pending" value={String(kpis.pending)} tone="warn" />
+        <HeroStat label="Cancelled" value={String(kpis.cancelled)} tone="crit" />
+        <HeroStat label="Collection Rate" value={`${(kpis.collectionRate * 100).toFixed(0)}%`} tone="brand" />
+        <HeroStat
+          label="Avg. Processing Time"
           value={kpis.avgProcessingHours ? formatDuration(kpis.avgProcessingHours) : "—"}
-          accent="blue"
+          tone="brand"
         />
-      </div>
+      </HeroBand>
 
-      <div className="mt-4 grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-6">
+      <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-6">
         <KpiCard
-          label="Collecte la + rapide"
+          label="Fastest"
           value={kpis.fastestHours !== null ? formatDuration(kpis.fastestHours) : "—"}
           accent="green"
         />
         <KpiCard
-          label="Collecte la + longue"
+          label="Longest"
           value={kpis.longestHours !== null ? formatDuration(kpis.longestHours) : "—"}
           accent="red"
         />
-        <KpiCard label="Traités aujourd'hui" value={String(kpis.processedToday)} />
-        <KpiCard label="Cette semaine" value={String(kpis.processedThisWeek)} />
-        <KpiCard label="Ce mois" value={String(kpis.processedThisMonth)} />
-        <KpiCard label="Cette année" value={String(kpis.processedThisYear)} />
+        <KpiCard label="Today" value={String(kpis.processedToday)} />
+        <KpiCard label="This Week" value={String(kpis.processedThisWeek)} />
+        <KpiCard label="This Month" value={String(kpis.processedThisMonth)} />
+        <KpiCard label="This Year" value={String(kpis.processedThisYear)} />
       </div>
 
       <div className="mt-8 grid grid-cols-1 gap-4 lg:grid-cols-2">
         <Card>
-          <h2 className="mb-2 text-sm font-semibold text-slate-700">Soumis vs Collectés</h2>
+          <h2 className="mb-2 text-sm font-semibold text-slate-700">Submitted vs Collected</h2>
           <SubmittedVsCollectedChart
             data={[
-              { label: "Soumis", value: kpis.total },
-              { label: "Collectés", value: kpis.collected },
+              { label: "Submitted", value: kpis.total },
+              { label: "Collected", value: kpis.collected },
             ]}
           />
         </Card>
         <Card>
-          <h2 className="mb-2 text-sm font-semibold text-slate-700">Répartition des statuts</h2>
+          <h2 className="mb-2 text-sm font-semibold text-slate-700">Status Breakdown</h2>
           <StatusPieChart data={statusDist} />
         </Card>
       </div>
 
       <div className="mt-4 grid grid-cols-1 gap-4">
         <Card>
-          <h2 className="mb-2 text-sm font-semibold text-slate-700">
-            Évolution quotidienne (14 jours)
-          </h2>
+          <h2 className="mb-2 text-sm font-semibold text-slate-700">Daily Trend (14 Days)</h2>
           <EvolutionLineChart data={daily} xKey="date" />
         </Card>
       </div>
 
       <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-2">
         <Card>
-          <h2 className="mb-2 text-sm font-semibold text-slate-700">
-            Évolution hebdomadaire (8 semaines)
-          </h2>
+          <h2 className="mb-2 text-sm font-semibold text-slate-700">Weekly Trend (8 Weeks)</h2>
           <EvolutionLineChart data={weekly} xKey="weekOf" />
         </Card>
         <Card>
-          <h2 className="mb-2 text-sm font-semibold text-slate-700">Évolution mensuelle</h2>
+          <h2 className="mb-2 text-sm font-semibold text-slate-700">Monthly Trend</h2>
           <EvolutionLineChart data={monthly} xKey="month" />
         </Card>
       </div>
 
       <div className="mt-4 grid grid-cols-1 gap-4">
         <Card>
-          <h2 className="mb-2 text-sm font-semibold text-slate-700">Performance par collecteur</h2>
+          <h2 className="mb-2 text-sm font-semibold text-slate-700">Collector Performance</h2>
           <CollectorBarChart data={collectorPerf} />
         </Card>
       </div>

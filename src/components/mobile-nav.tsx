@@ -26,7 +26,7 @@ export function MobileNav() {
             href={item.href}
             className={clsx(
               "shrink-0 rounded-full px-3 py-1.5 text-sm font-medium",
-              active ? "bg-blue-600 text-white" : "bg-slate-100 text-slate-600"
+              active ? "bg-[#af1882] text-white" : "bg-slate-100 text-slate-600"
             )}
           >
             {item.label}

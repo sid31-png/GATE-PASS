@@ -23,7 +23,7 @@ export function KpiCard({
   label: string;
   value: string;
   sub?: string;
-  accent?: "blue" | "green" | "amber" | "red" | "slate";
+  accent?: "blue" | "green" | "amber" | "red" | "slate" | "brand";
 }) {
   const accentClass: Record<string, string> = {
     blue: "text-blue-600",
@@ -31,6 +31,7 @@ export function KpiCard({
     amber: "text-amber-600",
     red: "text-red-600",
     slate: "text-slate-900",
+    brand: "text-[#af1882]",
   };
   return (
     <Card>
@@ -41,18 +42,54 @@ export function KpiCard({
   );
 }
 
+export function HeroBand({ children }: { children: React.ReactNode }) {
+  return (
+    <div
+      className="mb-4 rounded-2xl p-6 shadow-lg"
+      style={{ background: "linear-gradient(135deg, #1c2a5e, #293d81)" }}
+    >
+      <div className="flex flex-wrap gap-x-11 gap-y-5">{children}</div>
+    </div>
+  );
+}
+
+export function HeroStat({
+  label,
+  value,
+  tone,
+}: {
+  label: string;
+  value: string;
+  tone?: "good" | "warn" | "crit" | "brand";
+}) {
+  const toneClass: Record<string, string> = {
+    good: "text-[#8fe3a4]",
+    warn: "text-[#ffd67e]",
+    crit: "text-[#ff9fb0]",
+    brand: "text-[#ff8fd0]",
+  };
+  return (
+    <div className="min-w-[110px]">
+      <div className="text-[10.5px] font-bold uppercase tracking-wider text-white/60">{label}</div>
+      <div className={clsx("mt-1.5 text-3xl font-extrabold tracking-tight text-white", tone && toneClass[tone])}>
+        {value}
+      </div>
+    </div>
+  );
+}
+
 const BADGE_STYLES: Record<string, string> = {
   PENDING: "bg-amber-50 text-amber-700 ring-amber-600/20",
   COLLECTED: "bg-emerald-50 text-emerald-700 ring-emerald-600/20",
   CANCELLED: "bg-red-50 text-red-700 ring-red-600/20",
-  "Rapide (≤24h)": "bg-emerald-50 text-emerald-700 ring-emerald-600/20",
+  "Fast (≤24h)": "bg-emerald-50 text-emerald-700 ring-emerald-600/20",
   "Normal (24-48h)": "bg-amber-50 text-amber-700 ring-amber-600/20",
-  "Lent (>48h)": "bg-red-50 text-red-700 ring-red-600/20",
+  "Slow (>48h)": "bg-red-50 text-red-700 ring-red-600/20",
   "Overdue (>48h)": "bg-red-50 text-red-700 ring-red-600/20",
-  "En attente": "bg-amber-50 text-amber-700 ring-amber-600/20",
-  Annulé: "bg-slate-100 text-slate-500 ring-slate-500/20",
-  Haute: "bg-red-50 text-red-700 ring-red-600/20",
-  Basse: "bg-slate-100 text-slate-600 ring-slate-500/20",
+  Waiting: "bg-amber-50 text-amber-700 ring-amber-600/20",
+  Cancelled: "bg-slate-100 text-slate-500 ring-slate-500/20",
+  High: "bg-red-50 text-red-700 ring-red-600/20",
+  Low: "bg-slate-100 text-slate-600 ring-slate-500/20",
 };
 
 export function Badge({ children }: { children: string }) {

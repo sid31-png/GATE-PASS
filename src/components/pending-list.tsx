@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { CompanyDTO, CollectorDTO, GatePassDTO } from "@/lib/types";
+import { CompanyDTO, CollectorDTO, GatePassDTO, LOCATION_LABEL } from "@/lib/types";
 import { daysWaiting, priority } from "@/lib/gatepass";
 import { Badge, Card, KpiCard, SectionHeader } from "@/components/ui";
 import { GatePassForm } from "@/components/gate-pass-form";
@@ -57,24 +57,25 @@ export function PendingList({
   return (
     <div>
       <SectionHeader
-        title="⏳ Pending Gate Pass — Gate Pass en attente de collecte"
+        title="⏳ Pending Gate Passes"
         subtitle="Sorted by longest waiting time first"
       />
 
       <div className="mb-6 grid grid-cols-2 gap-4 md:grid-cols-2">
-        <KpiCard label="Total en attente" value={String(pending.length)} accent="amber" />
-        <KpiCard label="Dont en retard (>48h)" value={String(overdue)} accent="red" />
+        <KpiCard label="Total Pending" value={String(pending.length)} accent="amber" />
+        <KpiCard label="Overdue (>48h)" value={String(overdue)} accent="red" />
       </div>
 
       <Card className="overflow-x-auto p-0">
-        <table className="w-full min-w-[800px] text-left text-sm">
+        <table className="w-full min-w-[900px] text-left text-sm">
           <thead className="border-b border-slate-200 bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
             <tr>
               <th className="px-4 py-3">Gate Pass #</th>
               <th className="px-4 py-3">Company</th>
+              <th className="px-4 py-3">Location</th>
               <th className="px-4 py-3">Submission</th>
-              <th className="px-4 py-3">Jours d&apos;attente</th>
-              <th className="px-4 py-3">Priorité</th>
+              <th className="px-4 py-3">Days Waiting</th>
+              <th className="px-4 py-3">Priority</th>
               <th className="px-4 py-3 text-right">Actions</th>
             </tr>
           </thead>
@@ -83,6 +84,7 @@ export function PendingList({
               <tr key={gp.id} className="hover:bg-slate-50">
                 <td className="px-4 py-3 font-medium text-slate-900">{gp.number}</td>
                 <td className="px-4 py-3">{gp.company.name}</td>
+                <td className="px-4 py-3">{LOCATION_LABEL[gp.location]}</td>
                 <td className="px-4 py-3 whitespace-nowrap">{fmt(gp.submissionAt)}</td>
                 <td className="px-4 py-3">{days.toFixed(1)}</td>
                 <td className="px-4 py-3">
@@ -111,7 +113,7 @@ export function PendingList({
             ))}
             {rows.length === 0 && (
               <tr>
-                <td colSpan={6} className="px-4 py-8 text-center text-slate-400">
+                <td colSpan={7} className="px-4 py-8 text-center text-slate-400">
                   No pending gate passes. 🎉
                 </td>
               </tr>

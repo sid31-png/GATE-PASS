@@ -1,7 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import { CompanyDTO, CollectorDTO, GatePassDTO, REQUEST_TYPES } from "@/lib/types";
+import {
+  CompanyDTO,
+  CollectorDTO,
+  GatePassDTO,
+  LOCATIONS,
+  GATE_PASS_TYPES,
+  REQUEST_TYPES,
+  PASS_CATEGORIES,
+} from "@/lib/types";
 
 function toLocalInput(iso: string | null) {
   if (!iso) return "";
@@ -28,7 +36,10 @@ export function GatePassForm({
   const isEdit = Boolean(initial);
   const [companyId, setCompanyId] = useState(initial?.company.id ? String(initial.company.id) : "");
   const [newCompanyName, setNewCompanyName] = useState("");
-  const [requestType, setRequestType] = useState(initial?.requestType ?? REQUEST_TYPES[0]);
+  const [location, setLocation] = useState(initial?.location ?? LOCATIONS[0].value);
+  const [gatePassType, setGatePassType] = useState(initial?.gatePassType ?? GATE_PASS_TYPES[0].value);
+  const [requestType, setRequestType] = useState(initial?.requestType ?? REQUEST_TYPES[0].value);
+  const [passCategory, setPassCategory] = useState(initial?.passCategory ?? PASS_CATEGORIES[0].value);
   const [submittedBy, setSubmittedBy] = useState(initial?.submittedBy ?? "");
   const [submissionAt, setSubmissionAt] = useState(
     toLocalInput(initial?.submissionAt ?? new Date().toISOString())
@@ -46,7 +57,10 @@ export function GatePassForm({
     setError(null);
 
     const payload: Record<string, unknown> = {
+      location,
+      gatePassType,
       requestType,
+      passCategory,
       submittedBy,
       submissionAt: new Date(submissionAt).toISOString(),
       status,
@@ -86,8 +100,9 @@ export function GatePassForm({
         </h2>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="mb-1 block text-sm font-medium text-slate-700">Company</label>
+            <label htmlFor="gpCompany" className="mb-1 block text-sm font-medium text-slate-700">Company</label>
             <select
+              id="gpCompany"
               className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
               value={companyId}
               onChange={(e) => setCompanyId(e.target.value)}
@@ -100,6 +115,7 @@ export function GatePassForm({
               ))}
             </select>
             <input
+              id="gpNewCompany"
               type="text"
               placeholder="Or type a new company name"
               className="mt-2 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
@@ -111,36 +127,96 @@ export function GatePassForm({
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label htmlFor="gpLocation" className="mb-1 block text-sm font-medium text-slate-700">Location</label>
+            <select
+              id="gpLocation"
+              className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+              value={location}
+              onChange={(e) => setLocation(e.target.value as typeof location)}
+            >
+              {LOCATIONS.map((l) => (
+                <option key={l.value} value={l.value}>
+                  {l.label}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="grid grid-cols-3 gap-3">
             <div>
-              <label className="mb-1 block text-sm font-medium text-slate-700">Request Type</label>
+              <label htmlFor="gpGatePassType" className="mb-1 block text-sm font-medium text-slate-700">
+                Gate Pass Type
+              </label>
               <select
+                id="gpGatePassType"
                 className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
-                value={requestType}
-                onChange={(e) => setRequestType(e.target.value)}
+                value={gatePassType}
+                onChange={(e) => setGatePassType(e.target.value as typeof gatePassType)}
               >
-                {REQUEST_TYPES.map((t) => (
-                  <option key={t} value={t}>
-                    {t}
+                {GATE_PASS_TYPES.map((t) => (
+                  <option key={t.value} value={t.value}>
+                    {t.label}
                   </option>
                 ))}
               </select>
             </div>
             <div>
-              <label className="mb-1 block text-sm font-medium text-slate-700">Submitted By</label>
-              <input
-                required
-                type="text"
+              <label htmlFor="gpRequestType" className="mb-1 block text-sm font-medium text-slate-700">
+                Request Type
+              </label>
+              <select
+                id="gpRequestType"
                 className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
-                value={submittedBy}
-                onChange={(e) => setSubmittedBy(e.target.value)}
-              />
+                value={requestType}
+                onChange={(e) => setRequestType(e.target.value as typeof requestType)}
+              >
+                {REQUEST_TYPES.map((t) => (
+                  <option key={t.value} value={t.value}>
+                    {t.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label htmlFor="gpPassCategory" className="mb-1 block text-sm font-medium text-slate-700">
+                Category
+              </label>
+              <select
+                id="gpPassCategory"
+                className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+                value={passCategory}
+                onChange={(e) => setPassCategory(e.target.value as typeof passCategory)}
+              >
+                {PASS_CATEGORIES.map((c) => (
+                  <option key={c.value} value={c.value}>
+                    {c.label}
+                  </option>
+                ))}
+              </select>
             </div>
           </div>
 
           <div>
-            <label className="mb-1 block text-sm font-medium text-slate-700">Submission Date & Time</label>
+            <label htmlFor="gpSubmittedBy" className="mb-1 block text-sm font-medium text-slate-700">
+              Submitted By
+            </label>
             <input
+              id="gpSubmittedBy"
+              required
+              type="text"
+              className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+              value={submittedBy}
+              onChange={(e) => setSubmittedBy(e.target.value)}
+            />
+          </div>
+
+          <div>
+            <label htmlFor="gpSubmissionAt" className="mb-1 block text-sm font-medium text-slate-700">
+              Submission Date & Time
+            </label>
+            <input
+              id="gpSubmissionAt"
               required
               type="datetime-local"
               className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
@@ -150,8 +226,9 @@ export function GatePassForm({
           </div>
 
           <div>
-            <label className="mb-1 block text-sm font-medium text-slate-700">Status</label>
+            <label htmlFor="gpStatus" className="mb-1 block text-sm font-medium text-slate-700">Status</label>
             <select
+              id="gpStatus"
               className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
               value={status}
               onChange={(e) => setStatus(e.target.value as typeof status)}
@@ -165,8 +242,11 @@ export function GatePassForm({
           {status === "COLLECTED" && (
             <div className="grid grid-cols-2 gap-3 rounded-lg bg-slate-50 p-3">
               <div>
-                <label className="mb-1 block text-sm font-medium text-slate-700">Collected By</label>
+                <label htmlFor="gpCollector" className="mb-1 block text-sm font-medium text-slate-700">
+                  Collected By
+                </label>
                 <select
+                  id="gpCollector"
                   className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
                   value={collectorId}
                   onChange={(e) => setCollectorId(e.target.value)}
@@ -180,8 +260,11 @@ export function GatePassForm({
                 </select>
               </div>
               <div>
-                <label className="mb-1 block text-sm font-medium text-slate-700">Collection Date & Time</label>
+                <label htmlFor="gpCollectionAt" className="mb-1 block text-sm font-medium text-slate-700">
+                  Collection Date & Time
+                </label>
                 <input
+                  id="gpCollectionAt"
                   type="datetime-local"
                   className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
                   value={collectionAt}
@@ -192,8 +275,9 @@ export function GatePassForm({
           )}
 
           <div>
-            <label className="mb-1 block text-sm font-medium text-slate-700">Remarks</label>
+            <label htmlFor="gpRemarks" className="mb-1 block text-sm font-medium text-slate-700">Remarks</label>
             <textarea
+              id="gpRemarks"
               className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
               rows={2}
               value={remarks}
@@ -214,7 +298,7 @@ export function GatePassForm({
             <button
               type="submit"
               disabled={saving}
-              className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+              className="rounded-lg bg-[#af1882] px-4 py-2 text-sm font-medium text-white hover:bg-[#8f1468] disabled:opacity-50"
             >
               {saving ? "Saving…" : isEdit ? "Save changes" : "Create Gate Pass"}
             </button>

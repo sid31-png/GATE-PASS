@@ -21,7 +21,10 @@ export type CollectorDTO = {
 export type GatePassDTO = {
   id: number;
   number: string;
-  requestType: string;
+  location: "DOHA_TOWERS" | "MESAIEED" | "RAS_LAFFAN" | "DUKHAN" | "OFFSHORE";
+  gatePassType: "PERMANENT" | "TEMPORARY";
+  requestType: "NEW" | "LOST";
+  passCategory: "MAIN" | "SUPPLEMENTARY";
   submittedBy: string;
   submissionAt: string;
   collectionAt: string | null;
@@ -31,10 +34,37 @@ export type GatePassDTO = {
   collector: { id: number; name: string } | null;
 };
 
-export const REQUEST_TYPES = [
-  "New Gate Pass",
-  "Renewal",
-  "Vehicle Pass",
-  "Visitor Pass",
-  "Replacement",
+export const LOCATIONS: { value: GatePassDTO["location"]; label: string }[] = [
+  { value: "DOHA_TOWERS", label: "Doha Towers" },
+  { value: "MESAIEED", label: "Mesaieed" },
+  { value: "RAS_LAFFAN", label: "Ras Laffan" },
+  { value: "DUKHAN", label: "Dukhan" },
+  { value: "OFFSHORE", label: "Offshore" },
 ];
+export const LOCATION_LABEL: Record<string, string> = Object.fromEntries(
+  LOCATIONS.map((l) => [l.value, l.label])
+);
+
+export const GATE_PASS_TYPES: { value: GatePassDTO["gatePassType"]; label: string }[] = [
+  { value: "PERMANENT", label: "Permanent" },
+  { value: "TEMPORARY", label: "Temporary" },
+];
+export const GATE_PASS_TYPE_LABEL: Record<string, string> = Object.fromEntries(
+  GATE_PASS_TYPES.map((t) => [t.value, t.label])
+);
+
+export const REQUEST_TYPES: { value: GatePassDTO["requestType"]; label: string }[] = [
+  { value: "NEW", label: "New Gate Pass" },
+  { value: "LOST", label: "Lost Gate Pass" },
+];
+export const REQUEST_TYPE_LABEL: Record<string, string> = Object.fromEntries(
+  REQUEST_TYPES.map((t) => [t.value, t.label])
+);
+
+export const PASS_CATEGORIES: { value: GatePassDTO["passCategory"]; label: string }[] = [
+  { value: "MAIN", label: "Main" },
+  { value: "SUPPLEMENTARY", label: "Supplementary" },
+];
+export const PASS_CATEGORY_LABEL: Record<string, string> = Object.fromEntries(
+  PASS_CATEGORIES.map((c) => [c.value, c.label])
+);

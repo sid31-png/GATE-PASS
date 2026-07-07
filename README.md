@@ -1,8 +1,13 @@
-# Gate Pass CRM
+# RCH Gate Pass CRM
 
 A CRM built to track gate pass requests, collections, companies and collector
-performance — modeled after the original `gate_pass.xlsx` tracker (Dashboard,
-Gate Pass Tracker, Pending Gate Pass, Collector Performance, Analyse Pivot).
+performance for RCH's client sites in Qatar (Doha Towers, Mesaieed, Ras Laffan,
+Dukhan, Offshore). Branded with RCH's identity (logo, magenta/navy palette).
+
+Each gate pass tracks: company, site **location**, **gate pass type**
+(Permanent/Temporary), **request type** (New/Lost), and **pass category**
+(Main/Supplementary), alongside submission/collection dates, status and the
+collector who processed it.
 
 ## Stack
 
@@ -16,8 +21,9 @@ Gate Pass Tracker, Pending Gate Pass, Collector Performance, Analyse Pivot).
 npm install          # also runs `prisma generate` via postinstall
 cp .env.example .env # sets DATABASE_URL="file:./dev.db"
 npm run db:migrate   # creates prisma/dev.db and applies the schema
-npm run db:seed      # loads the 30 gate passes / 10 companies / 4 collectors
-                      # extracted from the original spreadsheet
+npm run db:seed      # loads the 32 gate passes / 4 companies / 4 collectors
+                      # sample dataset (EY Consulting, Welltec, Tenaris Global,
+                      # Tenaris Investment)
 npm run dev
 ```
 
@@ -30,13 +36,18 @@ reset the database.
 ## Structure
 
 - `src/app/` — pages: `/` (Dashboard), `/gate-passes` (Tracker), `/pending`,
-  `/collectors`, `/companies`, `/analytics` (Pivot), plus `/api/*` route handlers.
+  `/collectors`, `/companies`, `/analytics` (cross-tab reports), plus `/api/*`
+  route handlers.
 - `src/lib/gatepass.ts` — domain logic: processing time, delay category,
-  pending-item priority, KPI/series/pivot computations. All analytics are
-  computed live from the data, not stored, so they stay correct as records change.
-- `prisma/schema.prisma` — `Company`, `Collector`, `GatePass` models.
-- `prisma/seed.ts` + `prisma/data/gatepass_seed.json` — seed data extracted from
-  the original Excel file.
+  pending-item priority, KPI/series/pivot computations (including the
+  location pivot). All analytics are computed live from the data, not stored,
+  so they stay correct as records change.
+- `prisma/schema.prisma` — `Company`, `Collector`, `GatePass` models, plus the
+  `Location`, `GatePassType`, `RequestType` and `PassCategory` enums.
+- `prisma/seed.ts` + `prisma/data/gatepass_seed.json` — sample seed data.
+- `gate-pass-crm.html` — a standalone, self-contained single-file build of the
+  same CRM (embedded data, vanilla JS, localStorage persistence) for sharing
+  without running the Next.js app.
 
 ## Notes
 

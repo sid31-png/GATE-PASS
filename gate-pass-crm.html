@@ -329,23 +329,20 @@
 "use strict";
 
 /* ================= embedded seed data ================= */
-const SEED_GATE_PASSES = [{"number":"GP-2026-001","company":"Qatar Steel","requestType":"New Gate Pass","submittedBy":"Mohammed Saleh","submissionAt":"2026-01-05T08:30:00","collectedBy":"Ahmed Al-Rashid","collectionAt":"2026-01-05T14:20:00","status":"Collected","remarks":null},{"number":"GP-2026-002","company":"Gulf Contracting Co","requestType":"Renewal","submittedBy":"Mohammed Saleh","submissionAt":"2026-01-12T09:15:00","collectedBy":"Youssef Hassan","collectionAt":"2026-01-13T11:00:00","status":"Collected","remarks":null},{"number":"GP-2026-003","company":"Al Jaber Engineering","requestType":"Vehicle Pass","submittedBy":"Mohammed Saleh","submissionAt":"2026-01-20T10:00:00","collectedBy":"Karim Nasser","collectionAt":"2026-01-22T16:30:00","status":"Collected","remarks":"Authority delay"},{"number":"GP-2026-004","company":"Doha Logistics","requestType":"Visitor Pass","submittedBy":"Mohammed Saleh","submissionAt":"2026-02-03T08:45:00","collectedBy":"Fatima Al-Zahra","collectionAt":"2026-02-03T15:10:00","status":"Collected","remarks":null},{"number":"GP-2026-005","company":"QTerminals","requestType":"Replacement","submittedBy":"Mohammed Saleh","submissionAt":"2026-02-10T11:20:00","collectedBy":null,"collectionAt":null,"status":"Cancelled","remarks":"Cancelled by client"},{"number":"GP-2026-006","company":"Milaha Maritime","requestType":"New Gate Pass","submittedBy":"Mohammed Saleh","submissionAt":"2026-02-18T09:30:00","collectedBy":"Ahmed Al-Rashid","collectionAt":"2026-02-19T10:45:00","status":"Collected","remarks":null},{"number":"GP-2026-007","company":"Ashghal Services","requestType":"Renewal","submittedBy":"Mohammed Saleh","submissionAt":"2026-03-02T08:15:00","collectedBy":"Youssef Hassan","collectionAt":"2026-03-02T12:40:00","status":"Collected","remarks":null},{"number":"GP-2026-008","company":"QatarEnergy","requestType":"Vehicle Pass","submittedBy":"Mohammed Saleh","submissionAt":"2026-03-09T14:00:00","collectedBy":"Karim Nasser","collectionAt":"2026-03-11T09:30:00","status":"Collected","remarks":null},{"number":"GP-2026-009","company":"Nakilat","requestType":"Visitor Pass","submittedBy":"Mohammed Saleh","submissionAt":"2026-03-16T10:30:00","collectedBy":"Fatima Al-Zahra","collectionAt":"2026-03-16T16:00:00","status":"Collected","remarks":null},{"number":"GP-2026-010","company":"Ooredoo","requestType":"Replacement","submittedBy":"Mohammed Saleh","submissionAt":"2026-03-24T09:00:00","collectedBy":"Ahmed Al-Rashid","collectionAt":"2026-03-25T14:30:00","status":"Collected","remarks":null},{"number":"GP-2026-011","company":"Qatar Steel","requestType":"New Gate Pass","submittedBy":"Mohammed Saleh","submissionAt":"2026-04-01T08:30:00","collectedBy":"Youssef Hassan","collectionAt":"2026-04-01T13:15:00","status":"Collected","remarks":null},{"number":"GP-2026-012","company":"Gulf Contracting Co","requestType":"Renewal","submittedBy":"Mohammed Saleh","submissionAt":"2026-04-08T10:45:00","collectedBy":null,"collectionAt":null,"status":"Cancelled","remarks":"Incomplete documents"},{"number":"GP-2026-013","company":"Al Jaber Engineering","requestType":"Vehicle Pass","submittedBy":"Mohammed Saleh","submissionAt":"2026-04-15T09:20:00","collectedBy":"Karim Nasser","collectionAt":"2026-04-17T15:45:00","status":"Collected","remarks":"Public holiday in between"},{"number":"GP-2026-014","company":"Doha Logistics","requestType":"Visitor Pass","submittedBy":"Mohammed Saleh","submissionAt":"2026-04-22T11:00:00","collectedBy":"Fatima Al-Zahra","collectionAt":"2026-04-23T10:30:00","status":"Collected","remarks":null},{"number":"GP-2026-015","company":"QTerminals","requestType":"Replacement","submittedBy":"Mohammed Saleh","submissionAt":"2026-05-04T08:00:00","collectedBy":"Ahmed Al-Rashid","collectionAt":"2026-05-04T11:45:00","status":"Collected","remarks":null},{"number":"GP-2026-016","company":"Milaha Maritime","requestType":"New Gate Pass","submittedBy":"Mohammed Saleh","submissionAt":"2026-05-11T09:40:00","collectedBy":"Youssef Hassan","collectionAt":"2026-05-12T14:20:00","status":"Collected","remarks":null},{"number":"GP-2026-017","company":"Ashghal Services","requestType":"Renewal","submittedBy":"Mohammed Saleh","submissionAt":"2026-05-18T13:30:00","collectedBy":"Ahmed Al-Rashid","collectionAt":"2026-05-19T09:15:00","status":"Collected","remarks":null},{"number":"GP-2026-018","company":"QatarEnergy","requestType":"Vehicle Pass","submittedBy":"Mohammed Saleh","submissionAt":"2026-05-26T10:15:00","collectedBy":"Fatima Al-Zahra","collectionAt":"2026-05-26T15:50:00","status":"Collected","remarks":null},{"number":"GP-2026-019","company":"Nakilat","requestType":"Visitor Pass","submittedBy":"Mohammed Saleh","submissionAt":"2026-06-01T08:20:00","collectedBy":"Karim Nasser","collectionAt":"2026-06-02T11:30:00","status":"Collected","remarks":null},{"number":"GP-2026-020","company":"Ooredoo","requestType":"Replacement","submittedBy":"Mohammed Saleh","submissionAt":"2026-06-08T09:50:00","collectedBy":"Youssef Hassan","collectionAt":"2026-06-08T14:10:00","status":"Collected","remarks":null},{"number":"GP-2026-021","company":"Qatar Steel","requestType":"New Gate Pass","submittedBy":"Mohammed Saleh","submissionAt":"2026-06-10T11:30:00","collectedBy":null,"collectionAt":null,"status":"Cancelled","remarks":"Cancelled — duplicate"},{"number":"GP-2026-022","company":"Gulf Contracting Co","requestType":"Renewal","submittedBy":"Mohammed Saleh","submissionAt":"2026-06-15T08:40:00","collectedBy":"Ahmed Al-Rashid","collectionAt":"2026-06-16T16:20:00","status":"Collected","remarks":null},{"number":"GP-2026-023","company":"Al Jaber Engineering","requestType":"Vehicle Pass","submittedBy":"Mohammed Saleh","submissionAt":"2026-06-22T10:10:00","collectedBy":"Fatima Al-Zahra","collectionAt":"2026-06-24T13:45:00","status":"Collected","remarks":null},{"number":"GP-2026-024","company":"Doha Logistics","requestType":"Visitor Pass","submittedBy":"Mohammed Saleh","submissionAt":"2026-06-24T09:00:00","collectedBy":null,"collectionAt":null,"status":"Pending","remarks":"Follow-up sent"},{"number":"GP-2026-025","company":"QTerminals","requestType":"Replacement","submittedBy":"Mohammed Saleh","submissionAt":"2026-06-26T14:30:00","collectedBy":null,"collectionAt":null,"status":"Pending","remarks":null},{"number":"GP-2026-026","company":"Milaha Maritime","requestType":"New Gate Pass","submittedBy":"Mohammed Saleh","submissionAt":"2026-06-29T08:50:00","collectedBy":null,"collectionAt":null,"status":"Pending","remarks":null},{"number":"GP-2026-027","company":"Ashghal Services","requestType":"Renewal","submittedBy":"Mohammed Saleh","submissionAt":"2026-06-29T10:30:00","collectedBy":"Youssef Hassan","collectionAt":"2026-07-01T09:20:00","status":"Collected","remarks":null},{"number":"GP-2026-028","company":"QatarEnergy","requestType":"Vehicle Pass","submittedBy":"Mohammed Saleh","submissionAt":"2026-06-30T09:15:00","collectedBy":"Ahmed Al-Rashid","collectionAt":"2026-07-02T10:30:00","status":"Collected","remarks":null},{"number":"GP-2026-029","company":"Nakilat","requestType":"Visitor Pass","submittedBy":"Mohammed Saleh","submissionAt":"2026-07-01T08:45:00","collectedBy":"Karim Nasser","collectionAt":"2026-07-02T12:15:00","status":"Collected","remarks":"Urgent"},{"number":"GP-2026-030","company":"Ooredoo","requestType":"Replacement","submittedBy":"Mohammed Saleh","submissionAt":"2026-07-02T07:50:00","collectedBy":null,"collectionAt":null,"status":"Pending","remarks":null}];
+const SEED_GATE_PASSES = [{"number":"GP-2026-001","company":"EY Consulting","location":"Doha Towers","gatePassType":"Permanent","requestType":"New Gate Pass","passCategory":"Supplementary","submittedBy":"Ahmed Al-Sayed","submissionAt":"2026-01-05T12:10:00","collectedBy":"Fatima Al-Zahra","collectionAt":"2026-01-05T17:05:00","status":"Collected","remarks":null},{"number":"GP-2026-002","company":"Welltec","location":"Ras Laffan","gatePassType":"Permanent","requestType":"Lost Gate Pass","passCategory":"Main","submittedBy":"Jesper Holm","submissionAt":"2026-01-12T08:25:00","collectedBy":null,"collectionAt":null,"status":"Cancelled","remarks":"Reported lost \u2014 police report attached"},{"number":"GP-2026-003","company":"Tenaris Global","location":"Offshore","gatePassType":"Permanent","requestType":"New Gate Pass","passCategory":"Main","submittedBy":"Marco Ferraro","submissionAt":"2026-01-19T08:30:00","collectedBy":"Ahmed Al-Rashid","collectionAt":"2026-01-19T13:35:00","status":"Collected","remarks":null},{"number":"GP-2026-004","company":"Tenaris Investment","location":"Mesaieed","gatePassType":"Permanent","requestType":"New Gate Pass","passCategory":"Main","submittedBy":"Elena Rossi","submissionAt":"2026-01-26T07:45:00","collectedBy":"Ahmed Al-Rashid","collectionAt":"2026-01-26T09:05:00","status":"Collected","remarks":null},{"number":"GP-2026-005","company":"EY Consulting","location":"Offshore","gatePassType":"Permanent","requestType":"New Gate Pass","passCategory":"Main","submittedBy":"Ahmed Al-Sayed","submissionAt":"2026-02-02T07:45:00","collectedBy":"Youssef Hassan","collectionAt":"2026-02-03T12:45:00","status":"Collected","remarks":null},{"number":"GP-2026-006","company":"Welltec","location":"Mesaieed","gatePassType":"Permanent","requestType":"New Gate Pass","passCategory":"Main","submittedBy":"Jesper Holm","submissionAt":"2026-02-09T15:10:00","collectedBy":"Ahmed Al-Rashid","collectionAt":"2026-02-12T09:50:00","status":"Collected","remarks":"Urgent"},{"number":"GP-2026-007","company":"Tenaris Global","location":"Dukhan","gatePassType":"Temporary","requestType":"New Gate Pass","passCategory":"Main","submittedBy":"Marco Ferraro","submissionAt":"2026-02-16T11:40:00","collectedBy":"Karim Nasser","collectionAt":"2026-02-17T14:05:00","status":"Collected","remarks":null},{"number":"GP-2026-008","company":"Tenaris Investment","location":"Doha Towers","gatePassType":"Permanent","requestType":"New Gate Pass","passCategory":"Main","submittedBy":"Elena Rossi","submissionAt":"2026-02-23T10:25:00","collectedBy":"Fatima Al-Zahra","collectionAt":"2026-02-26T14:35:00","status":"Collected","remarks":"Urgent"},{"number":"GP-2026-009","company":"EY Consulting","location":"Dukhan","gatePassType":"Temporary","requestType":"New Gate Pass","passCategory":"Main","submittedBy":"Ahmed Al-Sayed","submissionAt":"2026-03-02T10:35:00","collectedBy":"Ahmed Al-Rashid","collectionAt":"2026-03-02T17:25:00","status":"Collected","remarks":"Urgent"},{"number":"GP-2026-010","company":"Welltec","location":"Doha Towers","gatePassType":"Permanent","requestType":"New Gate Pass","passCategory":"Main","submittedBy":"Jesper Holm","submissionAt":"2026-03-10T14:25:00","collectedBy":"Fatima Al-Zahra","collectionAt":"2026-03-12T15:00:00","status":"Collected","remarks":null},{"number":"GP-2026-011","company":"Tenaris Global","location":"Ras Laffan","gatePassType":"Permanent","requestType":"New Gate Pass","passCategory":"Supplementary","submittedBy":"Marco Ferraro","submissionAt":"2026-03-17T10:05:00","collectedBy":"Karim Nasser","collectionAt":"2026-03-17T16:00:00","status":"Collected","remarks":"Urgent"},{"number":"GP-2026-012","company":"Tenaris Investment","location":"Offshore","gatePassType":"Permanent","requestType":"New Gate Pass","passCategory":"Main","submittedBy":"Elena Rossi","submissionAt":"2026-03-24T14:20:00","collectedBy":"Ahmed Al-Rashid","collectionAt":"2026-03-25T11:40:00","status":"Collected","remarks":"Public holiday in between"},{"number":"GP-2026-013","company":"EY Consulting","location":"Ras Laffan","gatePassType":"Permanent","requestType":"New Gate Pass","passCategory":"Main","submittedBy":"Ahmed Al-Sayed","submissionAt":"2026-03-31T09:25:00","collectedBy":"Youssef Hassan","collectionAt":"2026-03-31T12:40:00","status":"Collected","remarks":"Public holiday in between"},{"number":"GP-2026-014","company":"Welltec","location":"Offshore","gatePassType":"Permanent","requestType":"Lost Gate Pass","passCategory":"Main","submittedBy":"Jesper Holm","submissionAt":"2026-04-07T08:40:00","collectedBy":"Youssef Hassan","collectionAt":"2026-04-08T10:15:00","status":"Collected","remarks":"Lost during site transfer"},{"number":"GP-2026-015","company":"Tenaris Global","location":"Mesaieed","gatePassType":"Permanent","requestType":"New Gate Pass","passCategory":"Main","submittedBy":"Marco Ferraro","submissionAt":"2026-04-14T12:45:00","collectedBy":null,"collectionAt":null,"status":"Cancelled","remarks":"Cancelled \u2014 duplicate request"},{"number":"GP-2026-016","company":"Tenaris Investment","location":"Dukhan","gatePassType":"Permanent","requestType":"New Gate Pass","passCategory":"Main","submittedBy":"Elena Rossi","submissionAt":"2026-04-21T08:20:00","collectedBy":"Youssef Hassan","collectionAt":"2026-04-21T17:25:00","status":"Collected","remarks":null},{"number":"GP-2026-017","company":"EY Consulting","location":"Mesaieed","gatePassType":"Permanent","requestType":"New Gate Pass","passCategory":"Main","submittedBy":"Ahmed Al-Sayed","submissionAt":"2026-04-28T11:50:00","collectedBy":"Ahmed Al-Rashid","collectionAt":"2026-04-29T14:20:00","status":"Collected","remarks":null},{"number":"GP-2026-018","company":"Welltec","location":"Dukhan","gatePassType":"Permanent","requestType":"Lost Gate Pass","passCategory":"Main","submittedBy":"Jesper Holm","submissionAt":"2026-05-06T13:50:00","collectedBy":"Karim Nasser","collectionAt":"2026-05-06T17:25:00","status":"Collected","remarks":"Lost during site transfer"},{"number":"GP-2026-019","company":"Tenaris Global","location":"Doha Towers","gatePassType":"Permanent","requestType":"New Gate Pass","passCategory":"Main","submittedBy":"Marco Ferraro","submissionAt":"2026-05-13T08:35:00","collectedBy":"Ahmed Al-Rashid","collectionAt":"2026-05-13T13:35:00","status":"Collected","remarks":null},{"number":"GP-2026-020","company":"Tenaris Investment","location":"Ras Laffan","gatePassType":"Permanent","requestType":"Lost Gate Pass","passCategory":"Main","submittedBy":"Elena Rossi","submissionAt":"2026-05-20T10:30:00","collectedBy":"Karim Nasser","collectionAt":"2026-05-20T16:45:00","status":"Collected","remarks":"Reported lost \u2014 police report attached"},{"number":"GP-2026-021","company":"EY Consulting","location":"Doha Towers","gatePassType":"Permanent","requestType":"Lost Gate Pass","passCategory":"Supplementary","submittedBy":"Ahmed Al-Sayed","submissionAt":"2026-05-27T14:30:00","collectedBy":"Fatima Al-Zahra","collectionAt":"2026-05-30T17:05:00","status":"Collected","remarks":"Replacement issued after verification"},{"number":"GP-2026-022","company":"Welltec","location":"Ras Laffan","gatePassType":"Temporary","requestType":"Lost Gate Pass","passCategory":"Main","submittedBy":"Jesper Holm","submissionAt":"2026-06-03T15:20:00","collectedBy":"Ahmed Al-Rashid","collectionAt":"2026-06-05T14:10:00","status":"Collected","remarks":"Lost during site transfer"},{"number":"GP-2026-023","company":"Tenaris Global","location":"Offshore","gatePassType":"Permanent","requestType":"New Gate Pass","passCategory":"Main","submittedBy":"Marco Ferraro","submissionAt":"2026-06-10T13:15:00","collectedBy":"Karim Nasser","collectionAt":"2026-06-10T17:30:00","status":"Collected","remarks":null},{"number":"GP-2026-024","company":"Tenaris Investment","location":"Mesaieed","gatePassType":"Permanent","requestType":"New Gate Pass","passCategory":"Main","submittedBy":"Elena Rossi","submissionAt":"2026-06-17T10:00:00","collectedBy":null,"collectionAt":null,"status":"Cancelled","remarks":"Incomplete documents"},{"number":"GP-2026-025","company":"EY Consulting","location":"Offshore","gatePassType":"Permanent","requestType":"New Gate Pass","passCategory":"Main","submittedBy":"Ahmed Al-Sayed","submissionAt":"2026-06-24T07:10:00","collectedBy":"Ahmed Al-Rashid","collectionAt":"2026-06-25T09:10:00","status":"Collected","remarks":null},{"number":"GP-2026-026","company":"Welltec","location":"Ras Laffan","gatePassType":"Temporary","requestType":"New Gate Pass","passCategory":"Main","submittedBy":"Jesper Holm","submissionAt":"2026-06-26T13:20:00","collectedBy":null,"collectionAt":null,"status":"Pending","remarks":null},{"number":"GP-2026-027","company":"EY Consulting","location":"Mesaieed","gatePassType":"Permanent","requestType":"Lost Gate Pass","passCategory":"Main","submittedBy":"Ahmed Al-Sayed","submissionAt":"2026-06-29T08:50:00","collectedBy":null,"collectionAt":null,"status":"Pending","remarks":"Awaiting police report"},{"number":"GP-2026-028","company":"Welltec","location":"Mesaieed","gatePassType":"Temporary","requestType":"Lost Gate Pass","passCategory":"Main","submittedBy":"Jesper Holm","submissionAt":"2026-07-02T09:55:00","collectedBy":"Youssef Hassan","collectionAt":"2026-07-03T14:50:00","status":"Collected","remarks":"Reported lost \u2014 police report attached"},{"number":"GP-2026-029","company":"Welltec","location":"Dukhan","gatePassType":"Temporary","requestType":"New Gate Pass","passCategory":"Main","submittedBy":"Jesper Holm","submissionAt":"2026-07-02T14:30:00","collectedBy":null,"collectionAt":null,"status":"Pending","remarks":"Follow-up sent"},{"number":"GP-2026-030","company":"Tenaris Investment","location":"Doha Towers","gatePassType":"Temporary","requestType":"New Gate Pass","passCategory":"Supplementary","submittedBy":"Elena Rossi","submissionAt":"2026-07-04T09:00:00","collectedBy":null,"collectionAt":null,"status":"Pending","remarks":null},{"number":"GP-2026-031","company":"Tenaris Global","location":"Offshore","gatePassType":"Permanent","requestType":"New Gate Pass","passCategory":"Main","submittedBy":"Marco Ferraro","submissionAt":"2026-07-06T10:30:00","collectedBy":null,"collectionAt":null,"status":"Pending","remarks":null},{"number":"GP-2026-032","company":"EY Consulting","location":"Ras Laffan","gatePassType":"Permanent","requestType":"New Gate Pass","passCategory":"Supplementary","submittedBy":"Ahmed Al-Sayed","submissionAt":"2026-07-07T07:50:00","collectedBy":null,"collectionAt":null,"status":"Pending","remarks":null}];
 
 const COMPANY_SECTORS = {
-  "Qatar Steel": "Manufacturing",
-  "Gulf Contracting Co": "Construction",
-  "Al Jaber Engineering": "Engineering",
-  "Doha Logistics": "Logistics",
-  "QTerminals": "Ports & Terminals",
-  "Milaha Maritime": "Maritime",
-  "Ashghal Services": "Public Works",
-  "QatarEnergy": "Energy",
-  "Nakilat": "Shipping",
-  "Ooredoo": "Telecom"
+  "EY Consulting": "Professional Services",
+  "Welltec": "Oilfield Services",
+  "Tenaris Global": "Energy Manufacturing",
+  "Tenaris Investment": "Investment & Holding"
 };
 
-const REQUEST_TYPES = ["New Gate Pass", "Renewal", "Vehicle Pass", "Visitor Pass", "Replacement"];
-const STORAGE_KEY = "gatepass-crm-state-v3";
+const LOCATIONS = ["Doha Towers", "Mesaieed", "Ras Laffan", "Dukhan", "Offshore"];
+const GATE_PASS_TYPES = ["Permanent", "Temporary"];
+const REQUEST_TYPES = ["New Gate Pass", "Lost Gate Pass"];
+const PASS_CATEGORIES = ["Main", "Supplementary"];
+const STORAGE_KEY = "gatepass-crm-state-v4";
 
 /* ================= state ================= */
 let DB = null; // { companies:[], collectors:[], gatePasses:[], nextIds:{} }
@@ -376,7 +373,10 @@ function buildInitialState() {
       id: gid++,
       number: r.number,
       companyId: companyId.get(r.company),
+      location: r.location,
+      gatePassType: r.gatePassType,
       requestType: r.requestType,
+      passCategory: r.passCategory,
       submittedBy: r.submittedBy,
       submissionAt: r.submissionAt,
       collectorId: r.collectedBy ? collectorId.get(r.collectedBy) : null,
@@ -574,6 +574,22 @@ function computePivotByCollector(rows) {
   }));
   out.sort((a, b) => b.count - a.count);
   return out;
+}
+function computePivotByLocationStatus(rows) {
+  const locations = [...new Set(rows.map((g) => g.location))].sort();
+  const statuses = ["CANCELLED", "COLLECTED", "PENDING"];
+  const out = locations.map((location) => {
+    const counts = {};
+    let total = 0;
+    for (const s of statuses) {
+      const n = rows.filter((g) => g.location === location && g.status === s).length;
+      counts[s] = n; total += n;
+    }
+    return { location, counts, total };
+  });
+  const grand = {};
+  for (const s of statuses) grand[s] = rows.filter((g) => g.status === s).length;
+  return { rows: out, statuses, grand, grandAll: rows.length };
 }
 
 /* ================= tiny chart toolkit (inline SVG) ================= */
@@ -841,7 +857,7 @@ function kpiTile(label, value, sub, tone) {
 }
 
 /* ---- tracker ---- */
-let trackerFilters = { search: "", status: "", companyId: "", collectorId: "" };
+let trackerFilters = { search: "", status: "", companyId: "", collectorId: "", location: "" };
 function renderTracker() {
   const mount = document.getElementById("view-tracker");
   const rows = filteredGatePasses();
@@ -857,21 +873,24 @@ function renderTracker() {
         <option value="PENDING">Pending</option><option value="COLLECTED">Collected</option><option value="CANCELLED">Cancelled</option>
       </select>
       <select id="fCompany"><option value="">All companies</option>${DB.companies.map((c) => `<option value="${c.id}">${esc(c.name)}</option>`).join("")}</select>
+      <select id="fLocation"><option value="">All locations</option>${LOCATIONS.map((l) => `<option value="${esc(l)}">${esc(l)}</option>`).join("")}</select>
       <select id="fCollector"><option value="">All collectors</option>${DB.collectors.map((c) => `<option value="${c.id}">${esc(c.name)}</option>`).join("")}</select>
     </div>
     <div class="card table-wrap table-wide">
       <table>
-        <thead><tr><th>Gate Pass #</th><th>Company</th><th>Type</th><th>Submission</th><th>Collector</th><th>Collection</th><th>Status</th><th>Delay</th><th class="num">Processing</th><th>Remarks</th><th></th></tr></thead>
+        <thead><tr><th>Gate Pass #</th><th>Company</th><th>Location</th><th>Gate Pass Type</th><th>Request</th><th>Category</th><th>Submission</th><th>Collector</th><th>Collection</th><th>Status</th><th>Delay</th><th class="num">Processing</th><th>Remarks</th><th></th></tr></thead>
         <tbody id="trackerBody"></tbody>
       </table>
     </div>
   `;
   document.getElementById("fStatus").value = trackerFilters.status;
   document.getElementById("fCompany").value = trackerFilters.companyId;
+  document.getElementById("fLocation").value = trackerFilters.location;
   document.getElementById("fCollector").value = trackerFilters.collectorId;
   document.getElementById("fSearch").addEventListener("input", (e) => { trackerFilters.search = e.target.value; renderTrackerBody(); });
   document.getElementById("fStatus").addEventListener("change", (e) => { trackerFilters.status = e.target.value; renderTrackerBody(); });
   document.getElementById("fCompany").addEventListener("change", (e) => { trackerFilters.companyId = e.target.value; renderTrackerBody(); });
+  document.getElementById("fLocation").addEventListener("change", (e) => { trackerFilters.location = e.target.value; renderTrackerBody(); });
   document.getElementById("fCollector").addEventListener("change", (e) => { trackerFilters.collectorId = e.target.value; renderTrackerBody(); });
   document.getElementById("btnNewGp").addEventListener("click", () => openGatePassModal(null));
   renderTrackerBody();
@@ -885,6 +904,7 @@ function filteredGatePasses() {
       if (f.status && g.status !== f.status) return false;
       if (f.companyId && String(g.companyId) !== String(f.companyId)) return false;
       if (f.collectorId && String(g.collectorId || "") !== String(f.collectorId)) return false;
+      if (f.location && g.location !== f.location) return false;
       if (f.search) {
         const hay = `${g.number} ${companyName(g.companyId)} ${g.submittedBy}`.toLowerCase();
         if (!hay.includes(f.search.toLowerCase())) return false;
@@ -897,13 +917,16 @@ function renderTrackerBody() {
   const p = document.querySelector("#view-tracker .page-head p");
   if (p) p.textContent = `${rows.length} of ${DB.gatePasses.length} gate passes`;
   const body = document.getElementById("trackerBody");
-  if (!rows.length) { body.innerHTML = `<tr class="empty-row"><td colspan="11">No gate passes match these filters.</td></tr>`; return; }
+  if (!rows.length) { body.innerHTML = `<tr class="empty-row"><td colspan="14">No gate passes match these filters.</td></tr>`; return; }
   body.innerHTML = rows.map((g) => {
     const hours = processingHours(g);
     return `<tr>
       <td class="mono-cell">${esc(g.number)}</td>
       <td>${esc(companyName(g.companyId))}</td>
+      <td>${esc(g.location)}</td>
+      <td>${esc(g.gatePassType)}</td>
       <td>${esc(g.requestType)}</td>
+      <td>${esc(g.passCategory)}</td>
       <td class="mono-cell">${fmtDateTime(g.submissionAt)}</td>
       <td>${esc(collectorName(g.collectorId) || "—")}</td>
       <td class="mono-cell">${fmtDateTime(g.collectionAt)}</td>
@@ -958,12 +981,21 @@ function openGatePassModal(id) {
         <select id="gpCompany"><option value="">— Select existing —</option>${DB.companies.map((c) => `<option value="${c.id}" ${gp && gp.companyId === c.id ? "selected" : ""}>${esc(c.name)}</option>`).join("")}</select>
         <input type="text" id="gpNewCompany" placeholder="Or type a new company name" style="margin-top:8px;">
       </div>
-      <div class="field-row">
+      <div class="field"><label>Location</label>
+        <select id="gpLocation">${LOCATIONS.map((l) => `<option ${gp && gp.location === l ? "selected" : ""}>${esc(l)}</option>`).join("")}</select>
+      </div>
+      <div class="field-row" style="grid-template-columns:1fr 1fr 1fr;">
+        <div class="field"><label>Gate Pass Type</label>
+          <select id="gpGatePassType">${GATE_PASS_TYPES.map((t) => `<option ${gp && gp.gatePassType === t ? "selected" : ""}>${t}</option>`).join("")}</select>
+        </div>
         <div class="field"><label>Request Type</label>
           <select id="gpType">${REQUEST_TYPES.map((t) => `<option ${gp && gp.requestType === t ? "selected" : ""}>${t}</option>`).join("")}</select>
         </div>
-        <div class="field"><label>Submitted By</label><input type="text" id="gpSubmittedBy" required value="${esc(gp ? gp.submittedBy : "")}"></div>
+        <div class="field"><label>Category</label>
+          <select id="gpPassCategory">${PASS_CATEGORIES.map((c) => `<option ${gp && gp.passCategory === c ? "selected" : ""}>${c}</option>`).join("")}</select>
+        </div>
       </div>
+      <div class="field"><label>Submitted By</label><input type="text" id="gpSubmittedBy" required value="${esc(gp ? gp.submittedBy : "")}"></div>
       <div class="field"><label>Submission Date &amp; Time</label>
         <input type="datetime-local" id="gpSubmissionAt" required value="${toLocalInput(gp ? gp.submissionAt : new Date().toISOString())}"></div>
       <div class="field"><label>Status</label>
@@ -1016,7 +1048,10 @@ function openGatePassModal(id) {
     const collectionAtVal = document.getElementById("gpCollectionAt").value;
     const record = {
       companyId,
+      location: document.getElementById("gpLocation").value,
+      gatePassType: document.getElementById("gpGatePassType").value,
       requestType: document.getElementById("gpType").value,
+      passCategory: document.getElementById("gpPassCategory").value,
       submittedBy: document.getElementById("gpSubmittedBy").value.trim(),
       submissionAt: new Date(document.getElementById("gpSubmissionAt").value).toISOString(),
       status,
@@ -1050,12 +1085,13 @@ function renderPending() {
     </div>
     <div class="card table-wrap" style="margin-top:14px;">
       <table>
-        <thead><tr><th>Gate Pass #</th><th>Company</th><th>Submission</th><th class="num">Days waiting</th><th>Priority</th><th></th></tr></thead>
+        <thead><tr><th>Gate Pass #</th><th>Company</th><th>Location</th><th>Submission</th><th class="num">Days waiting</th><th>Priority</th><th></th></tr></thead>
         <tbody>
           ${rows.length ? rows.map((r) => `
             <tr>
               <td class="mono-cell">${esc(r.gp.number)}</td>
               <td>${esc(companyName(r.gp.companyId))}</td>
+              <td>${esc(r.gp.location)}</td>
               <td class="mono-cell">${fmtDateTime(r.gp.submissionAt)}</td>
               <td class="num">${r.days.toFixed(1)}</td>
               <td>${pillFor(r.prio)}</td>
@@ -1063,7 +1099,7 @@ function renderPending() {
                 <button class="btn-link" style="color:var(--good);" data-act="collect" data-id="${r.gp.id}">Mark Collected</button>
                 <button class="btn-link link-danger" data-act="cancel" data-id="${r.gp.id}">Cancel</button>
               </div></td>
-            </tr>`).join("") : `<tr class="empty-row"><td colspan="6">No pending gate passes. 🎉</td></tr>`}
+            </tr>`).join("") : `<tr class="empty-row"><td colspan="7">No pending gate passes. 🎉</td></tr>`}
         </tbody>
       </table>
     </div>
@@ -1242,6 +1278,7 @@ function renderAnalytics() {
   const rows = DB.gatePasses;
   const byCompany = computePivotByCompanyStatus(rows);
   const byCollector = computePivotByCollector(rows);
+  const byLocation = computePivotByLocationStatus(rows);
   const statusLabel = { CANCELLED: "Cancelled", COLLECTED: "Collected", PENDING: "Pending" };
   mount.innerHTML = `
     <div class="page-head"><div><span class="eyebrow">Cross-tabs</span><h1>Analytics</h1><p>Cross-tab reports</p></div></div>
@@ -1262,6 +1299,18 @@ function renderAnalytics() {
           <thead><tr><th>Row Labels</th><th class="num">Count of Gate Pass Number</th></tr></thead>
           <tbody>${byCollector.map((r) => `<tr><td>${esc(r.name)}</td><td class="num">${r.count}</td></tr>`).join("")}</tbody>
           <tfoot><tr style="background:var(--surface-2);font-weight:700;"><td>Grand Total</td><td class="num">${rows.length}</td></tr></tfoot>
+        </table>
+      </div>
+    </div>
+    <div style="margin-top:24px;">
+      <div class="card table-wrap">
+        <div class="card-pad" style="padding-bottom:0;"><div class="card-title">Gate passes by location &amp; status</div></div>
+        <table>
+          <thead><tr><th>Location</th>${byLocation.statuses.map((s) => `<th class="num">${statusLabel[s]}</th>`).join("")}<th class="num">Grand Total</th></tr></thead>
+          <tbody>
+            ${byLocation.rows.map((r) => `<tr><td>${esc(r.location)}</td>${byLocation.statuses.map((s) => `<td class="num">${r.counts[s] || ""}</td>`).join("")}<td class="num" style="font-weight:700;">${r.total}</td></tr>`).join("")}
+          </tbody>
+          <tfoot><tr style="background:var(--surface-2);font-weight:700;"><td>Grand Total</td>${byLocation.statuses.map((s) => `<td class="num">${byLocation.grand[s]}</td>`).join("")}<td class="num">${byLocation.grandAll}</td></tr></tfoot>
         </table>
       </div>
     </div>

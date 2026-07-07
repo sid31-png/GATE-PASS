@@ -1,7 +1,16 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { CompanyDTO, CollectorDTO, GatePassDTO } from "@/lib/types";
+import {
+  CompanyDTO,
+  CollectorDTO,
+  GatePassDTO,
+  LOCATIONS,
+  LOCATION_LABEL,
+  GATE_PASS_TYPE_LABEL,
+  REQUEST_TYPE_LABEL,
+  PASS_CATEGORY_LABEL,
+} from "@/lib/types";
 import { delayCategory, processingHours, formatDuration } from "@/lib/gatepass";
 import { Badge, Card, SectionHeader } from "@/components/ui";
 import { GatePassForm } from "@/components/gate-pass-form";
@@ -39,6 +48,7 @@ export function GatePassTracker({
   const [statusFilter, setStatusFilter] = useState("");
   const [companyFilter, setCompanyFilter] = useState("");
   const [collectorFilter, setCollectorFilter] = useState("");
+  const [locationFilter, setLocationFilter] = useState("");
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<GatePassDTO | undefined>(undefined);
 
@@ -52,6 +62,7 @@ export function GatePassTracker({
       if (statusFilter && gp.status !== statusFilter) return false;
       if (companyFilter && String(gp.company.id) !== companyFilter) return false;
       if (collectorFilter && String(gp.collector?.id ?? "") !== collectorFilter) return false;
+      if (locationFilter && gp.location !== locationFilter) return false;
       if (search) {
         const q = search.toLowerCase();
         const haystack = `${gp.number} ${gp.company.name} ${gp.submittedBy}`.toLowerCase();
@@ -59,7 +70,7 @@ export function GatePassTracker({
       }
       return true;
     });
-  }, [gatePasses, search, statusFilter, companyFilter, collectorFilter]);
+  }, [gatePasses, search, statusFilter, companyFilter, collectorFilter, locationFilter]);
 
   async function handleDelete(id: number) {
     if (!confirm("Delete this gate pass? This cannot be undone.")) return;
@@ -88,7 +99,7 @@ export function GatePassTracker({
               setEditing(undefined);
               setFormOpen(true);
             }}
-            className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+            className="rounded-lg bg-[#af1882] px-4 py-2 text-sm font-medium text-white hover:bg-[#8f1468]"
           >
             + New Gate Pass
           </button>
@@ -128,6 +139,18 @@ export function GatePassTracker({
           </select>
           <select
             className="rounded-lg border border-slate-300 px-3 py-2 text-sm"
+            value={locationFilter}
+            onChange={(e) => setLocationFilter(e.target.value)}
+          >
+            <option value="">All locations</option>
+            {LOCATIONS.map((l) => (
+              <option key={l.value} value={l.value}>
+                {l.label}
+              </option>
+            ))}
+          </select>
+          <select
+            className="rounded-lg border border-slate-300 px-3 py-2 text-sm"
             value={collectorFilter}
             onChange={(e) => setCollectorFilter(e.target.value)}
           >
@@ -142,12 +165,15 @@ export function GatePassTracker({
       </Card>
 
       <Card className="overflow-x-auto p-0">
-        <table className="w-full min-w-[1000px] text-left text-sm">
+        <table className="w-full min-w-[1300px] text-left text-sm">
           <thead className="border-b border-slate-200 bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
             <tr>
               <th className="px-4 py-3">Gate Pass #</th>
               <th className="px-4 py-3">Company</th>
-              <th className="px-4 py-3">Type</th>
+              <th className="px-4 py-3">Location</th>
+              <th className="px-4 py-3">Gate Pass Type</th>
+              <th className="px-4 py-3">Request</th>
+              <th className="px-4 py-3">Category</th>
               <th className="px-4 py-3">Submission</th>
               <th className="px-4 py-3">Collector</th>
               <th className="px-4 py-3">Collection</th>
@@ -166,7 +192,10 @@ export function GatePassTracker({
                 <tr key={gp.id} className="hover:bg-slate-50">
                   <td className="px-4 py-3 font-medium text-slate-900">{gp.number}</td>
                   <td className="px-4 py-3">{gp.company.name}</td>
-                  <td className="px-4 py-3">{gp.requestType}</td>
+                  <td className="px-4 py-3">{LOCATION_LABEL[gp.location]}</td>
+                  <td className="px-4 py-3">{GATE_PASS_TYPE_LABEL[gp.gatePassType]}</td>
+                  <td className="px-4 py-3">{REQUEST_TYPE_LABEL[gp.requestType]}</td>
+                  <td className="px-4 py-3">{PASS_CATEGORY_LABEL[gp.passCategory]}</td>
                   <td className="px-4 py-3 whitespace-nowrap">{fmt(gp.submissionAt)}</td>
                   <td className="px-4 py-3">{gp.collector?.name ?? "—"}</td>
                   <td className="px-4 py-3 whitespace-nowrap">{fmt(gp.collectionAt)}</td>
@@ -210,7 +239,7 @@ export function GatePassTracker({
             })}
             {filtered.length === 0 && (
               <tr>
-                <td colSpan={11} className="px-4 py-8 text-center text-slate-400">
+                <td colSpan={14} className="px-4 py-8 text-center text-slate-400">
                   No gate passes match these filters.
                 </td>
               </tr>

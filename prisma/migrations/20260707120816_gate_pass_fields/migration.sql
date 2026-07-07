@@ -27,7 +27,10 @@ CREATE TABLE "GatePass" (
     "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     "number" TEXT NOT NULL,
     "companyId" INTEGER NOT NULL,
+    "location" TEXT NOT NULL,
+    "gatePassType" TEXT NOT NULL,
     "requestType" TEXT NOT NULL,
+    "passCategory" TEXT NOT NULL,
     "submittedBy" TEXT NOT NULL,
     "submissionAt" DATETIME NOT NULL,
     "collectorId" INTEGER,
@@ -57,3 +60,6 @@ CREATE INDEX "GatePass_companyId_idx" ON "GatePass"("companyId");
 
 -- CreateIndex
 CREATE INDEX "GatePass_collectorId_idx" ON "GatePass"("collectorId");
+
+-- CreateIndex
+CREATE INDEX "GatePass_location_idx" ON "GatePass"("location");

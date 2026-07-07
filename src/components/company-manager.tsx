@@ -121,7 +121,7 @@ function CompanyFormModal({
             <button
               type="submit"
               disabled={saving}
-              className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+              className="rounded-lg bg-[#af1882] px-4 py-2 text-sm font-medium text-white hover:bg-[#8f1468] disabled:opacity-50"
             >
               {saving ? "Saving…" : "Save"}
             </button>
@@ -163,7 +163,7 @@ export function CompanyManager({ initialCompanies }: { initialCompanies: Company
               setEditing(undefined);
               setFormOpen(true);
             }}
-            className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+            className="rounded-lg bg-[#af1882] px-4 py-2 text-sm font-medium text-white hover:bg-[#8f1468]"
           >
             + New Company
           </button>

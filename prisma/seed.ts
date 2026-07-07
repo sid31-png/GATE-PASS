@@ -1,19 +1,20 @@
-import { PrismaClient, GatePassStatus } from "../src/generated/prisma/client";
+import {
+  PrismaClient,
+  GatePassStatus,
+  GatePassType,
+  RequestType,
+  PassCategory,
+  Location,
+} from "../src/generated/prisma/client";
 import seedData from "./data/gatepass_seed.json";
 
 const prisma = new PrismaClient();
 
 const COMPANY_SECTORS: Record<string, string> = {
-  "Qatar Steel": "Manufacturing",
-  "Gulf Contracting Co": "Construction",
-  "Al Jaber Engineering": "Engineering",
-  "Doha Logistics": "Logistics",
-  QTerminals: "Ports & Terminals",
-  "Milaha Maritime": "Maritime",
-  "Ashghal Services": "Public Works",
-  QatarEnergy: "Energy",
-  Nakilat: "Shipping",
-  Ooredoo: "Telecom",
+  "EY Consulting": "Professional Services",
+  Welltec: "Oilfield Services",
+  "Tenaris Global": "Energy Manufacturing",
+  "Tenaris Investment": "Investment & Holding",
 };
 
 function statusFromLabel(label: string): GatePassStatus {
@@ -26,6 +27,26 @@ function statusFromLabel(label: string): GatePassStatus {
       return GatePassStatus.PENDING;
   }
 }
+
+function gatePassTypeFromLabel(label: string): GatePassType {
+  return label === "Permanent" ? GatePassType.PERMANENT : GatePassType.TEMPORARY;
+}
+
+function requestTypeFromLabel(label: string): RequestType {
+  return label === "Lost Gate Pass" ? RequestType.LOST : RequestType.NEW;
+}
+
+function passCategoryFromLabel(label: string): PassCategory {
+  return label === "Supplementary" ? PassCategory.SUPPLEMENTARY : PassCategory.MAIN;
+}
+
+const LOCATION_MAP: Record<string, Location> = {
+  "Doha Towers": Location.DOHA_TOWERS,
+  Mesaieed: Location.MESAIEED,
+  "Ras Laffan": Location.RAS_LAFFAN,
+  Dukhan: Location.DUKHAN,
+  Offshore: Location.OFFSHORE,
+};
 
 async function main() {
   await prisma.gatePass.deleteMany();
@@ -55,7 +76,10 @@ async function main() {
       data: {
         number: record.number,
         companyId: companies.get(record.company)!,
-        requestType: record.requestType,
+        location: LOCATION_MAP[record.location],
+        gatePassType: gatePassTypeFromLabel(record.gatePassType),
+        requestType: requestTypeFromLabel(record.requestType),
+        passCategory: passCategoryFromLabel(record.passCategory),
         submittedBy: record.submittedBy,
         submissionAt: new Date(record.submissionAt),
         collectorId: record.collectedBy ? collectors.get(record.collectedBy) : null,

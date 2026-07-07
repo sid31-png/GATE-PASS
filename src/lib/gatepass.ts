@@ -1,9 +1,12 @@
-import { GatePassStatus } from "@/generated/prisma/enums";
+import { GatePassStatus, GatePassType, RequestType, PassCategory, Location } from "@/generated/prisma/enums";
 
 export type GatePassWithRelations = {
   id: number;
   number: string;
-  requestType: string;
+  location: Location;
+  gatePassType: GatePassType;
+  requestType: RequestType;
+  passCategory: PassCategory;
   submittedBy: string;
   submissionAt: Date;
   collectionAt: Date | null;
@@ -26,35 +29,35 @@ export function daysWaiting(gp: Pick<GatePassWithRelations, "submissionAt">, now
 }
 
 export type DelayCategory =
-  | "Rapide (≤24h)"
+  | "Fast (≤24h)"
   | "Normal (24-48h)"
-  | "Lent (>48h)"
+  | "Slow (>48h)"
   | "Overdue (>48h)"
-  | "En attente"
-  | "Annulé";
+  | "Waiting"
+  | "Cancelled";
 
 export function delayCategory(gp: GatePassWithRelations, now = new Date()): DelayCategory {
-  if (gp.status === GatePassStatus.CANCELLED) return "Annulé";
+  if (gp.status === GatePassStatus.CANCELLED) return "Cancelled";
   if (gp.status === GatePassStatus.PENDING) {
-    return daysWaiting(gp, now) > 2 ? "Overdue (>48h)" : "En attente";
+    return daysWaiting(gp, now) > 2 ? "Overdue (>48h)" : "Waiting";
   }
   const hours = processingHours(gp) ?? 0;
-  if (hours <= 24) return "Rapide (≤24h)";
+  if (hours <= 24) return "Fast (≤24h)";
   if (hours <= 48) return "Normal (24-48h)";
-  return "Lent (>48h)";
+  return "Slow (>48h)";
 }
 
-export type Priority = "Haute" | "Basse";
+export type Priority = "High" | "Low";
 
 export function priority(gp: Pick<GatePassWithRelations, "submissionAt">, now = new Date()): Priority {
-  return daysWaiting(gp, now) > 1 ? "Haute" : "Basse";
+  return daysWaiting(gp, now) > 1 ? "High" : "Low";
 }
 
 export function formatDuration(hours: number) {
   if (hours < 1) return `${Math.round(hours * 60)} min`;
   const days = Math.floor(hours / 24);
   const rem = hours - days * 24;
-  if (days > 0) return `${days}j ${rem.toFixed(1)}h`;
+  if (days > 0) return `${days}d ${rem.toFixed(1)}h`;
   return `${hours.toFixed(1)}h`;
 }
 
@@ -237,4 +240,31 @@ export function computePivotByCollector(gatePasses: GatePassWithRelations[]) {
   }));
   rows.sort((a, b) => b.count - a.count);
   return rows;
+}
+
+export function computePivotByLocationStatus(gatePasses: GatePassWithRelations[]) {
+  const locations = [...new Set(gatePasses.map((g) => g.location))].sort();
+  const statuses: GatePassStatus[] = [
+    GatePassStatus.CANCELLED,
+    GatePassStatus.COLLECTED,
+    GatePassStatus.PENDING,
+  ];
+
+  const rows = locations.map((location) => {
+    const counts: Record<string, number> = {};
+    let total = 0;
+    for (const status of statuses) {
+      const count = gatePasses.filter((g) => g.location === location && g.status === status).length;
+      counts[status] = count;
+      total += count;
+    }
+    return { location, counts, total };
+  });
+
+  const grandTotal: Record<string, number> = {};
+  for (const status of statuses) {
+    grandTotal[status] = gatePasses.filter((g) => g.status === status).length;
+  }
+
+  return { rows, statuses, grandTotal, grandTotalAll: gatePasses.length };
 }

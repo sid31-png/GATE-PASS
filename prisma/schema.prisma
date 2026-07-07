@@ -17,6 +17,29 @@ enum GatePassStatus {
   CANCELLED
 }
 
+enum GatePassType {
+  PERMANENT
+  TEMPORARY
+}
+
+enum RequestType {
+  NEW
+  LOST
+}
+
+enum PassCategory {
+  MAIN
+  SUPPLEMENTARY
+}
+
+enum Location {
+  DOHA_TOWERS
+  MESAIEED
+  RAS_LAFFAN
+  DUKHAN
+  OFFSHORE
+}
+
 model Company {
   id         Int        @id @default(autoincrement())
   name       String     @unique
@@ -46,7 +69,10 @@ model GatePass {
   number          String         @unique
   companyId       Int
   company         Company        @relation(fields: [companyId], references: [id])
-  requestType     String
+  location        Location
+  gatePassType    GatePassType
+  requestType     RequestType
+  passCategory    PassCategory
   submittedBy     String
   submissionAt    DateTime
   collectorId     Int?
@@ -60,4 +86,5 @@ model GatePass {
   @@index([status])
   @@index([companyId])
   @@index([collectorId])
+  @@index([location])
 }

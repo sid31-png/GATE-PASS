@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { GatePassStatus } from "@/generated/prisma/client";
+import { GatePassStatus, Location } from "@/generated/prisma/client";
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const status = searchParams.get("status");
   const companyId = searchParams.get("companyId");
   const collectorId = searchParams.get("collectorId");
+  const location = searchParams.get("location");
   const search = searchParams.get("search");
 
   const gatePasses = await prisma.gatePass.findMany({
@@ -14,6 +15,7 @@ export async function GET(req: NextRequest) {
       ...(status ? { status: status as GatePassStatus } : {}),
       ...(companyId ? { companyId: Number(companyId) } : {}),
       ...(collectorId ? { collectorId: Number(collectorId) } : {}),
+      ...(location ? { location: location as Location } : {}),
       ...(search
         ? {
             OR: [
@@ -50,9 +52,19 @@ function nextGatePassNumber(count: number) {
 export async function POST(req: NextRequest) {
   const body = await req.json();
 
-  if (!body.requestType || !body.submittedBy || !body.submissionAt) {
+  if (
+    !body.location ||
+    !body.gatePassType ||
+    !body.requestType ||
+    !body.passCategory ||
+    !body.submittedBy ||
+    !body.submissionAt
+  ) {
     return NextResponse.json(
-      { error: "requestType, submittedBy and submissionAt are required" },
+      {
+        error:
+          "location, gatePassType, requestType, passCategory, submittedBy and submissionAt are required",
+      },
       { status: 400 }
     );
   }
@@ -71,7 +83,10 @@ export async function POST(req: NextRequest) {
     data: {
       number,
       companyId,
+      location: body.location,
+      gatePassType: body.gatePassType,
       requestType: body.requestType,
+      passCategory: body.passCategory,
       submittedBy: body.submittedBy,
       submissionAt: new Date(body.submissionAt),
       collectorId: body.collectorId ?? null,

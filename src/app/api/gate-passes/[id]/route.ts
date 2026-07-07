@@ -18,7 +18,10 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   const data: Record<string, unknown> = {};
   if (body.number !== undefined) data.number = body.number;
   if (body.companyId !== undefined) data.companyId = body.companyId;
+  if (body.location !== undefined) data.location = body.location;
+  if (body.gatePassType !== undefined) data.gatePassType = body.gatePassType;
   if (body.requestType !== undefined) data.requestType = body.requestType;
+  if (body.passCategory !== undefined) data.passCategory = body.passCategory;
   if (body.submittedBy !== undefined) data.submittedBy = body.submittedBy;
   if (body.submissionAt !== undefined) data.submissionAt = new Date(body.submissionAt);
   if (body.collectorId !== undefined) data.collectorId = body.collectorId;

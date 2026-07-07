@@ -4,7 +4,7 @@ import { Sidebar } from "@/components/sidebar";
 import { MobileNav } from "@/components/mobile-nav";
 
 export const metadata: Metadata = {
-  title: "Gate Pass CRM",
+  title: "RCH · Gate Pass CRM",
   description: "Gate pass submission and collection tracking system",
 };
 

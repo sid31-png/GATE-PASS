@@ -94,7 +94,7 @@ function CollectorFormModal({
             <button
               type="submit"
               disabled={saving}
-              className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+              className="rounded-lg bg-[#af1882] px-4 py-2 text-sm font-medium text-white hover:bg-[#8f1468] disabled:opacity-50"
             >
               {saving ? "Saving…" : "Save"}
             </button>
@@ -135,14 +135,14 @@ export function CollectorManager({
     <div>
       <SectionHeader
         title="🏆 Collector Performance"
-        subtitle="Performance des collecteurs"
+        subtitle="How each collector is performing"
         action={
           <button
             onClick={() => {
               setEditing(undefined);
               setFormOpen(true);
             }}
-            className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+            className="rounded-lg bg-[#af1882] px-4 py-2 text-sm font-medium text-white hover:bg-[#8f1468]"
           >
             + New Collector
           </button>
@@ -153,13 +153,13 @@ export function CollectorManager({
         <table className="w-full min-w-[720px] text-left text-sm">
           <thead className="border-b border-slate-200 bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
             <tr>
-              <th className="px-4 py-3">Collecteur</th>
-              <th className="px-4 py-3">Total collecté</th>
-              <th className="px-4 py-3">Temps moyen</th>
-              <th className="px-4 py-3">Plus rapide</th>
-              <th className="px-4 py-3">Plus long</th>
-              <th className="px-4 py-3">% des collectes</th>
-              <th className="px-4 py-3">Classement</th>
+              <th className="px-4 py-3">Collector</th>
+              <th className="px-4 py-3">Total Collected</th>
+              <th className="px-4 py-3">Avg. Time</th>
+              <th className="px-4 py-3">Fastest</th>
+              <th className="px-4 py-3">Longest</th>
+              <th className="px-4 py-3">% of Collections</th>
+              <th className="px-4 py-3">Rank</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">

@@ -17,7 +17,7 @@ import {
 } from "recharts";
 
 const COLORS = {
-  submitted: "#2563eb",
+  submitted: "#4258b3",
   collected: "#10b981",
   slate: "#94a3b8",
 };
@@ -27,6 +27,8 @@ const STATUS_COLORS: Record<string, string> = {
   Pending: "#f59e0b",
   Cancelled: "#ef4444",
 };
+
+const CATEGORICAL_COLORS = ["#af1882", "#1baf7a", "#4258b3", "#eb6834"];
 
 export function SubmittedVsCollectedChart({
   data,
@@ -100,7 +102,11 @@ export function CollectorBarChart({
         <XAxis type="number" allowDecimals={false} tick={{ fontSize: 12 }} />
         <YAxis type="category" dataKey="name" tick={{ fontSize: 12 }} width={110} />
         <Tooltip />
-        <Bar dataKey="totalCollected" fill={COLORS.collected} radius={[0, 6, 6, 0]} />
+        <Bar dataKey="totalCollected" radius={[0, 6, 6, 0]}>
+          {data.map((entry, index) => (
+            <Cell key={entry.name} fill={CATEGORICAL_COLORS[index % CATEGORICAL_COLORS.length]} />
+          ))}
+        </Bar>
       </BarChart>
     </ResponsiveContainer>
   );
