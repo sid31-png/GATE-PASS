@@ -1,0 +1,1255 @@
+<title>Gate Pass CRM — Manifest</title>
+<style>
+  :root {
+    --paper: #f5f7f6;
+    --surface: #ffffff;
+    --surface-2: #eef1f0;
+    --ink: #101b22;
+    --ink-2: #4b5b63;
+    --muted: #7c8991;
+    --border: rgba(16,27,34,.12);
+    --border-strong: rgba(16,27,34,.22);
+    --accent: #9a5c14;
+    --accent-ink: #78460f;
+    --accent-soft: rgba(184,116,31,.14);
+    --good: #0b7d0b;
+    --warning-ink: #8a5b00;
+    --warning-bg: #fde9bd;
+    --serious: #c25a34;
+    --critical: #d03b3b;
+    --critical-bg: #fbdcdc;
+    --good-bg: #d9f0d3;
+    --serious-bg: #f8ddce;
+    --cancelled-bg: #e4e7e6;
+    --cancelled-ink: #55625f;
+    --cat-blue: #2a78d6;
+    --cat-aqua: #1baf7a;
+    --cat-violet: #4a3aa7;
+    --cat-magenta: #b8386e;
+    --grid: #e1e6e5;
+    --shadow: 0 1px 2px rgba(16,27,34,.06), 0 8px 24px -12px rgba(16,27,34,.18);
+    --mono: ui-monospace, "SF Mono", "Cascadia Code", "JetBrains Mono", Menlo, Consolas, monospace;
+    --sans: ui-sans-serif, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --radius: 10px;
+    color-scheme: light;
+  }
+  :root[data-theme="dark"], @media (prefers-color-scheme: dark) { }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --paper: #0d1418;
+      --surface: #131c21;
+      --surface-2: #1a252b;
+      --ink: #eef2f1;
+      --ink-2: #b7c2c5;
+      --muted: #86928f;
+      --border: rgba(255,255,255,.12);
+      --border-strong: rgba(255,255,255,.22);
+      --accent: #d99a45;
+      --accent-ink: #f0b968;
+      --accent-soft: rgba(217,154,69,.16);
+      --good: #35b53b;
+      --warning-ink: #f0c14b;
+      --warning-bg: #3a3013;
+      --serious: #e8875c;
+      --critical: #e8615f;
+      --critical-bg: #3a1616;
+      --good-bg: #123a17;
+      --serious-bg: #3a2115;
+      --cancelled-bg: #232f34;
+      --cancelled-ink: #a3b0ae;
+      --cat-blue: #3987e5;
+      --cat-aqua: #199e70;
+      --cat-violet: #9085e9;
+      --cat-magenta: #d55181;
+      --grid: #263136;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #0d1418; --surface: #131c21; --surface-2: #1a252b; --ink: #eef2f1; --ink-2: #b7c2c5; --muted: #86928f;
+    --border: rgba(255,255,255,.12); --border-strong: rgba(255,255,255,.22);
+    --accent: #d99a45; --accent-ink: #f0b968; --accent-soft: rgba(217,154,69,.16);
+    --good: #35b53b; --warning-ink: #f0c14b; --warning-bg: #3a3013; --serious: #e8875c; --critical: #e8615f;
+    --critical-bg: #3a1616; --good-bg: #123a17; --serious-bg: #3a2115; --cancelled-bg: #232f34; --cancelled-ink: #a3b0ae;
+    --cat-blue: #3987e5; --cat-aqua: #199e70; --cat-violet: #9085e9; --cat-magenta: #d55181; --grid: #263136;
+    color-scheme: dark;
+  }
+  :root[data-theme="light"] {
+    --paper: #f5f7f6; --surface: #ffffff; --surface-2: #eef1f0; --ink: #101b22; --ink-2: #4b5b63; --muted: #7c8991;
+    --border: rgba(16,27,34,.12); --border-strong: rgba(16,27,34,.22);
+    --accent: #9a5c14; --accent-ink: #78460f; --accent-soft: rgba(184,116,31,.14);
+    --good: #0b7d0b; --warning-ink: #8a5b00; --warning-bg: #fde9bd; --serious: #c25a34; --critical: #d03b3b;
+    --critical-bg: #fbdcdc; --good-bg: #d9f0d3; --serious-bg: #f8ddce; --cancelled-bg: #e4e7e6; --cancelled-ink: #55625f;
+    --cat-blue: #2a78d6; --cat-aqua: #1baf7a; --cat-violet: #4a3aa7; --cat-magenta: #b8386e; --grid: #e1e6e5;
+    color-scheme: light;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 14px;
+    line-height: 1.5;
+  }
+  ::selection { background: var(--accent-soft); }
+  h1, h2, h3 { text-wrap: balance; font-family: var(--mono); letter-spacing: -0.01em; margin: 0; }
+  .tabular { font-variant-numeric: tabular-nums; font-family: var(--mono); }
+  button { font-family: inherit; }
+  a { color: inherit; }
+
+  .app { display: flex; min-height: 100vh; }
+
+  /* ---------- sidebar ---------- */
+  .sidebar {
+    width: 236px; flex-shrink: 0;
+    background: var(--ink); color: #eef2f1;
+    display: flex; flex-direction: column;
+    position: sticky; top: 0; height: 100vh;
+  }
+  :root[data-theme="dark"] .sidebar, @media (prefers-color-scheme: dark) { .sidebar { background: #090f12; } }
+  .sidebar-brand { padding: 22px 20px 16px; border-bottom: 1px solid rgba(255,255,255,.1); }
+  .sidebar-brand .mark {
+    display: inline-flex; align-items: center; gap: 8px; font-family: var(--mono);
+    font-size: 15px; font-weight: 600; letter-spacing: -0.01em; color: #fff;
+  }
+  .sidebar-brand .stamp {
+    width: 26px; height: 26px; border: 1.5px solid var(--accent-ink); border-radius: 50%;
+    display: flex; align-items: center; justify-content: center; color: var(--accent-ink);
+    font-size: 10px; font-weight: 700; transform: rotate(-8deg); flex-shrink: 0;
+  }
+  .sidebar-brand .sub { margin-top: 6px; font-size: 11.5px; color: rgba(238,242,241,.55); }
+  .nav { flex: 1; padding: 14px 10px; display: flex; flex-direction: column; gap: 2px; }
+  .nav button {
+    all: unset; cursor: pointer; display: flex; align-items: center; gap: 10px;
+    padding: 9px 12px; border-radius: 7px; font-size: 13px; color: rgba(238,242,241,.72);
+    font-family: var(--sans);
+  }
+  .nav button:hover { background: rgba(255,255,255,.06); color: #fff; }
+  .nav button.active { background: var(--accent-ink); color: #fff; }
+  .nav button .n { font-family: var(--mono); font-size: 11px; opacity: .6; width: 16px; }
+  .sidebar-foot { padding: 14px 20px 20px; font-size: 11px; color: rgba(238,242,241,.4); border-top: 1px solid rgba(255,255,255,.1); }
+  .sidebar-foot button {
+    all: unset; cursor: pointer; font-size: 11px; color: rgba(238,242,241,.55); text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+  .sidebar-foot button:hover { color: #fff; }
+
+  /* ---------- main ---------- */
+  .main { flex: 1; min-width: 0; padding: 28px 34px 60px; max-width: 1320px; }
+  .view { display: none; }
+  .view.active { display: block; }
+
+  .page-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 22px; flex-wrap: wrap; }
+  .page-head h1 { font-size: 20px; color: var(--ink); }
+  .page-head .eyebrow {
+    font-family: var(--mono); font-size: 11px; text-transform: uppercase; letter-spacing: .09em;
+    color: var(--accent-ink); margin-bottom: 6px; display: block;
+  }
+  .page-head p { margin: 6px 0 0; color: var(--ink-2); font-size: 13px; }
+
+  .btn {
+    all: unset; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;
+    padding: 8px 14px; border-radius: 7px; font-size: 12.5px; font-weight: 600;
+    border: 1px solid transparent;
+  }
+  .btn-primary { background: var(--accent-ink); color: #fff; }
+  .btn-primary:hover { filter: brightness(1.08); }
+  .btn-ghost { border-color: var(--border-strong); color: var(--ink); }
+  .btn-ghost:hover { background: var(--surface-2); }
+  .btn-link { all: unset; cursor: pointer; font-size: 12px; font-weight: 600; }
+  .link-edit { color: var(--cat-blue); }
+  .link-warn { color: var(--warning-ink); }
+  .link-danger { color: var(--critical); }
+  .btn-link:hover { text-decoration: underline; text-underline-offset: 2px; }
+
+  .card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+    box-shadow: var(--shadow);
+  }
+  .card-pad { padding: 18px 20px; }
+  .card-title { font-family: var(--mono); font-size: 12.5px; font-weight: 600; color: var(--ink); margin-bottom: 12px; }
+
+  .grid { display: grid; gap: 14px; }
+  .kpi-row { grid-template-columns: repeat(6, 1fr); margin-bottom: 12px; }
+  @media (max-width: 1100px) { .kpi-row { grid-template-columns: repeat(3, 1fr); } }
+  @media (max-width: 640px) { .kpi-row { grid-template-columns: repeat(2, 1fr); } }
+  .kpi {
+    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 14px 16px; box-shadow: var(--shadow);
+  }
+  .kpi .lbl { font-family: var(--mono); font-size: 10.5px; text-transform: uppercase; letter-spacing: .07em; color: var(--muted); }
+  .kpi .val { font-family: var(--mono); font-size: 22px; font-weight: 600; margin-top: 6px; color: var(--ink); }
+  .kpi .val.good { color: var(--good); }
+  .kpi .val.warn { color: var(--warning-ink); }
+  .kpi .val.crit { color: var(--critical); }
+  .kpi .val.accent { color: var(--accent-ink); }
+  .kpi .sub { font-size: 10.5px; color: var(--muted); margin-top: 2px; }
+
+  .charts-2 { grid-template-columns: 1fr 1fr; }
+  @media (max-width: 900px) { .charts-2 { grid-template-columns: 1fr; } }
+  .pivot-grid { grid-template-columns: 1.4fr 1fr; }
+  @media (max-width: 900px) { .pivot-grid { grid-template-columns: 1fr; } }
+
+  /* ---------- table ---------- */
+  .table-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .table-wide table { min-width: 640px; }
+  thead th {
+    text-align: left; font-family: var(--mono); font-size: 10.5px; text-transform: uppercase; letter-spacing: .06em;
+    color: var(--muted); padding: 10px 14px; border-bottom: 1px solid var(--border); white-space: nowrap;
+  }
+  tbody td { padding: 10px 14px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+  tbody tr:hover { background: var(--surface-2); }
+  tbody tr:last-child td { border-bottom: none; }
+  td.num, th.num { text-align: right; font-family: var(--mono); }
+  .mono-cell { font-family: var(--mono); }
+  .empty-row td { text-align: center; padding: 34px; color: var(--muted); }
+
+  .pill {
+    display: inline-flex; align-items: center; gap: 5px; padding: 3px 9px; border-radius: 100px;
+    font-size: 11px; font-weight: 600; white-space: nowrap; font-family: var(--sans);
+  }
+  .pill::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+  .pill-good { background: var(--good-bg); color: var(--good); }
+  .pill-warn { background: var(--warning-bg); color: var(--warning-ink); }
+  .pill-crit { background: var(--critical-bg); color: var(--critical); }
+  .pill-serious { background: var(--serious-bg); color: var(--serious); }
+  .pill-mute { background: var(--cancelled-bg); color: var(--cancelled-ink); }
+
+  .toolbar { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
+  .toolbar input, .toolbar select, .field input, .field select, .field textarea {
+    font-family: var(--sans); font-size: 13px; padding: 8px 11px; border-radius: 7px;
+    border: 1px solid var(--border-strong); background: var(--surface); color: var(--ink);
+  }
+  .toolbar input { flex: 1; min-width: 200px; }
+  .toolbar select { min-width: 150px; }
+
+  .actions-cell { display: flex; gap: 12px; justify-content: flex-end; white-space: nowrap; }
+
+  /* ---------- charts (svg) ---------- */
+  .chart-legend { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 8px; font-size: 11.5px; color: var(--ink-2); }
+  .chart-legend .item { display: flex; align-items: center; gap: 6px; }
+  .chart-legend .swatch { width: 9px; height: 9px; border-radius: 2px; }
+  .chart-tooltip {
+    position: absolute; pointer-events: none; background: var(--ink); color: var(--paper);
+    font-family: var(--mono); font-size: 11px; padding: 5px 8px; border-radius: 5px; opacity: 0;
+    transition: opacity .1s; white-space: nowrap; z-index: 20; box-shadow: var(--shadow);
+  }
+  :root[data-theme="dark"] .chart-tooltip, @media (prefers-color-scheme: dark) { }
+  .svg-wrap { position: relative; }
+  .bar-mark { transition: opacity .1s; }
+  .bar-mark:hover { opacity: .82; cursor: pointer; }
+  .dot-mark { cursor: pointer; }
+
+  /* ---------- modal ---------- */
+  .overlay {
+    position: fixed; inset: 0; background: rgba(8,13,16,.5); display: none;
+    align-items: center; justify-content: center; padding: 20px; z-index: 50;
+  }
+  .overlay.open { display: flex; }
+  .modal {
+    width: 100%; max-width: 460px; max-height: 88vh; overflow-y: auto;
+    background: var(--surface); border-radius: 12px; border: 1px solid var(--border);
+    padding: 22px 24px; box-shadow: 0 20px 60px -20px rgba(0,0,0,.4);
+  }
+  .modal h2 { font-size: 15px; margin-bottom: 4px; }
+  .modal .kicker { font-family: var(--mono); font-size: 10.5px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin-bottom: 14px; }
+  .field { margin-bottom: 13px; }
+  .field label { display: block; font-size: 12px; font-weight: 600; color: var(--ink-2); margin-bottom: 5px; }
+  .field input, .field select, .field textarea { width: 100%; }
+  .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 16px; }
+  .collect-box { background: var(--surface-2); border-radius: 8px; padding: 12px; margin-bottom: 13px; }
+  .err-msg { color: var(--critical); font-size: 12px; margin: 4px 0 0; }
+
+  .mobile-nav { display: none; }
+  @media (max-width: 860px) {
+    .sidebar { display: none; }
+    .mobile-nav {
+      display: flex; gap: 8px; overflow-x: auto; padding-bottom: 12px; margin-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+    }
+    .mobile-nav button {
+      all: unset; cursor: pointer; flex-shrink: 0; padding: 7px 13px; border-radius: 100px;
+      font-size: 12.5px; background: var(--surface-2); color: var(--ink-2);
+    }
+    .mobile-nav button.active { background: var(--accent-ink); color: #fff; }
+    .main { padding: 18px 16px 50px; }
+  }
+
+  .footnote { margin-top: 26px; font-size: 11.5px; color: var(--muted); }
+</style>
+
+<div class="app">
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <span class="mark"><span class="stamp">GP</span> Gate Pass CRM</span>
+      <div class="sub">Suivi des soumissions et collectes</div>
+    </div>
+    <nav class="nav" id="nav"></nav>
+    <div class="sidebar-foot">
+      Qatar Operations · local build
+      <div style="margin-top:8px;"><button id="resetBtn">Reset sample data</button></div>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="mobile-nav" id="mobileNav"></div>
+    <div class="view" id="view-dashboard"></div>
+    <div class="view" id="view-tracker"></div>
+    <div class="view" id="view-pending"></div>
+    <div class="view" id="view-collectors"></div>
+    <div class="view" id="view-companies"></div>
+    <div class="view" id="view-analytics"></div>
+    <div class="footnote">Static, self-contained build — data lives in this browser's local storage only.</div>
+  </main>
+</div>
+
+<div class="overlay" id="overlay"><div class="modal" id="modalBody"></div></div>
+
+<script>
+"use strict";
+
+/* ================= embedded seed data ================= */
+const SEED_GATE_PASSES = [{"number":"GP-2026-001","company":"Qatar Steel","requestType":"New Gate Pass","submittedBy":"Mohammed Saleh","submissionAt":"2026-01-05T08:30:00","collectedBy":"Ahmed Al-Rashid","collectionAt":"2026-01-05T14:20:00","status":"Collected","remarks":null},{"number":"GP-2026-002","company":"Gulf Contracting Co","requestType":"Renewal","submittedBy":"Mohammed Saleh","submissionAt":"2026-01-12T09:15:00","collectedBy":"Youssef Hassan","collectionAt":"2026-01-13T11:00:00","status":"Collected","remarks":null},{"number":"GP-2026-003","company":"Al Jaber Engineering","requestType":"Vehicle Pass","submittedBy":"Mohammed Saleh","submissionAt":"2026-01-20T10:00:00","collectedBy":"Karim Nasser","collectionAt":"2026-01-22T16:30:00","status":"Collected","remarks":"Retard autorit\u00e9s"},{"number":"GP-2026-004","company":"Doha Logistics","requestType":"Visitor Pass","submittedBy":"Mohammed Saleh","submissionAt":"2026-02-03T08:45:00","collectedBy":"Fatima Al-Zahra","collectionAt":"2026-02-03T15:10:00","status":"Collected","remarks":null},{"number":"GP-2026-005","company":"QTerminals","requestType":"Replacement","submittedBy":"Mohammed Saleh","submissionAt":"2026-02-10T11:20:00","collectedBy":null,"collectionAt":null,"status":"Cancelled","remarks":"Demande annul\u00e9e par le client"},{"number":"GP-2026-006","company":"Milaha Maritime","requestType":"New Gate Pass","submittedBy":"Mohammed Saleh","submissionAt":"2026-02-18T09:30:00","collectedBy":"Ahmed Al-Rashid","collectionAt":"2026-02-19T10:45:00","status":"Collected","remarks":null},{"number":"GP-2026-007","company":"Ashghal Services","requestType":"Renewal","submittedBy":"Mohammed Saleh","submissionAt":"2026-03-02T08:15:00","collectedBy":"Youssef Hassan","collectionAt":"2026-03-02T12:40:00","status":"Collected","remarks":null},{"number":"GP-2026-008","company":"QatarEnergy","requestType":"Vehicle Pass","submittedBy":"Mohammed Saleh","submissionAt":"2026-03-09T14:00:00","collectedBy":"Karim Nasser","collectionAt":"2026-03-11T09:30:00","status":"Collected","remarks":null},{"number":"GP-2026-009","company":"Nakilat","requestType":"Visitor Pass","submittedBy":"Mohammed Saleh","submissionAt":"2026-03-16T10:30:00","collectedBy":"Fatima Al-Zahra","collectionAt":"2026-03-16T16:00:00","status":"Collected","remarks":null},{"number":"GP-2026-010","company":"Ooredoo","requestType":"Replacement","submittedBy":"Mohammed Saleh","submissionAt":"2026-03-24T09:00:00","collectedBy":"Ahmed Al-Rashid","collectionAt":"2026-03-25T14:30:00","status":"Collected","remarks":null},{"number":"GP-2026-011","company":"Qatar Steel","requestType":"New Gate Pass","submittedBy":"Mohammed Saleh","submissionAt":"2026-04-01T08:30:00","collectedBy":"Youssef Hassan","collectionAt":"2026-04-01T13:15:00","status":"Collected","remarks":null},{"number":"GP-2026-012","company":"Gulf Contracting Co","requestType":"Renewal","submittedBy":"Mohammed Saleh","submissionAt":"2026-04-08T10:45:00","collectedBy":null,"collectionAt":null,"status":"Cancelled","remarks":"Documents incomplets"},{"number":"GP-2026-013","company":"Al Jaber Engineering","requestType":"Vehicle Pass","submittedBy":"Mohammed Saleh","submissionAt":"2026-04-15T09:20:00","collectedBy":"Karim Nasser","collectionAt":"2026-04-17T15:45:00","status":"Collected","remarks":"Jour f\u00e9ri\u00e9 entre-temps"},{"number":"GP-2026-014","company":"Doha Logistics","requestType":"Visitor Pass","submittedBy":"Mohammed Saleh","submissionAt":"2026-04-22T11:00:00","collectedBy":"Fatima Al-Zahra","collectionAt":"2026-04-23T10:30:00","status":"Collected","remarks":null},{"number":"GP-2026-015","company":"QTerminals","requestType":"Replacement","submittedBy":"Mohammed Saleh","submissionAt":"2026-05-04T08:00:00","collectedBy":"Ahmed Al-Rashid","collectionAt":"2026-05-04T11:45:00","status":"Collected","remarks":null},{"number":"GP-2026-016","company":"Milaha Maritime","requestType":"New Gate Pass","submittedBy":"Mohammed Saleh","submissionAt":"2026-05-11T09:40:00","collectedBy":"Youssef Hassan","collectionAt":"2026-05-12T14:20:00","status":"Collected","remarks":null},{"number":"GP-2026-017","company":"Ashghal Services","requestType":"Renewal","submittedBy":"Mohammed Saleh","submissionAt":"2026-05-18T13:30:00","collectedBy":"Ahmed Al-Rashid","collectionAt":"2026-05-19T09:15:00","status":"Collected","remarks":null},{"number":"GP-2026-018","company":"QatarEnergy","requestType":"Vehicle Pass","submittedBy":"Mohammed Saleh","submissionAt":"2026-05-26T10:15:00","collectedBy":"Fatima Al-Zahra","collectionAt":"2026-05-26T15:50:00","status":"Collected","remarks":null},{"number":"GP-2026-019","company":"Nakilat","requestType":"Visitor Pass","submittedBy":"Mohammed Saleh","submissionAt":"2026-06-01T08:20:00","collectedBy":"Karim Nasser","collectionAt":"2026-06-02T11:30:00","status":"Collected","remarks":null},{"number":"GP-2026-020","company":"Ooredoo","requestType":"Replacement","submittedBy":"Mohammed Saleh","submissionAt":"2026-06-08T09:50:00","collectedBy":"Youssef Hassan","collectionAt":"2026-06-08T14:10:00","status":"Collected","remarks":null},{"number":"GP-2026-021","company":"Qatar Steel","requestType":"New Gate Pass","submittedBy":"Mohammed Saleh","submissionAt":"2026-06-10T11:30:00","collectedBy":null,"collectionAt":null,"status":"Cancelled","remarks":"Annul\u00e9 \u2014 doublon"},{"number":"GP-2026-022","company":"Gulf Contracting Co","requestType":"Renewal","submittedBy":"Mohammed Saleh","submissionAt":"2026-06-15T08:40:00","collectedBy":"Ahmed Al-Rashid","collectionAt":"2026-06-16T16:20:00","status":"Collected","remarks":null},{"number":"GP-2026-023","company":"Al Jaber Engineering","requestType":"Vehicle Pass","submittedBy":"Mohammed Saleh","submissionAt":"2026-06-22T10:10:00","collectedBy":"Fatima Al-Zahra","collectionAt":"2026-06-24T13:45:00","status":"Collected","remarks":null},{"number":"GP-2026-024","company":"Doha Logistics","requestType":"Visitor Pass","submittedBy":"Mohammed Saleh","submissionAt":"2026-06-24T09:00:00","collectedBy":null,"collectionAt":null,"status":"Pending","remarks":"Relance envoy\u00e9e"},{"number":"GP-2026-025","company":"QTerminals","requestType":"Replacement","submittedBy":"Mohammed Saleh","submissionAt":"2026-06-26T14:30:00","collectedBy":null,"collectionAt":null,"status":"Pending","remarks":null},{"number":"GP-2026-026","company":"Milaha Maritime","requestType":"New Gate Pass","submittedBy":"Mohammed Saleh","submissionAt":"2026-06-29T08:50:00","collectedBy":null,"collectionAt":null,"status":"Pending","remarks":null},{"number":"GP-2026-027","company":"Ashghal Services","requestType":"Renewal","submittedBy":"Mohammed Saleh","submissionAt":"2026-06-29T10:30:00","collectedBy":"Youssef Hassan","collectionAt":"2026-07-01T09:20:00","status":"Collected","remarks":null},{"number":"GP-2026-028","company":"QatarEnergy","requestType":"Vehicle Pass","submittedBy":"Mohammed Saleh","submissionAt":"2026-06-30T09:15:00","collectedBy":"Ahmed Al-Rashid","collectionAt":"2026-07-02T10:30:00","status":"Collected","remarks":null},{"number":"GP-2026-029","company":"Nakilat","requestType":"Visitor Pass","submittedBy":"Mohammed Saleh","submissionAt":"2026-07-01T08:45:00","collectedBy":"Karim Nasser","collectionAt":"2026-07-02T12:15:00","status":"Collected","remarks":"Urgent"},{"number":"GP-2026-030","company":"Ooredoo","requestType":"Replacement","submittedBy":"Mohammed Saleh","submissionAt":"2026-07-02T07:50:00","collectedBy":null,"collectionAt":null,"status":"Pending","remarks":null}];
+
+const COMPANY_SECTORS = {
+  "Qatar Steel": "Manufacturing",
+  "Gulf Contracting Co": "Construction",
+  "Al Jaber Engineering": "Engineering",
+  "Doha Logistics": "Logistics",
+  "QTerminals": "Ports & Terminals",
+  "Milaha Maritime": "Maritime",
+  "Ashghal Services": "Public Works",
+  "QatarEnergy": "Energy",
+  "Nakilat": "Shipping",
+  "Ooredoo": "Telecom"
+};
+
+const REQUEST_TYPES = ["New Gate Pass", "Renewal", "Vehicle Pass", "Visitor Pass", "Replacement"];
+const STORAGE_KEY = "gatepass-crm-state-v2";
+
+/* ================= state ================= */
+let DB = null; // { companies:[], collectors:[], gatePasses:[], nextIds:{} }
+
+function buildInitialState() {
+  const companies = [];
+  const companyId = new Map();
+  const collectors = [];
+  const collectorId = new Map();
+  const gatePasses = [];
+
+  for (const r of SEED_GATE_PASSES) {
+    if (!companyId.has(r.company)) {
+      const id = companies.length + 1;
+      companyId.set(r.company, id);
+      companies.push({ id, name: r.company, sector: COMPANY_SECTORS[r.company] || null, contact: null, phone: null, email: null, notes: null });
+    }
+    if (r.collectedBy && !collectorId.has(r.collectedBy)) {
+      const id = collectors.length + 1;
+      collectorId.set(r.collectedBy, id);
+      collectors.push({ id, name: r.collectedBy, phone: null, email: null, active: true });
+    }
+  }
+
+  let gid = 1;
+  for (const r of SEED_GATE_PASSES) {
+    gatePasses.push({
+      id: gid++,
+      number: r.number,
+      companyId: companyId.get(r.company),
+      requestType: r.requestType,
+      submittedBy: r.submittedBy,
+      submissionAt: r.submissionAt,
+      collectorId: r.collectedBy ? collectorId.get(r.collectedBy) : null,
+      collectionAt: r.collectionAt,
+      status: r.status.toUpperCase(),
+      remarks: r.remarks || null
+    });
+  }
+
+  return {
+    companies, collectors, gatePasses,
+    nextIds: { company: companies.length + 1, collector: collectors.length + 1, gatePass: gatePasses.length + 1 }
+  };
+}
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch (e) { /* ignore corrupt storage */ }
+  return buildInitialState();
+}
+function saveState() { localStorage.setItem(STORAGE_KEY, JSON.stringify(DB)); }
+function resetState() { localStorage.removeItem(STORAGE_KEY); DB = buildInitialState(); saveState(); renderAll(); }
+
+DB = loadState();
+
+/* ================= helpers ================= */
+function esc(s) {
+  if (s === null || s === undefined) return "";
+  return String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+}
+function companyName(id) { const c = DB.companies.find((x) => x.id === id); return c ? c.name : "—"; }
+function collectorName(id) { const c = DB.collectors.find((x) => x.id === id); return c ? c.name : null; }
+function fmtDateTime(iso) {
+  if (!iso) return "—";
+  const d = new Date(iso);
+  return d.toLocaleString(undefined, { year: "numeric", month: "short", day: "2-digit", hour: "2-digit", minute: "2-digit" });
+}
+function fmtDate(iso) {
+  if (!iso) return "—";
+  const d = new Date(iso);
+  return d.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "2-digit" });
+}
+function toLocalInput(iso) {
+  if (!iso) return "";
+  const d = new Date(iso);
+  const p = (n) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`;
+}
+
+const HOUR_MS = 3600000, DAY_MS = HOUR_MS * 24;
+function processingHours(gp) {
+  if (!gp.collectionAt) return null;
+  return (new Date(gp.collectionAt) - new Date(gp.submissionAt)) / HOUR_MS;
+}
+function daysWaiting(gp, now = new Date()) { return (now - new Date(gp.submissionAt)) / DAY_MS; }
+function delayCategory(gp, now = new Date()) {
+  if (gp.status === "CANCELLED") return "Annulé";
+  if (gp.status === "PENDING") return daysWaiting(gp, now) > 2 ? "Overdue (>48h)" : "En attente";
+  const h = processingHours(gp) ?? 0;
+  if (h <= 24) return "Rapide (≤24h)";
+  if (h <= 48) return "Normal (24-48h)";
+  return "Lent (>48h)";
+}
+function priority(gp, now = new Date()) { return daysWaiting(gp, now) > 1 ? "Haute" : "Basse"; }
+function formatDuration(hours) {
+  if (hours === null || hours === undefined) return "—";
+  if (hours < 1) return `${Math.round(hours * 60)} min`;
+  const days = Math.floor(hours / 24);
+  const rem = hours - days * 24;
+  if (days > 0) return `${days}j ${rem.toFixed(1)}h`;
+  return `${hours.toFixed(1)}h`;
+}
+function pillFor(text) {
+  const map = {
+    PENDING: "pill-warn", COLLECTED: "pill-good", CANCELLED: "pill-mute",
+    "Rapide (≤24h)": "pill-good", "Normal (24-48h)": "pill-warn", "Lent (>48h)": "pill-serious",
+    "Overdue (>48h)": "pill-crit", "En attente": "pill-warn", "Annulé": "pill-mute",
+    Haute: "pill-crit", Basse: "pill-mute", Active: "pill-good", Inactive: "pill-mute"
+  };
+  const cls = map[text] || "pill-mute";
+  const label = text === "PENDING" ? "Pending" : text === "COLLECTED" ? "Collected" : text === "CANCELLED" ? "Cancelled" : text;
+  return `<span class="pill ${cls}">${esc(label)}</span>`;
+}
+
+/* ================= analytics ================= */
+function computeKpis(rows, now = new Date()) {
+  const total = rows.length;
+  const collected = rows.filter((g) => g.status === "COLLECTED");
+  const pending = rows.filter((g) => g.status === "PENDING");
+  const cancelled = rows.filter((g) => g.status === "CANCELLED");
+  const times = collected.map((g) => processingHours(g)).filter((h) => h !== null);
+  const avg = times.length ? times.reduce((a, b) => a + b, 0) / times.length : 0;
+  const fastest = times.length ? Math.min(...times) : null;
+  const longest = times.length ? Math.max(...times) : null;
+
+  const sod = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const dow = (sod.getDay() + 6) % 7;
+  const sow = new Date(sod); sow.setDate(sow.getDate() - dow);
+  const som = new Date(now.getFullYear(), now.getMonth(), 1);
+  const soy = new Date(now.getFullYear(), 0, 1);
+
+  const cAt = (g) => new Date(g.collectionAt);
+  return {
+    total, collected: collected.length, pending: pending.length, cancelled: cancelled.length,
+    collectionRate: total ? collected.length / total : 0,
+    avgHours: avg, fastestHours: fastest, longestHours: longest,
+    today: collected.filter((g) => cAt(g) >= sod).length,
+    week: collected.filter((g) => cAt(g) >= sow).length,
+    month: collected.filter((g) => cAt(g) >= som).length,
+    year: collected.filter((g) => cAt(g) >= soy).length
+  };
+}
+function computeStatusDistribution(rows) {
+  return [
+    { name: "Collected", value: rows.filter((g) => g.status === "COLLECTED").length, color: "var(--good)" },
+    { name: "Pending", value: rows.filter((g) => g.status === "PENDING").length, color: "var(--warning-ink)" },
+    { name: "Cancelled", value: rows.filter((g) => g.status === "CANCELLED").length, color: "var(--muted)" }
+  ];
+}
+function seriesBuckets(rows, unit, count, now = new Date()) {
+  const out = [];
+  if (unit === "day") {
+    const start = new Date(now.getFullYear(), now.getMonth(), now.getDate() - (count - 1));
+    for (let i = 0; i < count; i++) {
+      const d0 = new Date(start); d0.setDate(d0.getDate() + i);
+      const d1 = new Date(d0); d1.setDate(d1.getDate() + 1);
+      out.push(bucket(rows, d0, d1, d0.toLocaleDateString(undefined, { month: "short", day: "2-digit" })));
+    }
+  } else if (unit === "week") {
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const dow = (today.getDay() + 6) % 7;
+    const thisWeek = new Date(today); thisWeek.setDate(thisWeek.getDate() - dow);
+    const start = new Date(thisWeek); start.setDate(start.getDate() - 7 * (count - 1));
+    for (let i = 0; i < count; i++) {
+      const d0 = new Date(start); d0.setDate(d0.getDate() + i * 7);
+      const d1 = new Date(d0); d1.setDate(d1.getDate() + 7);
+      out.push(bucket(rows, d0, d1, d0.toLocaleDateString(undefined, { month: "short", day: "2-digit" })));
+    }
+  } else {
+    const start = new Date(now.getFullYear(), now.getMonth() - (count - 1), 1);
+    for (let i = 0; i < count; i++) {
+      const d0 = new Date(start.getFullYear(), start.getMonth() + i, 1);
+      const d1 = new Date(start.getFullYear(), start.getMonth() + i + 1, 1);
+      out.push(bucket(rows, d0, d1, d0.toLocaleDateString(undefined, { month: "short", year: "2-digit" })));
+    }
+  }
+  return out;
+}
+function bucket(rows, d0, d1, label) {
+  const submitted = rows.filter((g) => { const d = new Date(g.submissionAt); return d >= d0 && d < d1; }).length;
+  const collected = rows.filter((g) => g.collectionAt && (() => { const d = new Date(g.collectionAt); return d >= d0 && d < d1; })()).length;
+  return { label, submitted, collected };
+}
+function computeCollectorPerformance(rows) {
+  const collected = rows.filter((g) => g.status === "COLLECTED" && g.collectorId);
+  const byC = new Map();
+  for (const g of collected) {
+    const name = collectorName(g.collectorId);
+    const h = processingHours(g);
+    if (!byC.has(name)) byC.set(name, []);
+    byC.get(name).push(h);
+  }
+  const total = collected.length;
+  const rowsOut = [...byC.entries()].map(([name, times]) => ({
+    name, totalCollected: times.length,
+    avgHours: times.reduce((a, b) => a + b, 0) / times.length,
+    fastestHours: Math.min(...times), longestHours: Math.max(...times),
+    share: total ? times.length / total : 0
+  }));
+  rowsOut.sort((a, b) => b.totalCollected - a.totalCollected);
+  return rowsOut.map((r, i) => ({ ...r, rank: i + 1 }));
+}
+function computePivotByCompanyStatus(rows) {
+  const companies = [...new Set(rows.map((g) => companyName(g.companyId)))].sort();
+  const statuses = ["CANCELLED", "COLLECTED", "PENDING"];
+  const out = companies.map((company) => {
+    const counts = {};
+    let total = 0;
+    for (const s of statuses) {
+      const n = rows.filter((g) => companyName(g.companyId) === company && g.status === s).length;
+      counts[s] = n; total += n;
+    }
+    return { company, counts, total };
+  });
+  const grand = {};
+  for (const s of statuses) grand[s] = rows.filter((g) => g.status === s).length;
+  return { rows: out, statuses, grand, grandAll: rows.length };
+}
+function computePivotByCollector(rows) {
+  const names = [...new Set(rows.map((g) => collectorName(g.collectorId) || "(unassigned)"))].sort();
+  const out = names.map((name) => ({
+    name, count: rows.filter((g) => (collectorName(g.collectorId) || "(unassigned)") === name).length
+  }));
+  out.sort((a, b) => b.count - a.count);
+  return out;
+}
+
+/* ================= tiny chart toolkit (inline SVG) ================= */
+const CSSVAL = (name) => getComputedStyle(document.body).getPropertyValue(name).trim();
+
+function svgEl(tag, attrs) {
+  const el = document.createElementNS("http://www.w3.org/2000/svg", tag);
+  for (const k in attrs) el.setAttribute(k, attrs[k]);
+  return el;
+}
+function attachTooltip(container) {
+  const tip = document.createElement("div");
+  tip.className = "chart-tooltip";
+  container.appendChild(tip);
+  return {
+    show(x, y, html) { tip.innerHTML = html; tip.style.left = x + 12 + "px"; tip.style.top = y - 8 + "px"; tip.style.opacity = "1"; },
+    hide() { tip.style.opacity = "0"; }
+  };
+}
+
+// Two-series (submitted/collected) vertical bar or comparison bar chart
+function renderCompareBars(mount, data) {
+  mount.innerHTML = "";
+  const wrap = document.createElement("div"); wrap.className = "svg-wrap"; mount.appendChild(wrap);
+  const w = 420, h = 200, padL = 34, padB = 24, padT = 26, padR = 14;
+  const max = Math.max(1, ...data.map((d) => d.value));
+  const bw = (w - padL - padR) / data.length;
+  const svg = svgEl("svg", { viewBox: `0 0 ${w} ${h}`, width: "100%", height: "220", role: "img", "aria-label": "Bar chart" });
+  // gridlines
+  const steps = Math.min(4, Math.max(1, Math.round(max)));
+  for (let i = 0; i <= steps; i++) {
+    const y = padT + (h - padT - padB) * (1 - i / steps);
+    svg.appendChild(svgEl("line", { x1: padL, x2: w - padR, y1: y, y2: y, stroke: "var(--grid)", "stroke-width": 1 }));
+    const t = svgEl("text", { x: padL - 8, y: y + 3, "text-anchor": "end", "font-size": 9, fill: "var(--muted)", "font-family": "var(--mono)" });
+    t.textContent = Math.round(max * (i / steps)); svg.appendChild(t);
+  }
+  const tip = attachTooltip(wrap);
+  data.forEach((d, i) => {
+    const barW = bw * 0.46;
+    const x = padL + bw * i + (bw - barW) / 2;
+    const bh = (h - padT - padB) * (d.value / max);
+    const y = h - padB - bh;
+    const rect = svgEl("rect", { x, y, width: barW, height: Math.max(bh,1), rx: 4, fill: d.color, class: "bar-mark" });
+    rect.addEventListener("mousemove", (e) => {
+      const r = wrap.getBoundingClientRect();
+      tip.show(e.clientX - r.left, e.clientY - r.top, `<b>${esc(d.label)}</b>: ${d.value}`);
+    });
+    rect.addEventListener("mouseleave", () => tip.hide());
+    svg.appendChild(rect);
+    const lbl = svgEl("text", { x: x + barW / 2, y: h - padB + 14, "text-anchor": "middle", "font-size": 10, fill: "var(--ink-2)" });
+    lbl.textContent = d.label; svg.appendChild(lbl);
+    const val = svgEl("text", { x: x + barW / 2, y: y - 6, "text-anchor": "middle", "font-size": 10.5, fill: "var(--ink)", "font-family": "var(--mono)", "font-weight": 600 });
+    val.textContent = d.value; svg.appendChild(val);
+  });
+  wrap.appendChild(svg);
+}
+
+// donut chart for status distribution
+function renderDonut(mount, data) {
+  mount.innerHTML = "";
+  const wrap = document.createElement("div"); wrap.className = "svg-wrap"; mount.appendChild(wrap);
+  const size = 180, r = 62, stroke = 22, cx = size / 2, cy = size / 2;
+  const total = data.reduce((a, b) => a + b.value, 0) || 1;
+  const circumf = 2 * Math.PI * r;
+  const svg = svgEl("svg", { viewBox: `0 0 ${size} ${size}`, width: "180", height: "180" });
+  let offset = 0;
+  const tip = attachTooltip(wrap);
+  data.forEach((d) => {
+    const frac = d.value / total;
+    const dash = Math.max(frac * circumf - (frac > 0 ? 2 : 0), 0);
+    const circle = svgEl("circle", {
+      cx, cy, r, fill: "none", stroke: d.color, "stroke-width": stroke,
+      "stroke-dasharray": `${dash} ${circumf - dash}`,
+      "stroke-dashoffset": -offset, transform: `rotate(-90 ${cx} ${cy})`, "stroke-linecap": "round", class: "bar-mark"
+    });
+    circle.addEventListener("mousemove", (e) => {
+      const r2 = wrap.getBoundingClientRect();
+      tip.show(e.clientX - r2.left, e.clientY - r2.top, `<b>${esc(d.name)}</b>: ${d.value} (${(frac * 100).toFixed(0)}%)`);
+    });
+    circle.addEventListener("mouseleave", () => tip.hide());
+    svg.appendChild(circle);
+    offset += frac * circumf;
+  });
+  const centerVal = svgEl("text", { x: cx, y: cy - 2, "text-anchor": "middle", "font-size": 20, "font-family": "var(--mono)", "font-weight": 700, fill: "var(--ink)" });
+  centerVal.textContent = total;
+  const centerLbl = svgEl("text", { x: cx, y: cy + 14, "text-anchor": "middle", "font-size": 9, fill: "var(--muted)" });
+  centerLbl.textContent = "total";
+  svg.appendChild(centerVal); svg.appendChild(centerLbl);
+  wrap.appendChild(svg);
+  const legend = document.createElement("div"); legend.className = "chart-legend";
+  legend.innerHTML = data.map((d) => `<span class="item"><span class="swatch" style="background:${d.color}"></span>${esc(d.name)} · ${d.value}</span>`).join("");
+  mount.appendChild(legend);
+}
+
+// two-line evolution chart (submitted vs collected)
+function renderLineSeries(mount, data) {
+  mount.innerHTML = "";
+  const wrap = document.createElement("div"); wrap.className = "svg-wrap"; mount.appendChild(wrap);
+  const w = 760, h = 220, padL = 30, padR = 14, padT = 12, padB = 26;
+  const maxV = Math.max(1, ...data.map((d) => Math.max(d.submitted, d.collected)));
+  const n = data.length;
+  const x = (i) => padL + (n > 1 ? (w - padL - padR) * (i / (n - 1)) : 0);
+  const y = (v) => padT + (h - padT - padB) * (1 - v / maxV);
+  const svg = svgEl("svg", { viewBox: `0 0 ${w} ${h}`, width: "100%", height: "230" });
+  const steps = Math.min(4, Math.max(1, Math.round(maxV)));
+  for (let i = 0; i <= steps; i++) {
+    const yy = padT + (h - padT - padB) * (1 - i / steps);
+    svg.appendChild(svgEl("line", { x1: padL, x2: w - padR, y1: yy, y2: yy, stroke: "var(--grid)", "stroke-width": 1 }));
+    const t = svgEl("text", { x: padL - 6, y: yy + 3, "text-anchor": "end", "font-size": 9, fill: "var(--muted)", "font-family": "var(--mono)" });
+    t.textContent = Math.round(maxV * (i / steps)); svg.appendChild(t);
+  }
+  const tickEvery = Math.max(1, Math.ceil(n / 7));
+  data.forEach((d, i) => {
+    if (i % tickEvery === 0 || i === n - 1) {
+      const t = svgEl("text", { x: x(i), y: h - padB + 14, "text-anchor": "middle", "font-size": 8.5, fill: "var(--muted)" });
+      t.textContent = d.label; svg.appendChild(t);
+    }
+  });
+  function line(key, color) {
+    const pts = data.map((d, i) => `${x(i)},${y(d[key])}`).join(" ");
+    svg.appendChild(svgEl("polyline", { points: pts, fill: "none", stroke: color, "stroke-width": 2, "stroke-linecap": "round", "stroke-linejoin": "round" }));
+  }
+  line("submitted", "var(--cat-blue)");
+  line("collected", "var(--good)");
+  const tip = attachTooltip(wrap);
+  data.forEach((d, i) => {
+    ["submitted", "collected"].forEach((key) => {
+      const color = key === "submitted" ? "var(--cat-blue)" : "var(--good)";
+      const c = svgEl("circle", { cx: x(i), cy: y(d[key]), r: 3, fill: color, class: "dot-mark" });
+      c.addEventListener("mousemove", (e) => {
+        const r = wrap.getBoundingClientRect();
+        tip.show(e.clientX - r.left, e.clientY - r.top, `<b>${esc(d.label)}</b><br>Submitted: ${d.submitted} · Collected: ${d.collected}`);
+      });
+      c.addEventListener("mouseleave", () => tip.hide());
+      svg.appendChild(c);
+    });
+  });
+  wrap.appendChild(svg);
+  const legend = document.createElement("div"); legend.className = "chart-legend";
+  legend.innerHTML = `<span class="item"><span class="swatch" style="background:var(--cat-blue)"></span>Submitted</span><span class="item"><span class="swatch" style="background:var(--good)"></span>Collected</span>`;
+  mount.appendChild(legend);
+}
+
+// horizontal categorical bars (collector performance)
+function renderHBars(mount, rows) {
+  mount.innerHTML = "";
+  const colors = ["var(--cat-blue)", "var(--cat-aqua)", "var(--cat-violet)", "var(--cat-magenta)"];
+  const wrap = document.createElement("div"); wrap.className = "svg-wrap"; mount.appendChild(wrap);
+  const w = 640, rowH = 34, padL = 110, padR = 40, padT = 6;
+  const h = padT + rows.length * rowH + 6;
+  const max = Math.max(1, ...rows.map((r) => r.totalCollected));
+  const svg = svgEl("svg", { viewBox: `0 0 ${w} ${h}`, width: "100%", height: h });
+  const tip = attachTooltip(wrap);
+  rows.forEach((r, i) => {
+    const y = padT + i * rowH;
+    const bw = (w - padL - padR) * (r.totalCollected / max);
+    const label = svgEl("text", { x: padL - 10, y: y + rowH / 2 + 4, "text-anchor": "end", "font-size": 11, fill: "var(--ink-2)" });
+    label.textContent = r.name; svg.appendChild(label);
+    const rect = svgEl("rect", { x: padL, y: y + 6, width: Math.max(bw,2), height: rowH - 14, rx: 4, fill: colors[i % colors.length], class: "bar-mark" });
+    rect.addEventListener("mousemove", (e) => {
+      const rc = wrap.getBoundingClientRect();
+      tip.show(e.clientX - rc.left, e.clientY - rc.top, `<b>${esc(r.name)}</b>: ${r.totalCollected} collected`);
+    });
+    rect.addEventListener("mouseleave", () => tip.hide());
+    svg.appendChild(rect);
+    const val = svgEl("text", { x: padL + bw + 8, y: y + rowH / 2 + 4, "font-size": 11, "font-family": "var(--mono)", fill: "var(--ink)", "font-weight": 600 });
+    val.textContent = r.totalCollected; svg.appendChild(val);
+  });
+  wrap.appendChild(svg);
+}
+
+/* ================= views ================= */
+const NAV_ITEMS = [
+  { id: "dashboard", label: "Dashboard", n: "01" },
+  { id: "tracker", label: "Gate Pass Tracker", n: "02" },
+  { id: "pending", label: "Pending", n: "03" },
+  { id: "collectors", label: "Collector Performance", n: "04" },
+  { id: "companies", label: "Companies", n: "05" },
+  { id: "analytics", label: "Analytics / Pivot", n: "06" }
+];
+let currentView = "dashboard";
+
+function setupNav() {
+  const nav = document.getElementById("nav");
+  nav.innerHTML = NAV_ITEMS.map((it) => `<button data-view="${it.id}"><span class="n">${it.n}</span>${esc(it.label)}</button>`).join("");
+  const mnav = document.getElementById("mobileNav");
+  mnav.innerHTML = NAV_ITEMS.map((it) => `<button data-view="${it.id}">${esc(it.label)}</button>`).join("");
+  document.querySelectorAll("[data-view]").forEach((btn) => {
+    btn.addEventListener("click", () => switchView(btn.getAttribute("data-view")));
+  });
+  document.getElementById("resetBtn").addEventListener("click", () => {
+    if (confirm("Reset all data back to the original 30 seeded gate passes? Local edits will be lost.")) resetState();
+  });
+}
+function switchView(id) {
+  currentView = id;
+  document.querySelectorAll(".view").forEach((v) => v.classList.remove("active"));
+  document.getElementById("view-" + id).classList.add("active");
+  document.querySelectorAll("[data-view]").forEach((b) => b.classList.toggle("active", b.getAttribute("data-view") === id));
+  renderView(id);
+}
+
+function renderView(id) {
+  if (id === "dashboard") renderDashboard();
+  else if (id === "tracker") renderTracker();
+  else if (id === "pending") renderPending();
+  else if (id === "collectors") renderCollectors();
+  else if (id === "companies") renderCompanies();
+  else if (id === "analytics") renderAnalytics();
+}
+function renderAll() { renderView(currentView); }
+
+/* ---- dashboard ---- */
+function renderDashboard() {
+  const mount = document.getElementById("view-dashboard");
+  const now = new Date();
+  const rows = DB.gatePasses;
+  const k = computeKpis(rows, now);
+  mount.innerHTML = `
+    <div class="page-head">
+      <div><span class="eyebrow">Manifest overview</span><h1>Gate Pass Management — Tableau de bord</h1>
+      <p>Suivi des soumissions et collectes · mise à jour automatique</p></div>
+    </div>
+    <div class="grid kpi-row">
+      ${kpiTile("Total soumis", k.total, "")}
+      ${kpiTile("Collectés", k.collected, "", "good")}
+      ${kpiTile("En attente", k.pending, "", "warn")}
+      ${kpiTile("Annulés", k.cancelled, "", "crit")}
+      ${kpiTile("Taux de collecte", (k.collectionRate * 100).toFixed(0) + "%", "", "accent")}
+      ${kpiTile("Temps moyen", k.avgHours ? formatDuration(k.avgHours) : "—", "", "accent")}
+    </div>
+    <div class="grid kpi-row">
+      ${kpiTile("+ rapide", k.fastestHours !== null ? formatDuration(k.fastestHours) : "—", "", "good")}
+      ${kpiTile("+ longue", k.longestHours !== null ? formatDuration(k.longestHours) : "—", "", "crit")}
+      ${kpiTile("Aujourd'hui", k.today, "")}
+      ${kpiTile("Cette semaine", k.week, "")}
+      ${kpiTile("Ce mois", k.month, "")}
+      ${kpiTile("Cette année", k.year, "")}
+    </div>
+    <div class="grid charts-2" style="margin-top:4px;">
+      <div class="card card-pad"><div class="card-title">Soumis vs Collectés</div><div id="chart-compare"></div></div>
+      <div class="card card-pad"><div class="card-title">Répartition des statuts</div><div id="chart-donut"></div></div>
+    </div>
+    <div class="card card-pad" style="margin-top:14px;"><div class="card-title">Évolution quotidienne (14 jours)</div><div id="chart-daily"></div></div>
+    <div class="grid charts-2" style="margin-top:14px;">
+      <div class="card card-pad"><div class="card-title">Évolution hebdomadaire (8 semaines)</div><div id="chart-weekly"></div></div>
+      <div class="card card-pad"><div class="card-title">Évolution mensuelle</div><div id="chart-monthly"></div></div>
+    </div>
+    <div class="card card-pad" style="margin-top:14px;"><div class="card-title">Performance par collecteur</div><div id="chart-collectors"></div></div>
+  `;
+  renderCompareBars(document.getElementById("chart-compare"), [
+    { label: "Soumis", value: k.total, color: "var(--cat-blue)" },
+    { label: "Collectés", value: k.collected, color: "var(--good)" }
+  ]);
+  renderDonut(document.getElementById("chart-donut"), computeStatusDistribution(rows));
+  renderLineSeries(document.getElementById("chart-daily"), seriesBuckets(rows, "day", 14, now));
+  renderLineSeries(document.getElementById("chart-weekly"), seriesBuckets(rows, "week", 8, now));
+  renderLineSeries(document.getElementById("chart-monthly"), seriesBuckets(rows, "month", 12, now));
+  renderHBars(document.getElementById("chart-collectors"), computeCollectorPerformance(rows));
+}
+function kpiTile(label, value, sub, tone) {
+  return `<div class="kpi"><div class="lbl">${esc(label)}</div><div class="val ${tone || ""}">${esc(value)}</div>${sub ? `<div class="sub">${esc(sub)}</div>` : ""}</div>`;
+}
+
+/* ---- tracker ---- */
+let trackerFilters = { search: "", status: "", companyId: "", collectorId: "" };
+function renderTracker() {
+  const mount = document.getElementById("view-tracker");
+  const rows = filteredGatePasses();
+  mount.innerHTML = `
+    <div class="page-head">
+      <div><span class="eyebrow">Ledger</span><h1>Gate Pass Tracker</h1><p>${rows.length} of ${DB.gatePasses.length} gate passes</p></div>
+      <button class="btn btn-primary" id="btnNewGp">+ New Gate Pass</button>
+    </div>
+    <div class="card card-pad toolbar">
+      <input type="text" id="fSearch" placeholder="Search number, company, submitter…" value="${esc(trackerFilters.search)}">
+      <select id="fStatus">
+        <option value="">All statuses</option>
+        <option value="PENDING">Pending</option><option value="COLLECTED">Collected</option><option value="CANCELLED">Cancelled</option>
+      </select>
+      <select id="fCompany"><option value="">All companies</option>${DB.companies.map((c) => `<option value="${c.id}">${esc(c.name)}</option>`).join("")}</select>
+      <select id="fCollector"><option value="">All collectors</option>${DB.collectors.map((c) => `<option value="${c.id}">${esc(c.name)}</option>`).join("")}</select>
+    </div>
+    <div class="card table-wrap table-wide">
+      <table>
+        <thead><tr><th>Gate Pass #</th><th>Company</th><th>Type</th><th>Submission</th><th>Collector</th><th>Collection</th><th>Status</th><th>Delay</th><th class="num">Processing</th><th>Remarks</th><th></th></tr></thead>
+        <tbody id="trackerBody"></tbody>
+      </table>
+    </div>
+  `;
+  document.getElementById("fStatus").value = trackerFilters.status;
+  document.getElementById("fCompany").value = trackerFilters.companyId;
+  document.getElementById("fCollector").value = trackerFilters.collectorId;
+  document.getElementById("fSearch").addEventListener("input", (e) => { trackerFilters.search = e.target.value; renderTrackerBody(); });
+  document.getElementById("fStatus").addEventListener("change", (e) => { trackerFilters.status = e.target.value; renderTrackerBody(); });
+  document.getElementById("fCompany").addEventListener("change", (e) => { trackerFilters.companyId = e.target.value; renderTrackerBody(); });
+  document.getElementById("fCollector").addEventListener("change", (e) => { trackerFilters.collectorId = e.target.value; renderTrackerBody(); });
+  document.getElementById("btnNewGp").addEventListener("click", () => openGatePassModal(null));
+  renderTrackerBody();
+}
+function filteredGatePasses() {
+  const f = trackerFilters;
+  return DB.gatePasses
+    .slice()
+    .sort((a, b) => new Date(b.submissionAt) - new Date(a.submissionAt))
+    .filter((g) => {
+      if (f.status && g.status !== f.status) return false;
+      if (f.companyId && String(g.companyId) !== String(f.companyId)) return false;
+      if (f.collectorId && String(g.collectorId || "") !== String(f.collectorId)) return false;
+      if (f.search) {
+        const hay = `${g.number} ${companyName(g.companyId)} ${g.submittedBy}`.toLowerCase();
+        if (!hay.includes(f.search.toLowerCase())) return false;
+      }
+      return true;
+    });
+}
+function renderTrackerBody() {
+  const rows = filteredGatePasses();
+  document.querySelector(".page-head p") && (document.querySelector("#view-tracker .page-head p").textContent = `${rows.length} of ${DB.gatePasses.length} gate passes`);
+  const body = document.getElementById("trackerBody");
+  if (!rows.length) { body.innerHTML = `<tr class="empty-row"><td colspan="11">No gate passes match these filters.</td></tr>`; return; }
+  body.innerHTML = rows.map((g) => {
+    const hours = processingHours(g);
+    return `<tr>
+      <td class="mono-cell">${esc(g.number)}</td>
+      <td>${esc(companyName(g.companyId))}</td>
+      <td>${esc(g.requestType)}</td>
+      <td class="mono-cell">${fmtDateTime(g.submissionAt)}</td>
+      <td>${esc(collectorName(g.collectorId) || "—")}</td>
+      <td class="mono-cell">${fmtDateTime(g.collectionAt)}</td>
+      <td>${pillFor(g.status)}</td>
+      <td>${pillFor(delayCategory(g))}</td>
+      <td class="num">${hours !== null ? formatDuration(hours) : "—"}</td>
+      <td style="max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--ink-2);">${esc(g.remarks || "")}</td>
+      <td><div class="actions-cell">
+        <button class="btn-link link-edit" data-act="edit" data-id="${g.id}">Edit</button>
+        ${g.status === "PENDING" ? `<button class="btn-link link-warn" data-act="cancel" data-id="${g.id}">Cancel</button>` : ""}
+        <button class="btn-link link-danger" data-act="delete" data-id="${g.id}">Delete</button>
+      </div></td>
+    </tr>`;
+  }).join("");
+  body.querySelectorAll("[data-act]").forEach((btn) => {
+    const id = Number(btn.getAttribute("data-id"));
+    const act = btn.getAttribute("data-act");
+    btn.addEventListener("click", () => {
+      if (act === "edit") openGatePassModal(id);
+      else if (act === "cancel") cancelGatePass(id);
+      else if (act === "delete") deleteGatePass(id);
+    });
+  });
+}
+function cancelGatePass(id) {
+  const remarks = prompt("Reason for cancellation (optional):") || null;
+  const gp = DB.gatePasses.find((g) => g.id === id);
+  gp.status = "CANCELLED"; gp.remarks = remarks;
+  saveState(); renderAll();
+}
+function deleteGatePass(id) {
+  if (!confirm("Delete this gate pass? This cannot be undone.")) return;
+  DB.gatePasses = DB.gatePasses.filter((g) => g.id !== id);
+  saveState(); renderAll();
+}
+
+/* ---- gate pass modal ---- */
+function nextGpNumber() {
+  const year = new Date().getFullYear();
+  return `GP-${year}-${String(DB.gatePasses.length + 1).padStart(3, "0")}`;
+}
+function openGatePassModal(id) {
+  const gp = id ? DB.gatePasses.find((g) => g.id === id) : null;
+  const overlay = document.getElementById("overlay");
+  const body = document.getElementById("modalBody");
+  body.innerHTML = `
+    <div class="kicker">${gp ? "Edit record" : "New record"}</div>
+    <h2>${gp ? `Edit ${esc(gp.number)}` : "New Gate Pass"}</h2>
+    <form id="gpForm" style="margin-top:14px;">
+      <div class="field">
+        <label>Company</label>
+        <select id="gpCompany"><option value="">— Select existing —</option>${DB.companies.map((c) => `<option value="${c.id}" ${gp && gp.companyId === c.id ? "selected" : ""}>${esc(c.name)}</option>`).join("")}</select>
+        <input type="text" id="gpNewCompany" placeholder="Or type a new company name" style="margin-top:8px;">
+      </div>
+      <div class="field-row">
+        <div class="field"><label>Request Type</label>
+          <select id="gpType">${REQUEST_TYPES.map((t) => `<option ${gp && gp.requestType === t ? "selected" : ""}>${t}</option>`).join("")}</select>
+        </div>
+        <div class="field"><label>Submitted By</label><input type="text" id="gpSubmittedBy" required value="${esc(gp ? gp.submittedBy : "")}"></div>
+      </div>
+      <div class="field"><label>Submission Date & Time</label>
+        <input type="datetime-local" id="gpSubmissionAt" required value="${toLocalInput(gp ? gp.submissionAt : new Date().toISOString())}"></div>
+      <div class="field"><label>Status</label>
+        <select id="gpStatus">
+          <option value="PENDING" ${gp && gp.status === "PENDING" ? "selected" : ""}>Pending</option>
+          <option value="COLLECTED" ${gp && gp.status === "COLLECTED" ? "selected" : ""}>Collected</option>
+          <option value="CANCELLED" ${gp && gp.status === "CANCELLED" ? "selected" : ""}>Cancelled</option>
+        </select>
+      </div>
+      <div class="collect-box" id="collectBox" style="display:none;">
+        <div class="field-row">
+          <div class="field"><label>Collected By</label>
+            <select id="gpCollector"><option value="">— Select —</option>${DB.collectors.map((c) => `<option value="${c.id}" ${gp && gp.collectorId === c.id ? "selected" : ""}>${esc(c.name)}</option>`).join("")}</select>
+          </div>
+          <div class="field"><label>Collection Date & Time</label>
+            <input type="datetime-local" id="gpCollectionAt" value="${toLocalInput(gp ? gp.collectionAt : null)}"></div>
+        </div>
+      </div>
+      <div class="field"><label>Remarks</label><textarea id="gpRemarks" rows="2">${esc(gp ? gp.remarks : "")}</textarea></div>
+      <p class="err-msg" id="gpErr" style="display:none;"></p>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-ghost" id="gpCancelBtn">Cancel</button>
+        <button type="submit" class="btn btn-primary">${gp ? "Save changes" : "Create Gate Pass"}</button>
+      </div>
+    </form>
+  `;
+  overlay.classList.add("open");
+  const statusSel = document.getElementById("gpStatus");
+  const collectBox = document.getElementById("collectBox");
+  const syncCollectBox = () => { collectBox.style.display = statusSel.value === "COLLECTED" ? "block" : "none"; };
+  syncCollectBox();
+  statusSel.addEventListener("change", syncCollectBox);
+  document.getElementById("gpCancelBtn").addEventListener("click", closeModal);
+  document.getElementById("gpForm").addEventListener("submit", (e) => {
+    e.preventDefault();
+    const companySel = document.getElementById("gpCompany").value;
+    const newCompany = document.getElementById("gpNewCompany").value.trim();
+    let companyId = companySel ? Number(companySel) : null;
+    if (!companyId && newCompany) {
+      const existing = DB.companies.find((c) => c.name.toLowerCase() === newCompany.toLowerCase());
+      if (existing) companyId = existing.id;
+      else {
+        companyId = DB.nextIds.company++;
+        DB.companies.push({ id: companyId, name: newCompany, sector: null, contact: null, phone: null, email: null, notes: null });
+      }
+    }
+    if (!companyId) { showErr("gpErr", "Select or type a company."); return; }
+    const status = statusSel.value;
+    const collectorVal = document.getElementById("gpCollector").value;
+    const collectionAtVal = document.getElementById("gpCollectionAt").value;
+    const record = {
+      companyId,
+      requestType: document.getElementById("gpType").value,
+      submittedBy: document.getElementById("gpSubmittedBy").value.trim(),
+      submissionAt: new Date(document.getElementById("gpSubmissionAt").value).toISOString(),
+      status,
+      collectorId: status === "COLLECTED" && collectorVal ? Number(collectorVal) : null,
+      collectionAt: status === "COLLECTED" && collectionAtVal ? new Date(collectionAtVal).toISOString() : null,
+      remarks: document.getElementById("gpRemarks").value.trim() || null
+    };
+    if (gp) Object.assign(gp, record);
+    else DB.gatePasses.push({ id: DB.nextIds.gatePass++, number: nextGpNumber(), ...record });
+    saveState(); closeModal(); renderAll();
+  });
+}
+function showErr(id, msg) { const el = document.getElementById(id); el.textContent = msg; el.style.display = "block"; }
+function closeModal() { document.getElementById("overlay").classList.remove("open"); document.getElementById("modalBody").innerHTML = ""; }
+document.getElementById("overlay").addEventListener("click", (e) => { if (e.target.id === "overlay") closeModal(); });
+
+/* ---- pending ---- */
+function renderPending() {
+  const mount = document.getElementById("view-pending");
+  const now = new Date();
+  const rows = DB.gatePasses
+    .filter((g) => g.status === "PENDING")
+    .map((g) => ({ gp: g, days: daysWaiting(g, now), prio: priority(g, now) }))
+    .sort((a, b) => b.days - a.days);
+  const overdue = rows.filter((r) => r.days > 2).length;
+  mount.innerHTML = `
+    <div class="page-head"><div><span class="eyebrow">Awaiting collection</span><h1>Pending Gate Pass</h1><p>Sorted by longest waiting time first</p></div></div>
+    <div class="grid kpi-row" style="grid-template-columns:repeat(2,1fr); max-width:520px;">
+      ${kpiTile("Total en attente", rows.length, "", "warn")}
+      ${kpiTile("Dont en retard (>48h)", overdue, "", "crit")}
+    </div>
+    <div class="card table-wrap" style="margin-top:14px;">
+      <table>
+        <thead><tr><th>Gate Pass #</th><th>Company</th><th>Submission</th><th class="num">Jours d'attente</th><th>Priorité</th><th></th></tr></thead>
+        <tbody>
+          ${rows.length ? rows.map((r) => `
+            <tr>
+              <td class="mono-cell">${esc(r.gp.number)}</td>
+              <td>${esc(companyName(r.gp.companyId))}</td>
+              <td class="mono-cell">${fmtDateTime(r.gp.submissionAt)}</td>
+              <td class="num">${r.days.toFixed(1)}</td>
+              <td>${pillFor(r.prio)}</td>
+              <td><div class="actions-cell">
+                <button class="btn-link" style="color:var(--good);" data-act="collect" data-id="${r.gp.id}">Mark Collected</button>
+                <button class="btn-link link-danger" data-act="cancel" data-id="${r.gp.id}">Cancel</button>
+              </div></td>
+            </tr>`).join("") : `<tr class="empty-row"><td colspan="6">No pending gate passes. 🎉</td></tr>`}
+        </tbody>
+      </table>
+    </div>
+  `;
+  mount.querySelectorAll("[data-act]").forEach((btn) => {
+    const id = Number(btn.getAttribute("data-id"));
+    const act = btn.getAttribute("data-act");
+    btn.addEventListener("click", () => { if (act === "collect") openGatePassModal(id); else cancelGatePass(id); });
+  });
+}
+
+/* ---- collectors ---- */
+function renderCollectors() {
+  const mount = document.getElementById("view-collectors");
+  const perf = computeCollectorPerformance(DB.gatePasses);
+  mount.innerHTML = `
+    <div class="page-head">
+      <div><span class="eyebrow">Field team</span><h1>Collector Performance</h1><p>Performance des collecteurs</p></div>
+      <button class="btn btn-primary" id="btnNewCollector">+ New Collector</button>
+    </div>
+    <div class="card table-wrap">
+      <table>
+        <thead><tr><th>Collecteur</th><th class="num">Total collecté</th><th class="num">Temps moyen</th><th class="num">Plus rapide</th><th class="num">Plus long</th><th class="num">% des collectes</th><th class="num">Classement</th></tr></thead>
+        <tbody>${perf.length ? perf.map((r) => `
+          <tr>
+            <td>${esc(r.name)}</td><td class="num">${r.totalCollected}</td><td class="num">${formatDuration(r.avgHours)}</td>
+            <td class="num">${formatDuration(r.fastestHours)}</td><td class="num">${formatDuration(r.longestHours)}</td>
+            <td class="num">${(r.share * 100).toFixed(0)}%</td><td class="num">${pillFor("Active").replace("Active", "#" + r.rank)}</td>
+          </tr>`).join("") : `<tr class="empty-row"><td colspan="7">No collections recorded yet.</td></tr>`}
+        </tbody>
+      </table>
+    </div>
+    <h2 style="font-size:13px;margin:20px 0 10px;">Manage collectors</h2>
+    <div class="card table-wrap">
+      <table>
+        <thead><tr><th>Name</th><th>Phone</th><th>Email</th><th>Status</th><th class="num">Gate Passes</th><th></th></tr></thead>
+        <tbody>${DB.collectors.map((c) => `
+          <tr>
+            <td>${esc(c.name)}</td><td>${esc(c.phone || "—")}</td><td>${esc(c.email || "—")}</td>
+            <td>${pillFor(c.active ? "Active" : "Inactive")}</td>
+            <td class="num">${DB.gatePasses.filter((g) => g.collectorId === c.id).length}</td>
+            <td><div class="actions-cell">
+              <button class="btn-link link-edit" data-cact="edit" data-id="${c.id}">Edit</button>
+              <button class="btn-link link-danger" data-cact="delete" data-id="${c.id}">Delete</button>
+            </div></td>
+          </tr>`).join("")}
+        </tbody>
+      </table>
+    </div>
+  `;
+  document.getElementById("btnNewCollector").addEventListener("click", () => openCollectorModal(null));
+  mount.querySelectorAll("[data-cact]").forEach((btn) => {
+    const id = Number(btn.getAttribute("data-id"));
+    const act = btn.getAttribute("data-cact");
+    btn.addEventListener("click", () => {
+      if (act === "edit") openCollectorModal(id);
+      else {
+        if (DB.gatePasses.some((g) => g.collectorId === id)) { alert("Cannot delete: this collector is still linked to gate passes."); return; }
+        if (!confirm("Delete this collector?")) return;
+        DB.collectors = DB.collectors.filter((c) => c.id !== id);
+        saveState(); renderAll();
+      }
+    });
+  });
+}
+function openCollectorModal(id) {
+  const c = id ? DB.collectors.find((x) => x.id === id) : null;
+  const overlay = document.getElementById("overlay"), body = document.getElementById("modalBody");
+  body.innerHTML = `
+    <div class="kicker">${c ? "Edit record" : "New record"}</div>
+    <h2>${c ? `Edit ${esc(c.name)}` : "New Collector"}</h2>
+    <form id="cForm" style="margin-top:14px;">
+      <div class="field"><label>Name</label><input type="text" id="cName" required value="${esc(c ? c.name : "")}"></div>
+      <div class="field-row">
+        <div class="field"><label>Phone</label><input type="text" id="cPhone" value="${esc(c ? c.phone : "")}"></div>
+        <div class="field"><label>Email</label><input type="text" id="cEmail" value="${esc(c ? c.email : "")}"></div>
+      </div>
+      <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--ink-2);margin-bottom:8px;">
+        <input type="checkbox" id="cActive" ${!c || c.active ? "checked" : ""}> Active
+      </label>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-ghost" id="cCancelBtn">Cancel</button>
+        <button type="submit" class="btn btn-primary">Save</button>
+      </div>
+    </form>`;
+  overlay.classList.add("open");
+  document.getElementById("cCancelBtn").addEventListener("click", closeModal);
+  document.getElementById("cForm").addEventListener("submit", (e) => {
+    e.preventDefault();
+    const rec = { name: document.getElementById("cName").value.trim(), phone: document.getElementById("cPhone").value.trim() || null, email: document.getElementById("cEmail").value.trim() || null, active: document.getElementById("cActive").checked };
+    if (c) Object.assign(c, rec); else DB.collectors.push({ id: DB.nextIds.collector++, ...rec });
+    saveState(); closeModal(); renderAll();
+  });
+}
+
+/* ---- companies ---- */
+function renderCompanies() {
+  const mount = document.getElementById("view-companies");
+  mount.innerHTML = `
+    <div class="page-head">
+      <div><span class="eyebrow">Clients</span><h1>Companies</h1><p>Client companies tracked in the gate pass system</p></div>
+      <button class="btn btn-primary" id="btnNewCompany">+ New Company</button>
+    </div>
+    <div class="card table-wrap">
+      <table>
+        <thead><tr><th>Company</th><th>Sector</th><th>Contact</th><th>Phone</th><th>Email</th><th class="num">Gate Passes</th><th></th></tr></thead>
+        <tbody>${DB.companies.slice().sort((a, b) => a.name.localeCompare(b.name)).map((c) => `
+          <tr>
+            <td>${esc(c.name)}</td><td>${esc(c.sector || "—")}</td><td>${esc(c.contact || "—")}</td>
+            <td>${esc(c.phone || "—")}</td><td>${esc(c.email || "—")}</td>
+            <td class="num">${DB.gatePasses.filter((g) => g.companyId === c.id).length}</td>
+            <td><div class="actions-cell">
+              <button class="btn-link link-edit" data-coact="edit" data-id="${c.id}">Edit</button>
+              <button class="btn-link link-danger" data-coact="delete" data-id="${c.id}">Delete</button>
+            </div></td>
+          </tr>`).join("")}
+        </tbody>
+      </table>
+    </div>
+  `;
+  document.getElementById("btnNewCompany").addEventListener("click", () => openCompanyModal(null));
+  mount.querySelectorAll("[data-coact]").forEach((btn) => {
+    const id = Number(btn.getAttribute("data-id"));
+    const act = btn.getAttribute("data-coact");
+    btn.addEventListener("click", () => {
+      if (act === "edit") openCompanyModal(id);
+      else {
+        if (DB.gatePasses.some((g) => g.companyId === id)) { alert("Cannot delete: this company still has gate passes linked to it."); return; }
+        if (!confirm("Delete this company?")) return;
+        DB.companies = DB.companies.filter((c) => c.id !== id);
+        saveState(); renderAll();
+      }
+    });
+  });
+}
+function openCompanyModal(id) {
+  const c = id ? DB.companies.find((x) => x.id === id) : null;
+  const overlay = document.getElementById("overlay"), body = document.getElementById("modalBody");
+  body.innerHTML = `
+    <div class="kicker">${c ? "Edit record" : "New record"}</div>
+    <h2>${c ? `Edit ${esc(c.name)}` : "New Company"}</h2>
+    <form id="coForm" style="margin-top:14px;">
+      <div class="field"><label>Company Name</label><input type="text" id="coName" required value="${esc(c ? c.name : "")}"></div>
+      <div class="field"><label>Sector</label><input type="text" id="coSector" value="${esc(c ? c.sector : "")}"></div>
+      <div class="field"><label>Contact Person</label><input type="text" id="coContact" value="${esc(c ? c.contact : "")}"></div>
+      <div class="field-row">
+        <div class="field"><label>Phone</label><input type="text" id="coPhone" value="${esc(c ? c.phone : "")}"></div>
+        <div class="field"><label>Email</label><input type="text" id="coEmail" value="${esc(c ? c.email : "")}"></div>
+      </div>
+      <div class="field"><label>Notes</label><textarea id="coNotes" rows="2">${esc(c ? c.notes : "")}</textarea></div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-ghost" id="coCancelBtn">Cancel</button>
+        <button type="submit" class="btn btn-primary">Save</button>
+      </div>
+    </form>`;
+  overlay.classList.add("open");
+  document.getElementById("coCancelBtn").addEventListener("click", closeModal);
+  document.getElementById("coForm").addEventListener("submit", (e) => {
+    e.preventDefault();
+    const rec = {
+      name: document.getElementById("coName").value.trim(),
+      sector: document.getElementById("coSector").value.trim() || null,
+      contact: document.getElementById("coContact").value.trim() || null,
+      phone: document.getElementById("coPhone").value.trim() || null,
+      email: document.getElementById("coEmail").value.trim() || null,
+      notes: document.getElementById("coNotes").value.trim() || null
+    };
+    if (c) Object.assign(c, rec); else DB.companies.push({ id: DB.nextIds.company++, ...rec });
+    saveState(); closeModal(); renderAll();
+  });
+}
+
+/* ---- analytics / pivot ---- */
+function renderAnalytics() {
+  const mount = document.getElementById("view-analytics");
+  const rows = DB.gatePasses;
+  const byCompany = computePivotByCompanyStatus(rows);
+  const byCollector = computePivotByCollector(rows);
+  const statusLabel = { CANCELLED: "Cancelled", COLLECTED: "Collected", PENDING: "Pending" };
+  mount.innerHTML = `
+    <div class="page-head"><div><span class="eyebrow">Cross-tabs</span><h1>Analyse Pivot</h1><p>Tableaux croisés dynamiques</p></div></div>
+    <div class="grid pivot-grid">
+      <div class="card table-wrap">
+        <div class="card-pad" style="padding-bottom:0;"><div class="card-title">Gate Pass par société et statut</div></div>
+        <table>
+          <thead><tr><th>Company</th>${byCompany.statuses.map((s) => `<th class="num">${statusLabel[s]}</th>`).join("")}<th class="num">Grand Total</th></tr></thead>
+          <tbody>
+            ${byCompany.rows.map((r) => `<tr><td>${esc(r.company)}</td>${byCompany.statuses.map((s) => `<td class="num">${r.counts[s] || ""}</td>`).join("")}<td class="num" style="font-weight:700;">${r.total}</td></tr>`).join("")}
+          </tbody>
+          <tfoot><tr style="background:var(--surface-2);font-weight:700;"><td>Grand Total</td>${byCompany.statuses.map((s) => `<td class="num">${byCompany.grand[s]}</td>`).join("")}<td class="num">${byCompany.grandAll}</td></tr></tfoot>
+        </table>
+      </div>
+      <div class="card table-wrap">
+        <div class="card-pad" style="padding-bottom:0;"><div class="card-title">Gate Pass par collecteur</div></div>
+        <table>
+          <thead><tr><th>Row Labels</th><th class="num">Count of Gate Pass Number</th></tr></thead>
+          <tbody>${byCollector.map((r) => `<tr><td>${esc(r.name)}</td><td class="num">${r.count}</td></tr>`).join("")}</tbody>
+          <tfoot><tr style="background:var(--surface-2);font-weight:700;"><td>Grand Total</td><td class="num">${rows.length}</td></tr></tfoot>
+        </table>
+      </div>
+    </div>
+  `;
+}
+
+/* ================= boot ================= */
+setupNav();
+switchView("dashboard");
+</script>
