@@ -1,0 +1,63 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+enum GatePassStatus {
+  PENDING
+  COLLECTED
+  CANCELLED
+}
+
+model Company {
+  id         Int        @id @default(autoincrement())
+  name       String     @unique
+  sector     String?
+  contact    String?
+  phone      String?
+  email      String?
+  notes      String?
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+  gatePasses GatePass[]
+}
+
+model Collector {
+  id         Int        @id @default(autoincrement())
+  name       String     @unique
+  phone      String?
+  email      String?
+  active     Boolean    @default(true)
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+  gatePasses GatePass[]
+}
+
+model GatePass {
+  id              Int            @id @default(autoincrement())
+  number          String         @unique
+  companyId       Int
+  company         Company        @relation(fields: [companyId], references: [id])
+  requestType     String
+  submittedBy     String
+  submissionAt    DateTime
+  collectorId     Int?
+  collector       Collector?     @relation(fields: [collectorId], references: [id])
+  collectionAt    DateTime?
+  status          GatePassStatus @default(PENDING)
+  remarks         String?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  @@index([status])
+  @@index([companyId])
+  @@index([collectorId])
+}
