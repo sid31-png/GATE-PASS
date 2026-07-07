@@ -1,86 +1,92 @@
-<title>Gate Pass CRM — Manifest</title>
+<title>RCH · Gate Pass CRM</title>
 <style>
   :root {
-    --paper: #f5f7f6;
+    --paper: #fafafc;
     --surface: #ffffff;
-    --surface-2: #eef1f0;
-    --ink: #101b22;
-    --ink-2: #4b5b63;
-    --muted: #7c8991;
-    --border: rgba(16,27,34,.12);
-    --border-strong: rgba(16,27,34,.22);
-    --accent: #9a5c14;
-    --accent-ink: #78460f;
-    --accent-soft: rgba(184,116,31,.14);
+    --surface-2: #f4f2f8;
+    --ink: #181d27;
+    --ink-2: #535862;
+    --muted: #8d94a3;
+    --border: rgba(24,29,39,.10);
+    --border-strong: rgba(24,29,39,.20);
+    --brand: #af1882;
+    --brand-hover: #8f1468;
+    --brand-soft: rgba(175,24,130,.10);
+    --navy: #293d81;
+    --navy-deep: #1c2a5e;
+    --navy-light: #4258b3;
     --good: #0b7d0b;
     --warning-ink: #8a5b00;
     --warning-bg: #fde9bd;
     --serious: #c25a34;
+    --serious-bg: #f8ddce;
     --critical: #d03b3b;
     --critical-bg: #fbdcdc;
     --good-bg: #d9f0d3;
-    --serious-bg: #f8ddce;
-    --cancelled-bg: #e4e7e6;
-    --cancelled-ink: #55625f;
-    --cat-blue: #2a78d6;
-    --cat-aqua: #1baf7a;
-    --cat-violet: #4a3aa7;
-    --cat-magenta: #b8386e;
-    --grid: #e1e6e5;
-    --shadow: 0 1px 2px rgba(16,27,34,.06), 0 8px 24px -12px rgba(16,27,34,.18);
-    --mono: ui-monospace, "SF Mono", "Cascadia Code", "JetBrains Mono", Menlo, Consolas, monospace;
-    --sans: ui-sans-serif, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --cancelled-bg: #e7e7ee;
+    --cancelled-ink: #5b5f6d;
+    --cat-1: #af1882;
+    --cat-2: #1baf7a;
+    --cat-3: #4258b3;
+    --cat-4: #eb6834;
+    --grid: #e9e7f0;
+    --shadow: 0 1px 2px rgba(24,29,39,.05), 0 8px 24px -12px rgba(24,29,39,.16);
+    --sans: "Inter", -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     --radius: 10px;
     color-scheme: light;
   }
-  :root[data-theme="dark"], @media (prefers-color-scheme: dark) { }
   @media (prefers-color-scheme: dark) {
     :root {
-      --paper: #0d1418;
-      --surface: #131c21;
-      --surface-2: #1a252b;
-      --ink: #eef2f1;
-      --ink-2: #b7c2c5;
-      --muted: #86928f;
-      --border: rgba(255,255,255,.12);
-      --border-strong: rgba(255,255,255,.22);
-      --accent: #d99a45;
-      --accent-ink: #f0b968;
-      --accent-soft: rgba(217,154,69,.16);
+      --paper: #0e0f16;
+      --surface: #171923;
+      --surface-2: #1f2230;
+      --ink: #f1f1f6;
+      --ink-2: #c7c9d6;
+      --muted: #90939f;
+      --border: rgba(255,255,255,.10);
+      --border-strong: rgba(255,255,255,.20);
+      --brand: #e254a8;
+      --brand-hover: #ef6bb8;
+      --brand-soft: rgba(226,84,168,.16);
+      --navy: #4258b3;
+      --navy-deep: #14192b;
+      --navy-light: #5f79d1;
       --good: #35b53b;
       --warning-ink: #f0c14b;
       --warning-bg: #3a3013;
       --serious: #e8875c;
+      --serious-bg: #3a2115;
       --critical: #e8615f;
       --critical-bg: #3a1616;
       --good-bg: #123a17;
-      --serious-bg: #3a2115;
-      --cancelled-bg: #232f34;
-      --cancelled-ink: #a3b0ae;
-      --cat-blue: #3987e5;
-      --cat-aqua: #199e70;
-      --cat-violet: #9085e9;
-      --cat-magenta: #d55181;
-      --grid: #263136;
+      --cancelled-bg: #262936;
+      --cancelled-ink: #a9acb9;
+      --cat-1: #e254a8;
+      --cat-2: #199e70;
+      --cat-3: #5f79d1;
+      --cat-4: #d9642e;
+      --grid: #262838;
       color-scheme: dark;
     }
   }
   :root[data-theme="dark"] {
-    --paper: #0d1418; --surface: #131c21; --surface-2: #1a252b; --ink: #eef2f1; --ink-2: #b7c2c5; --muted: #86928f;
-    --border: rgba(255,255,255,.12); --border-strong: rgba(255,255,255,.22);
-    --accent: #d99a45; --accent-ink: #f0b968; --accent-soft: rgba(217,154,69,.16);
+    --paper: #0e0f16; --surface: #171923; --surface-2: #1f2230; --ink: #f1f1f6; --ink-2: #c7c9d6; --muted: #90939f;
+    --border: rgba(255,255,255,.10); --border-strong: rgba(255,255,255,.20);
+    --brand: #e254a8; --brand-hover: #ef6bb8; --brand-soft: rgba(226,84,168,.16);
+    --navy: #4258b3; --navy-deep: #14192b; --navy-light: #5f79d1;
     --good: #35b53b; --warning-ink: #f0c14b; --warning-bg: #3a3013; --serious: #e8875c; --critical: #e8615f;
-    --critical-bg: #3a1616; --good-bg: #123a17; --serious-bg: #3a2115; --cancelled-bg: #232f34; --cancelled-ink: #a3b0ae;
-    --cat-blue: #3987e5; --cat-aqua: #199e70; --cat-violet: #9085e9; --cat-magenta: #d55181; --grid: #263136;
+    --critical-bg: #3a1616; --good-bg: #123a17; --cancelled-bg: #262936; --cancelled-ink: #a9acb9;
+    --cat-1: #e254a8; --cat-2: #199e70; --cat-3: #5f79d1; --cat-4: #d9642e; --grid: #262838;
     color-scheme: dark;
   }
   :root[data-theme="light"] {
-    --paper: #f5f7f6; --surface: #ffffff; --surface-2: #eef1f0; --ink: #101b22; --ink-2: #4b5b63; --muted: #7c8991;
-    --border: rgba(16,27,34,.12); --border-strong: rgba(16,27,34,.22);
-    --accent: #9a5c14; --accent-ink: #78460f; --accent-soft: rgba(184,116,31,.14);
+    --paper: #fafafc; --surface: #ffffff; --surface-2: #f4f2f8; --ink: #181d27; --ink-2: #535862; --muted: #8d94a3;
+    --border: rgba(24,29,39,.10); --border-strong: rgba(24,29,39,.20);
+    --brand: #af1882; --brand-hover: #8f1468; --brand-soft: rgba(175,24,130,.10);
+    --navy: #293d81; --navy-deep: #1c2a5e; --navy-light: #4258b3;
     --good: #0b7d0b; --warning-ink: #8a5b00; --warning-bg: #fde9bd; --serious: #c25a34; --critical: #d03b3b;
-    --critical-bg: #fbdcdc; --good-bg: #d9f0d3; --serious-bg: #f8ddce; --cancelled-bg: #e4e7e6; --cancelled-ink: #55625f;
-    --cat-blue: #2a78d6; --cat-aqua: #1baf7a; --cat-violet: #4a3aa7; --cat-magenta: #b8386e; --grid: #e1e6e5;
+    --critical-bg: #fbdcdc; --good-bg: #d9f0d3; --cancelled-bg: #e7e7ee; --cancelled-ink: #5b5f6d;
+    --cat-1: #af1882; --cat-2: #1baf7a; --cat-3: #4258b3; --cat-4: #eb6834; --grid: #e9e7f0;
     color-scheme: light;
   }
 
@@ -93,48 +99,41 @@
     font-size: 14px;
     line-height: 1.5;
   }
-  ::selection { background: var(--accent-soft); }
-  h1, h2, h3 { text-wrap: balance; font-family: var(--mono); letter-spacing: -0.01em; margin: 0; }
-  .tabular { font-variant-numeric: tabular-nums; font-family: var(--mono); }
+  ::selection { background: var(--brand-soft); }
+  h1, h2, h3 { text-wrap: balance; letter-spacing: -0.01em; margin: 0; font-weight: 700; }
+  .tabular { font-variant-numeric: tabular-nums; }
   button { font-family: inherit; }
   a { color: inherit; }
 
   .app { display: flex; min-height: 100vh; }
 
-  /* ---------- sidebar ---------- */
+  /* ---------- sidebar (fixed light brand shell, both themes) ---------- */
   .sidebar {
-    width: 236px; flex-shrink: 0;
-    background: var(--ink); color: #eef2f1;
+    width: 240px; flex-shrink: 0;
+    background: #ffffff; color: var(--ink);
     display: flex; flex-direction: column;
     position: sticky; top: 0; height: 100vh;
+    border-right: 1px solid rgba(24,29,39,.08);
+    box-shadow: 1px 0 0 rgba(24,29,39,.02);
   }
-  :root[data-theme="dark"] .sidebar, @media (prefers-color-scheme: dark) { .sidebar { background: #090f12; } }
-  .sidebar-brand { padding: 22px 20px 16px; border-bottom: 1px solid rgba(255,255,255,.1); }
-  .sidebar-brand .mark {
-    display: inline-flex; align-items: center; gap: 8px; font-family: var(--mono);
-    font-size: 15px; font-weight: 600; letter-spacing: -0.01em; color: #fff;
-  }
-  .sidebar-brand .stamp {
-    width: 26px; height: 26px; border: 1.5px solid var(--accent-ink); border-radius: 50%;
-    display: flex; align-items: center; justify-content: center; color: var(--accent-ink);
-    font-size: 10px; font-weight: 700; transform: rotate(-8deg); flex-shrink: 0;
-  }
-  .sidebar-brand .sub { margin-top: 6px; font-size: 11.5px; color: rgba(238,242,241,.55); }
-  .nav { flex: 1; padding: 14px 10px; display: flex; flex-direction: column; gap: 2px; }
+  .sidebar-brand { padding: 22px 20px 16px; border-bottom: 1px solid #f1eef5; }
+  .sidebar-brand img { display: block; height: 34px; width: auto; }
+  .sidebar-brand .sub { margin-top: 8px; font-size: 12px; color: var(--ink-2); font-weight: 500; }
+  .nav { flex: 1; padding: 16px 12px; display: flex; flex-direction: column; gap: 2px; }
   .nav button {
     all: unset; cursor: pointer; display: flex; align-items: center; gap: 10px;
-    padding: 9px 12px; border-radius: 7px; font-size: 13px; color: rgba(238,242,241,.72);
-    font-family: var(--sans);
+    padding: 9px 12px 9px 10px; border-radius: 8px; font-size: 13.5px; font-weight: 500; color: #6b7280;
+    font-family: var(--sans); border-left: 3px solid transparent; transition: color .12s, background-color .12s;
   }
-  .nav button:hover { background: rgba(255,255,255,.06); color: #fff; }
-  .nav button.active { background: var(--accent-ink); color: #fff; }
-  .nav button .n { font-family: var(--mono); font-size: 11px; opacity: .6; width: 16px; }
-  .sidebar-foot { padding: 14px 20px 20px; font-size: 11px; color: rgba(238,242,241,.4); border-top: 1px solid rgba(255,255,255,.1); }
+  .nav button:hover { background: var(--surface-2); color: var(--brand); }
+  .nav button.active { background: var(--brand-soft); color: var(--brand); font-weight: 600; border-left-color: var(--brand); }
+  .nav button .n { font-size: 10.5px; opacity: .55; width: 14px; font-weight: 700; }
+  .sidebar-foot { padding: 16px 20px 20px; font-size: 11px; color: var(--muted); border-top: 1px solid #f1eef5; }
   .sidebar-foot button {
-    all: unset; cursor: pointer; font-size: 11px; color: rgba(238,242,241,.55); text-decoration: underline;
+    all: unset; cursor: pointer; font-size: 11px; color: var(--ink-2); text-decoration: underline;
     text-underline-offset: 2px;
   }
-  .sidebar-foot button:hover { color: #fff; }
+  .sidebar-foot button:hover { color: var(--brand); }
 
   /* ---------- main ---------- */
   .main { flex: 1; min-width: 0; padding: 28px 34px 60px; max-width: 1320px; }
@@ -142,24 +141,24 @@
   .view.active { display: block; }
 
   .page-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 22px; flex-wrap: wrap; }
-  .page-head h1 { font-size: 20px; color: var(--ink); }
+  .page-head h1 { font-size: 21px; color: var(--ink); }
   .page-head .eyebrow {
-    font-family: var(--mono); font-size: 11px; text-transform: uppercase; letter-spacing: .09em;
-    color: var(--accent-ink); margin-bottom: 6px; display: block;
+    font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em;
+    color: var(--brand); margin-bottom: 6px; display: block;
   }
   .page-head p { margin: 6px 0 0; color: var(--ink-2); font-size: 13px; }
 
   .btn {
     all: unset; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;
-    padding: 8px 14px; border-radius: 7px; font-size: 12.5px; font-weight: 600;
-    border: 1px solid transparent;
+    padding: 9px 16px; border-radius: 8px; font-size: 13px; font-weight: 600;
+    border: 1px solid transparent; transition: background-color .12s, box-shadow .12s;
   }
-  .btn-primary { background: var(--accent-ink); color: #fff; }
-  .btn-primary:hover { filter: brightness(1.08); }
+  .btn-primary { background: var(--brand); color: #fff; box-shadow: 0 1px 2px rgba(175,24,130,.25); }
+  .btn-primary:hover { background: var(--brand-hover); }
   .btn-ghost { border-color: var(--border-strong); color: var(--ink); }
   .btn-ghost:hover { background: var(--surface-2); }
   .btn-link { all: unset; cursor: pointer; font-size: 12px; font-weight: 600; }
-  .link-edit { color: var(--cat-blue); }
+  .link-edit { color: var(--navy-light); }
   .link-warn { color: var(--warning-ink); }
   .link-danger { color: var(--critical); }
   .btn-link:hover { text-decoration: underline; text-underline-offset: 2px; }
@@ -169,7 +168,7 @@
     box-shadow: var(--shadow);
   }
   .card-pad { padding: 18px 20px; }
-  .card-title { font-family: var(--mono); font-size: 12.5px; font-weight: 600; color: var(--ink); margin-bottom: 12px; }
+  .card-title { font-size: 13px; font-weight: 700; color: var(--ink); margin-bottom: 12px; }
 
   .grid { display: grid; gap: 14px; }
   .kpi-row { grid-template-columns: repeat(6, 1fr); margin-bottom: 12px; }
@@ -179,13 +178,28 @@
     background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
     padding: 14px 16px; box-shadow: var(--shadow);
   }
-  .kpi .lbl { font-family: var(--mono); font-size: 10.5px; text-transform: uppercase; letter-spacing: .07em; color: var(--muted); }
-  .kpi .val { font-family: var(--mono); font-size: 22px; font-weight: 600; margin-top: 6px; color: var(--ink); }
+  .kpi .lbl { font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+  .kpi .val { font-size: 22px; font-weight: 700; margin-top: 6px; color: var(--ink); letter-spacing: -0.01em; }
   .kpi .val.good { color: var(--good); }
   .kpi .val.warn { color: var(--warning-ink); }
   .kpi .val.crit { color: var(--critical); }
-  .kpi .val.accent { color: var(--accent-ink); }
+  .kpi .val.accent { color: var(--brand); }
   .kpi .sub { font-size: 10.5px; color: var(--muted); margin-top: 2px; }
+
+  /* ---------- hero band (branded stat moment) ---------- */
+  .hero-band {
+    background: linear-gradient(135deg, var(--navy-deep), var(--navy));
+    border-radius: 16px; padding: 26px 28px; margin-bottom: 14px;
+    box-shadow: 0 12px 30px -14px rgba(28,42,94,.55);
+  }
+  .hero-stats { display: flex; flex-wrap: wrap; gap: 22px 44px; }
+  .hero-stat { min-width: 118px; }
+  .hero-stat .lbl { font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: rgba(255,255,255,.6); }
+  .hero-stat .val { font-size: 32px; font-weight: 800; color: #fff; letter-spacing: -0.02em; margin-top: 6px; }
+  .hero-stat .val.t-good { color: #8fe3a4; }
+  .hero-stat .val.t-warn { color: #ffd67e; }
+  .hero-stat .val.t-crit { color: #ff9fb0; }
+  .hero-stat .val.t-brand { color: #ff8fd0; }
 
   .charts-2 { grid-template-columns: 1fr 1fr; }
   @media (max-width: 900px) { .charts-2 { grid-template-columns: 1fr; } }
@@ -197,19 +211,19 @@
   table { width: 100%; border-collapse: collapse; font-size: 13px; }
   .table-wide table { min-width: 640px; }
   thead th {
-    text-align: left; font-family: var(--mono); font-size: 10.5px; text-transform: uppercase; letter-spacing: .06em;
+    text-align: left; font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em;
     color: var(--muted); padding: 10px 14px; border-bottom: 1px solid var(--border); white-space: nowrap;
   }
   tbody td { padding: 10px 14px; border-bottom: 1px solid var(--border); vertical-align: middle; }
   tbody tr:hover { background: var(--surface-2); }
   tbody tr:last-child td { border-bottom: none; }
-  td.num, th.num { text-align: right; font-family: var(--mono); }
-  .mono-cell { font-family: var(--mono); }
+  td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+  .mono-cell { font-variant-numeric: tabular-nums; }
   .empty-row td { text-align: center; padding: 34px; color: var(--muted); }
 
   .pill {
-    display: inline-flex; align-items: center; gap: 5px; padding: 3px 9px; border-radius: 100px;
-    font-size: 11px; font-weight: 600; white-space: nowrap; font-family: var(--sans);
+    display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px; border-radius: 100px;
+    font-size: 11px; font-weight: 700; white-space: nowrap; font-family: var(--sans);
   }
   .pill::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
   .pill-good { background: var(--good-bg); color: var(--good); }
@@ -220,8 +234,11 @@
 
   .toolbar { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
   .toolbar input, .toolbar select, .field input, .field select, .field textarea {
-    font-family: var(--sans); font-size: 13px; padding: 8px 11px; border-radius: 7px;
+    font-family: var(--sans); font-size: 13px; padding: 8px 12px; border-radius: 8px;
     border: 1px solid var(--border-strong); background: var(--surface); color: var(--ink);
+  }
+  .toolbar input:focus, .toolbar select:focus, .field input:focus, .field select:focus, .field textarea:focus {
+    outline: 2px solid var(--brand-soft); border-color: var(--brand);
   }
   .toolbar input { flex: 1; min-width: 200px; }
   .toolbar select { min-width: 150px; }
@@ -234,10 +251,9 @@
   .chart-legend .swatch { width: 9px; height: 9px; border-radius: 2px; }
   .chart-tooltip {
     position: absolute; pointer-events: none; background: var(--ink); color: var(--paper);
-    font-family: var(--mono); font-size: 11px; padding: 5px 8px; border-radius: 5px; opacity: 0;
+    font-size: 11px; padding: 5px 8px; border-radius: 6px; opacity: 0;
     transition: opacity .1s; white-space: nowrap; z-index: 20; box-shadow: var(--shadow);
   }
-  :root[data-theme="dark"] .chart-tooltip, @media (prefers-color-scheme: dark) { }
   .svg-wrap { position: relative; }
   .bar-mark { transition: opacity .1s; }
   .bar-mark:hover { opacity: .82; cursor: pointer; }
@@ -245,17 +261,17 @@
 
   /* ---------- modal ---------- */
   .overlay {
-    position: fixed; inset: 0; background: rgba(8,13,16,.5); display: none;
+    position: fixed; inset: 0; background: rgba(24,29,39,.5); display: none;
     align-items: center; justify-content: center; padding: 20px; z-index: 50;
   }
   .overlay.open { display: flex; }
   .modal {
     width: 100%; max-width: 460px; max-height: 88vh; overflow-y: auto;
-    background: var(--surface); border-radius: 12px; border: 1px solid var(--border);
+    background: var(--surface); border-radius: 14px; border: 1px solid var(--border);
     padding: 22px 24px; box-shadow: 0 20px 60px -20px rgba(0,0,0,.4);
   }
-  .modal h2 { font-size: 15px; margin-bottom: 4px; }
-  .modal .kicker { font-family: var(--mono); font-size: 10.5px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin-bottom: 14px; }
+  .modal h2 { font-size: 16px; margin-bottom: 4px; }
+  .modal .kicker { font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin-bottom: 14px; }
   .field { margin-bottom: 13px; }
   .field label { display: block; font-size: 12px; font-weight: 600; color: var(--ink-2); margin-bottom: 5px; }
   .field input, .field select, .field textarea { width: 100%; }
@@ -273,9 +289,9 @@
     }
     .mobile-nav button {
       all: unset; cursor: pointer; flex-shrink: 0; padding: 7px 13px; border-radius: 100px;
-      font-size: 12.5px; background: var(--surface-2); color: var(--ink-2);
+      font-size: 12.5px; background: var(--surface-2); color: var(--ink-2); font-weight: 500;
     }
-    .mobile-nav button.active { background: var(--accent-ink); color: #fff; }
+    .mobile-nav button.active { background: var(--brand); color: #fff; }
     .main { padding: 18px 16px 50px; }
   }
 
@@ -285,12 +301,12 @@
 <div class="app">
   <aside class="sidebar">
     <div class="sidebar-brand">
-      <span class="mark"><span class="stamp">GP</span> Gate Pass CRM</span>
-      <div class="sub">Suivi des soumissions et collectes</div>
+      <img src="data:image/png;base64,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" alt="RCH" />
+      <div class="sub">Gate Pass CRM</div>
     </div>
     <nav class="nav" id="nav"></nav>
     <div class="sidebar-foot">
-      Qatar Operations · local build
+      RCH Business Solutions
       <div style="margin-top:8px;"><button id="resetBtn">Reset sample data</button></div>
     </div>
   </aside>
@@ -313,7 +329,7 @@
 "use strict";
 
 /* ================= embedded seed data ================= */
-const SEED_GATE_PASSES = [{"number":"GP-2026-001","company":"Qatar Steel","requestType":"New Gate Pass","submittedBy":"Mohammed Saleh","submissionAt":"2026-01-05T08:30:00","collectedBy":"Ahmed Al-Rashid","collectionAt":"2026-01-05T14:20:00","status":"Collected","remarks":null},{"number":"GP-2026-002","company":"Gulf Contracting Co","requestType":"Renewal","submittedBy":"Mohammed Saleh","submissionAt":"2026-01-12T09:15:00","collectedBy":"Youssef Hassan","collectionAt":"2026-01-13T11:00:00","status":"Collected","remarks":null},{"number":"GP-2026-003","company":"Al Jaber Engineering","requestType":"Vehicle Pass","submittedBy":"Mohammed Saleh","submissionAt":"2026-01-20T10:00:00","collectedBy":"Karim Nasser","collectionAt":"2026-01-22T16:30:00","status":"Collected","remarks":"Retard autorit\u00e9s"},{"number":"GP-2026-004","company":"Doha Logistics","requestType":"Visitor Pass","submittedBy":"Mohammed Saleh","submissionAt":"2026-02-03T08:45:00","collectedBy":"Fatima Al-Zahra","collectionAt":"2026-02-03T15:10:00","status":"Collected","remarks":null},{"number":"GP-2026-005","company":"QTerminals","requestType":"Replacement","submittedBy":"Mohammed Saleh","submissionAt":"2026-02-10T11:20:00","collectedBy":null,"collectionAt":null,"status":"Cancelled","remarks":"Demande annul\u00e9e par le client"},{"number":"GP-2026-006","company":"Milaha Maritime","requestType":"New Gate Pass","submittedBy":"Mohammed Saleh","submissionAt":"2026-02-18T09:30:00","collectedBy":"Ahmed Al-Rashid","collectionAt":"2026-02-19T10:45:00","status":"Collected","remarks":null},{"number":"GP-2026-007","company":"Ashghal Services","requestType":"Renewal","submittedBy":"Mohammed Saleh","submissionAt":"2026-03-02T08:15:00","collectedBy":"Youssef Hassan","collectionAt":"2026-03-02T12:40:00","status":"Collected","remarks":null},{"number":"GP-2026-008","company":"QatarEnergy","requestType":"Vehicle Pass","submittedBy":"Mohammed Saleh","submissionAt":"2026-03-09T14:00:00","collectedBy":"Karim Nasser","collectionAt":"2026-03-11T09:30:00","status":"Collected","remarks":null},{"number":"GP-2026-009","company":"Nakilat","requestType":"Visitor Pass","submittedBy":"Mohammed Saleh","submissionAt":"2026-03-16T10:30:00","collectedBy":"Fatima Al-Zahra","collectionAt":"2026-03-16T16:00:00","status":"Collected","remarks":null},{"number":"GP-2026-010","company":"Ooredoo","requestType":"Replacement","submittedBy":"Mohammed Saleh","submissionAt":"2026-03-24T09:00:00","collectedBy":"Ahmed Al-Rashid","collectionAt":"2026-03-25T14:30:00","status":"Collected","remarks":null},{"number":"GP-2026-011","company":"Qatar Steel","requestType":"New Gate Pass","submittedBy":"Mohammed Saleh","submissionAt":"2026-04-01T08:30:00","collectedBy":"Youssef Hassan","collectionAt":"2026-04-01T13:15:00","status":"Collected","remarks":null},{"number":"GP-2026-012","company":"Gulf Contracting Co","requestType":"Renewal","submittedBy":"Mohammed Saleh","submissionAt":"2026-04-08T10:45:00","collectedBy":null,"collectionAt":null,"status":"Cancelled","remarks":"Documents incomplets"},{"number":"GP-2026-013","company":"Al Jaber Engineering","requestType":"Vehicle Pass","submittedBy":"Mohammed Saleh","submissionAt":"2026-04-15T09:20:00","collectedBy":"Karim Nasser","collectionAt":"2026-04-17T15:45:00","status":"Collected","remarks":"Jour f\u00e9ri\u00e9 entre-temps"},{"number":"GP-2026-014","company":"Doha Logistics","requestType":"Visitor Pass","submittedBy":"Mohammed Saleh","submissionAt":"2026-04-22T11:00:00","collectedBy":"Fatima Al-Zahra","collectionAt":"2026-04-23T10:30:00","status":"Collected","remarks":null},{"number":"GP-2026-015","company":"QTerminals","requestType":"Replacement","submittedBy":"Mohammed Saleh","submissionAt":"2026-05-04T08:00:00","collectedBy":"Ahmed Al-Rashid","collectionAt":"2026-05-04T11:45:00","status":"Collected","remarks":null},{"number":"GP-2026-016","company":"Milaha Maritime","requestType":"New Gate Pass","submittedBy":"Mohammed Saleh","submissionAt":"2026-05-11T09:40:00","collectedBy":"Youssef Hassan","collectionAt":"2026-05-12T14:20:00","status":"Collected","remarks":null},{"number":"GP-2026-017","company":"Ashghal Services","requestType":"Renewal","submittedBy":"Mohammed Saleh","submissionAt":"2026-05-18T13:30:00","collectedBy":"Ahmed Al-Rashid","collectionAt":"2026-05-19T09:15:00","status":"Collected","remarks":null},{"number":"GP-2026-018","company":"QatarEnergy","requestType":"Vehicle Pass","submittedBy":"Mohammed Saleh","submissionAt":"2026-05-26T10:15:00","collectedBy":"Fatima Al-Zahra","collectionAt":"2026-05-26T15:50:00","status":"Collected","remarks":null},{"number":"GP-2026-019","company":"Nakilat","requestType":"Visitor Pass","submittedBy":"Mohammed Saleh","submissionAt":"2026-06-01T08:20:00","collectedBy":"Karim Nasser","collectionAt":"2026-06-02T11:30:00","status":"Collected","remarks":null},{"number":"GP-2026-020","company":"Ooredoo","requestType":"Replacement","submittedBy":"Mohammed Saleh","submissionAt":"2026-06-08T09:50:00","collectedBy":"Youssef Hassan","collectionAt":"2026-06-08T14:10:00","status":"Collected","remarks":null},{"number":"GP-2026-021","company":"Qatar Steel","requestType":"New Gate Pass","submittedBy":"Mohammed Saleh","submissionAt":"2026-06-10T11:30:00","collectedBy":null,"collectionAt":null,"status":"Cancelled","remarks":"Annul\u00e9 \u2014 doublon"},{"number":"GP-2026-022","company":"Gulf Contracting Co","requestType":"Renewal","submittedBy":"Mohammed Saleh","submissionAt":"2026-06-15T08:40:00","collectedBy":"Ahmed Al-Rashid","collectionAt":"2026-06-16T16:20:00","status":"Collected","remarks":null},{"number":"GP-2026-023","company":"Al Jaber Engineering","requestType":"Vehicle Pass","submittedBy":"Mohammed Saleh","submissionAt":"2026-06-22T10:10:00","collectedBy":"Fatima Al-Zahra","collectionAt":"2026-06-24T13:45:00","status":"Collected","remarks":null},{"number":"GP-2026-024","company":"Doha Logistics","requestType":"Visitor Pass","submittedBy":"Mohammed Saleh","submissionAt":"2026-06-24T09:00:00","collectedBy":null,"collectionAt":null,"status":"Pending","remarks":"Relance envoy\u00e9e"},{"number":"GP-2026-025","company":"QTerminals","requestType":"Replacement","submittedBy":"Mohammed Saleh","submissionAt":"2026-06-26T14:30:00","collectedBy":null,"collectionAt":null,"status":"Pending","remarks":null},{"number":"GP-2026-026","company":"Milaha Maritime","requestType":"New Gate Pass","submittedBy":"Mohammed Saleh","submissionAt":"2026-06-29T08:50:00","collectedBy":null,"collectionAt":null,"status":"Pending","remarks":null},{"number":"GP-2026-027","company":"Ashghal Services","requestType":"Renewal","submittedBy":"Mohammed Saleh","submissionAt":"2026-06-29T10:30:00","collectedBy":"Youssef Hassan","collectionAt":"2026-07-01T09:20:00","status":"Collected","remarks":null},{"number":"GP-2026-028","company":"QatarEnergy","requestType":"Vehicle Pass","submittedBy":"Mohammed Saleh","submissionAt":"2026-06-30T09:15:00","collectedBy":"Ahmed Al-Rashid","collectionAt":"2026-07-02T10:30:00","status":"Collected","remarks":null},{"number":"GP-2026-029","company":"Nakilat","requestType":"Visitor Pass","submittedBy":"Mohammed Saleh","submissionAt":"2026-07-01T08:45:00","collectedBy":"Karim Nasser","collectionAt":"2026-07-02T12:15:00","status":"Collected","remarks":"Urgent"},{"number":"GP-2026-030","company":"Ooredoo","requestType":"Replacement","submittedBy":"Mohammed Saleh","submissionAt":"2026-07-02T07:50:00","collectedBy":null,"collectionAt":null,"status":"Pending","remarks":null}];
+const SEED_GATE_PASSES = [{"number":"GP-2026-001","company":"Qatar Steel","requestType":"New Gate Pass","submittedBy":"Mohammed Saleh","submissionAt":"2026-01-05T08:30:00","collectedBy":"Ahmed Al-Rashid","collectionAt":"2026-01-05T14:20:00","status":"Collected","remarks":null},{"number":"GP-2026-002","company":"Gulf Contracting Co","requestType":"Renewal","submittedBy":"Mohammed Saleh","submissionAt":"2026-01-12T09:15:00","collectedBy":"Youssef Hassan","collectionAt":"2026-01-13T11:00:00","status":"Collected","remarks":null},{"number":"GP-2026-003","company":"Al Jaber Engineering","requestType":"Vehicle Pass","submittedBy":"Mohammed Saleh","submissionAt":"2026-01-20T10:00:00","collectedBy":"Karim Nasser","collectionAt":"2026-01-22T16:30:00","status":"Collected","remarks":"Authority delay"},{"number":"GP-2026-004","company":"Doha Logistics","requestType":"Visitor Pass","submittedBy":"Mohammed Saleh","submissionAt":"2026-02-03T08:45:00","collectedBy":"Fatima Al-Zahra","collectionAt":"2026-02-03T15:10:00","status":"Collected","remarks":null},{"number":"GP-2026-005","company":"QTerminals","requestType":"Replacement","submittedBy":"Mohammed Saleh","submissionAt":"2026-02-10T11:20:00","collectedBy":null,"collectionAt":null,"status":"Cancelled","remarks":"Cancelled by client"},{"number":"GP-2026-006","company":"Milaha Maritime","requestType":"New Gate Pass","submittedBy":"Mohammed Saleh","submissionAt":"2026-02-18T09:30:00","collectedBy":"Ahmed Al-Rashid","collectionAt":"2026-02-19T10:45:00","status":"Collected","remarks":null},{"number":"GP-2026-007","company":"Ashghal Services","requestType":"Renewal","submittedBy":"Mohammed Saleh","submissionAt":"2026-03-02T08:15:00","collectedBy":"Youssef Hassan","collectionAt":"2026-03-02T12:40:00","status":"Collected","remarks":null},{"number":"GP-2026-008","company":"QatarEnergy","requestType":"Vehicle Pass","submittedBy":"Mohammed Saleh","submissionAt":"2026-03-09T14:00:00","collectedBy":"Karim Nasser","collectionAt":"2026-03-11T09:30:00","status":"Collected","remarks":null},{"number":"GP-2026-009","company":"Nakilat","requestType":"Visitor Pass","submittedBy":"Mohammed Saleh","submissionAt":"2026-03-16T10:30:00","collectedBy":"Fatima Al-Zahra","collectionAt":"2026-03-16T16:00:00","status":"Collected","remarks":null},{"number":"GP-2026-010","company":"Ooredoo","requestType":"Replacement","submittedBy":"Mohammed Saleh","submissionAt":"2026-03-24T09:00:00","collectedBy":"Ahmed Al-Rashid","collectionAt":"2026-03-25T14:30:00","status":"Collected","remarks":null},{"number":"GP-2026-011","company":"Qatar Steel","requestType":"New Gate Pass","submittedBy":"Mohammed Saleh","submissionAt":"2026-04-01T08:30:00","collectedBy":"Youssef Hassan","collectionAt":"2026-04-01T13:15:00","status":"Collected","remarks":null},{"number":"GP-2026-012","company":"Gulf Contracting Co","requestType":"Renewal","submittedBy":"Mohammed Saleh","submissionAt":"2026-04-08T10:45:00","collectedBy":null,"collectionAt":null,"status":"Cancelled","remarks":"Incomplete documents"},{"number":"GP-2026-013","company":"Al Jaber Engineering","requestType":"Vehicle Pass","submittedBy":"Mohammed Saleh","submissionAt":"2026-04-15T09:20:00","collectedBy":"Karim Nasser","collectionAt":"2026-04-17T15:45:00","status":"Collected","remarks":"Public holiday in between"},{"number":"GP-2026-014","company":"Doha Logistics","requestType":"Visitor Pass","submittedBy":"Mohammed Saleh","submissionAt":"2026-04-22T11:00:00","collectedBy":"Fatima Al-Zahra","collectionAt":"2026-04-23T10:30:00","status":"Collected","remarks":null},{"number":"GP-2026-015","company":"QTerminals","requestType":"Replacement","submittedBy":"Mohammed Saleh","submissionAt":"2026-05-04T08:00:00","collectedBy":"Ahmed Al-Rashid","collectionAt":"2026-05-04T11:45:00","status":"Collected","remarks":null},{"number":"GP-2026-016","company":"Milaha Maritime","requestType":"New Gate Pass","submittedBy":"Mohammed Saleh","submissionAt":"2026-05-11T09:40:00","collectedBy":"Youssef Hassan","collectionAt":"2026-05-12T14:20:00","status":"Collected","remarks":null},{"number":"GP-2026-017","company":"Ashghal Services","requestType":"Renewal","submittedBy":"Mohammed Saleh","submissionAt":"2026-05-18T13:30:00","collectedBy":"Ahmed Al-Rashid","collectionAt":"2026-05-19T09:15:00","status":"Collected","remarks":null},{"number":"GP-2026-018","company":"QatarEnergy","requestType":"Vehicle Pass","submittedBy":"Mohammed Saleh","submissionAt":"2026-05-26T10:15:00","collectedBy":"Fatima Al-Zahra","collectionAt":"2026-05-26T15:50:00","status":"Collected","remarks":null},{"number":"GP-2026-019","company":"Nakilat","requestType":"Visitor Pass","submittedBy":"Mohammed Saleh","submissionAt":"2026-06-01T08:20:00","collectedBy":"Karim Nasser","collectionAt":"2026-06-02T11:30:00","status":"Collected","remarks":null},{"number":"GP-2026-020","company":"Ooredoo","requestType":"Replacement","submittedBy":"Mohammed Saleh","submissionAt":"2026-06-08T09:50:00","collectedBy":"Youssef Hassan","collectionAt":"2026-06-08T14:10:00","status":"Collected","remarks":null},{"number":"GP-2026-021","company":"Qatar Steel","requestType":"New Gate Pass","submittedBy":"Mohammed Saleh","submissionAt":"2026-06-10T11:30:00","collectedBy":null,"collectionAt":null,"status":"Cancelled","remarks":"Cancelled — duplicate"},{"number":"GP-2026-022","company":"Gulf Contracting Co","requestType":"Renewal","submittedBy":"Mohammed Saleh","submissionAt":"2026-06-15T08:40:00","collectedBy":"Ahmed Al-Rashid","collectionAt":"2026-06-16T16:20:00","status":"Collected","remarks":null},{"number":"GP-2026-023","company":"Al Jaber Engineering","requestType":"Vehicle Pass","submittedBy":"Mohammed Saleh","submissionAt":"2026-06-22T10:10:00","collectedBy":"Fatima Al-Zahra","collectionAt":"2026-06-24T13:45:00","status":"Collected","remarks":null},{"number":"GP-2026-024","company":"Doha Logistics","requestType":"Visitor Pass","submittedBy":"Mohammed Saleh","submissionAt":"2026-06-24T09:00:00","collectedBy":null,"collectionAt":null,"status":"Pending","remarks":"Follow-up sent"},{"number":"GP-2026-025","company":"QTerminals","requestType":"Replacement","submittedBy":"Mohammed Saleh","submissionAt":"2026-06-26T14:30:00","collectedBy":null,"collectionAt":null,"status":"Pending","remarks":null},{"number":"GP-2026-026","company":"Milaha Maritime","requestType":"New Gate Pass","submittedBy":"Mohammed Saleh","submissionAt":"2026-06-29T08:50:00","collectedBy":null,"collectionAt":null,"status":"Pending","remarks":null},{"number":"GP-2026-027","company":"Ashghal Services","requestType":"Renewal","submittedBy":"Mohammed Saleh","submissionAt":"2026-06-29T10:30:00","collectedBy":"Youssef Hassan","collectionAt":"2026-07-01T09:20:00","status":"Collected","remarks":null},{"number":"GP-2026-028","company":"QatarEnergy","requestType":"Vehicle Pass","submittedBy":"Mohammed Saleh","submissionAt":"2026-06-30T09:15:00","collectedBy":"Ahmed Al-Rashid","collectionAt":"2026-07-02T10:30:00","status":"Collected","remarks":null},{"number":"GP-2026-029","company":"Nakilat","requestType":"Visitor Pass","submittedBy":"Mohammed Saleh","submissionAt":"2026-07-01T08:45:00","collectedBy":"Karim Nasser","collectionAt":"2026-07-02T12:15:00","status":"Collected","remarks":"Urgent"},{"number":"GP-2026-030","company":"Ooredoo","requestType":"Replacement","submittedBy":"Mohammed Saleh","submissionAt":"2026-07-02T07:50:00","collectedBy":null,"collectionAt":null,"status":"Pending","remarks":null}];
 
 const COMPANY_SECTORS = {
   "Qatar Steel": "Manufacturing",
@@ -329,7 +345,7 @@ const COMPANY_SECTORS = {
 };
 
 const REQUEST_TYPES = ["New Gate Pass", "Renewal", "Vehicle Pass", "Visitor Pass", "Replacement"];
-const STORAGE_KEY = "gatepass-crm-state-v2";
+const STORAGE_KEY = "gatepass-crm-state-v3";
 
 /* ================= state ================= */
 let DB = null; // { companies:[], collectors:[], gatePasses:[], nextIds:{} }
@@ -419,28 +435,28 @@ function processingHours(gp) {
 }
 function daysWaiting(gp, now = new Date()) { return (now - new Date(gp.submissionAt)) / DAY_MS; }
 function delayCategory(gp, now = new Date()) {
-  if (gp.status === "CANCELLED") return "Annulé";
-  if (gp.status === "PENDING") return daysWaiting(gp, now) > 2 ? "Overdue (>48h)" : "En attente";
+  if (gp.status === "CANCELLED") return "Cancelled";
+  if (gp.status === "PENDING") return daysWaiting(gp, now) > 2 ? "Overdue (>48h)" : "Waiting";
   const h = processingHours(gp) ?? 0;
-  if (h <= 24) return "Rapide (≤24h)";
+  if (h <= 24) return "Fast (≤24h)";
   if (h <= 48) return "Normal (24-48h)";
-  return "Lent (>48h)";
+  return "Slow (>48h)";
 }
-function priority(gp, now = new Date()) { return daysWaiting(gp, now) > 1 ? "Haute" : "Basse"; }
+function priority(gp, now = new Date()) { return daysWaiting(gp, now) > 1 ? "High" : "Low"; }
 function formatDuration(hours) {
   if (hours === null || hours === undefined) return "—";
   if (hours < 1) return `${Math.round(hours * 60)} min`;
   const days = Math.floor(hours / 24);
   const rem = hours - days * 24;
-  if (days > 0) return `${days}j ${rem.toFixed(1)}h`;
+  if (days > 0) return `${days}d ${rem.toFixed(1)}h`;
   return `${hours.toFixed(1)}h`;
 }
 function pillFor(text) {
   const map = {
     PENDING: "pill-warn", COLLECTED: "pill-good", CANCELLED: "pill-mute",
-    "Rapide (≤24h)": "pill-good", "Normal (24-48h)": "pill-warn", "Lent (>48h)": "pill-serious",
-    "Overdue (>48h)": "pill-crit", "En attente": "pill-warn", "Annulé": "pill-mute",
-    Haute: "pill-crit", Basse: "pill-mute", Active: "pill-good", Inactive: "pill-mute"
+    "Fast (≤24h)": "pill-good", "Normal (24-48h)": "pill-warn", "Slow (>48h)": "pill-serious",
+    "Overdue (>48h)": "pill-crit", Waiting: "pill-warn",
+    High: "pill-crit", Low: "pill-mute", Active: "pill-good", Inactive: "pill-mute"
   };
   const cls = map[text] || "pill-mute";
   const label = text === "PENDING" ? "Pending" : text === "COLLECTED" ? "Collected" : text === "CANCELLED" ? "Cancelled" : text;
@@ -561,8 +577,6 @@ function computePivotByCollector(rows) {
 }
 
 /* ================= tiny chart toolkit (inline SVG) ================= */
-const CSSVAL = (name) => getComputedStyle(document.body).getPropertyValue(name).trim();
-
 function svgEl(tag, attrs) {
   const el = document.createElementNS("http://www.w3.org/2000/svg", tag);
   for (const k in attrs) el.setAttribute(k, attrs[k]);
@@ -586,12 +600,11 @@ function renderCompareBars(mount, data) {
   const max = Math.max(1, ...data.map((d) => d.value));
   const bw = (w - padL - padR) / data.length;
   const svg = svgEl("svg", { viewBox: `0 0 ${w} ${h}`, width: "100%", height: "220", role: "img", "aria-label": "Bar chart" });
-  // gridlines
   const steps = Math.min(4, Math.max(1, Math.round(max)));
   for (let i = 0; i <= steps; i++) {
     const y = padT + (h - padT - padB) * (1 - i / steps);
     svg.appendChild(svgEl("line", { x1: padL, x2: w - padR, y1: y, y2: y, stroke: "var(--grid)", "stroke-width": 1 }));
-    const t = svgEl("text", { x: padL - 8, y: y + 3, "text-anchor": "end", "font-size": 9, fill: "var(--muted)", "font-family": "var(--mono)" });
+    const t = svgEl("text", { x: padL - 8, y: y + 3, "text-anchor": "end", "font-size": 9, fill: "var(--muted)" });
     t.textContent = Math.round(max * (i / steps)); svg.appendChild(t);
   }
   const tip = attachTooltip(wrap);
@@ -609,7 +622,7 @@ function renderCompareBars(mount, data) {
     svg.appendChild(rect);
     const lbl = svgEl("text", { x: x + barW / 2, y: h - padB + 14, "text-anchor": "middle", "font-size": 10, fill: "var(--ink-2)" });
     lbl.textContent = d.label; svg.appendChild(lbl);
-    const val = svgEl("text", { x: x + barW / 2, y: y - 6, "text-anchor": "middle", "font-size": 10.5, fill: "var(--ink)", "font-family": "var(--mono)", "font-weight": 600 });
+    const val = svgEl("text", { x: x + barW / 2, y: y - 6, "text-anchor": "middle", "font-size": 11, fill: "var(--ink)", "font-weight": 700 });
     val.textContent = d.value; svg.appendChild(val);
   });
   wrap.appendChild(svg);
@@ -641,7 +654,7 @@ function renderDonut(mount, data) {
     svg.appendChild(circle);
     offset += frac * circumf;
   });
-  const centerVal = svgEl("text", { x: cx, y: cy - 2, "text-anchor": "middle", "font-size": 20, "font-family": "var(--mono)", "font-weight": 700, fill: "var(--ink)" });
+  const centerVal = svgEl("text", { x: cx, y: cy - 2, "text-anchor": "middle", "font-size": 20, "font-weight": 800, fill: "var(--ink)" });
   centerVal.textContent = total;
   const centerLbl = svgEl("text", { x: cx, y: cy + 14, "text-anchor": "middle", "font-size": 9, fill: "var(--muted)" });
   centerLbl.textContent = "total";
@@ -666,7 +679,7 @@ function renderLineSeries(mount, data) {
   for (let i = 0; i <= steps; i++) {
     const yy = padT + (h - padT - padB) * (1 - i / steps);
     svg.appendChild(svgEl("line", { x1: padL, x2: w - padR, y1: yy, y2: yy, stroke: "var(--grid)", "stroke-width": 1 }));
-    const t = svgEl("text", { x: padL - 6, y: yy + 3, "text-anchor": "end", "font-size": 9, fill: "var(--muted)", "font-family": "var(--mono)" });
+    const t = svgEl("text", { x: padL - 6, y: yy + 3, "text-anchor": "end", "font-size": 9, fill: "var(--muted)" });
     t.textContent = Math.round(maxV * (i / steps)); svg.appendChild(t);
   }
   const tickEvery = Math.max(1, Math.ceil(n / 7));
@@ -680,12 +693,12 @@ function renderLineSeries(mount, data) {
     const pts = data.map((d, i) => `${x(i)},${y(d[key])}`).join(" ");
     svg.appendChild(svgEl("polyline", { points: pts, fill: "none", stroke: color, "stroke-width": 2, "stroke-linecap": "round", "stroke-linejoin": "round" }));
   }
-  line("submitted", "var(--cat-blue)");
+  line("submitted", "var(--navy-light)");
   line("collected", "var(--good)");
   const tip = attachTooltip(wrap);
   data.forEach((d, i) => {
     ["submitted", "collected"].forEach((key) => {
-      const color = key === "submitted" ? "var(--cat-blue)" : "var(--good)";
+      const color = key === "submitted" ? "var(--navy-light)" : "var(--good)";
       const c = svgEl("circle", { cx: x(i), cy: y(d[key]), r: 3, fill: color, class: "dot-mark" });
       c.addEventListener("mousemove", (e) => {
         const r = wrap.getBoundingClientRect();
@@ -697,14 +710,14 @@ function renderLineSeries(mount, data) {
   });
   wrap.appendChild(svg);
   const legend = document.createElement("div"); legend.className = "chart-legend";
-  legend.innerHTML = `<span class="item"><span class="swatch" style="background:var(--cat-blue)"></span>Submitted</span><span class="item"><span class="swatch" style="background:var(--good)"></span>Collected</span>`;
+  legend.innerHTML = `<span class="item"><span class="swatch" style="background:var(--navy-light)"></span>Submitted</span><span class="item"><span class="swatch" style="background:var(--good)"></span>Collected</span>`;
   mount.appendChild(legend);
 }
 
 // horizontal categorical bars (collector performance)
 function renderHBars(mount, rows) {
   mount.innerHTML = "";
-  const colors = ["var(--cat-blue)", "var(--cat-aqua)", "var(--cat-violet)", "var(--cat-magenta)"];
+  const colors = ["var(--cat-1)", "var(--cat-2)", "var(--cat-3)", "var(--cat-4)"];
   const wrap = document.createElement("div"); wrap.className = "svg-wrap"; mount.appendChild(wrap);
   const w = 640, rowH = 34, padL = 110, padR = 40, padT = 6;
   const h = padT + rows.length * rowH + 6;
@@ -723,7 +736,7 @@ function renderHBars(mount, rows) {
     });
     rect.addEventListener("mouseleave", () => tip.hide());
     svg.appendChild(rect);
-    const val = svgEl("text", { x: padL + bw + 8, y: y + rowH / 2 + 4, "font-size": 11, "font-family": "var(--mono)", fill: "var(--ink)", "font-weight": 600 });
+    const val = svgEl("text", { x: padL + bw + 8, y: y + rowH / 2 + 4, "font-size": 11, fill: "var(--ink)", "font-weight": 700 });
     val.textContent = r.totalCollected; svg.appendChild(val);
   });
   wrap.appendChild(svg);
@@ -736,7 +749,7 @@ const NAV_ITEMS = [
   { id: "pending", label: "Pending", n: "03" },
   { id: "collectors", label: "Collector Performance", n: "04" },
   { id: "companies", label: "Companies", n: "05" },
-  { id: "analytics", label: "Analytics / Pivot", n: "06" }
+  { id: "analytics", label: "Analytics", n: "06" }
 ];
 let currentView = "dashboard";
 
@@ -778,45 +791,50 @@ function renderDashboard() {
   const k = computeKpis(rows, now);
   mount.innerHTML = `
     <div class="page-head">
-      <div><span class="eyebrow">Manifest overview</span><h1>Gate Pass Management — Tableau de bord</h1>
-      <p>Suivi des soumissions et collectes · mise à jour automatique</p></div>
+      <div><span class="eyebrow">Overview</span><h1>Gate Pass Dashboard</h1>
+      <p>Submission &amp; collection tracking · updates automatically</p></div>
+    </div>
+    <div class="hero-band">
+      <div class="hero-stats">
+        ${heroStat("Total submitted", k.total)}
+        ${heroStat("Collected", k.collected, "t-good")}
+        ${heroStat("Pending", k.pending, "t-warn")}
+        ${heroStat("Cancelled", k.cancelled, "t-crit")}
+        ${heroStat("Collection rate", (k.collectionRate * 100).toFixed(0) + "%", "t-brand")}
+        ${heroStat("Avg. processing time", k.avgHours ? formatDuration(k.avgHours) : "—", "t-brand")}
+      </div>
     </div>
     <div class="grid kpi-row">
-      ${kpiTile("Total soumis", k.total, "")}
-      ${kpiTile("Collectés", k.collected, "", "good")}
-      ${kpiTile("En attente", k.pending, "", "warn")}
-      ${kpiTile("Annulés", k.cancelled, "", "crit")}
-      ${kpiTile("Taux de collecte", (k.collectionRate * 100).toFixed(0) + "%", "", "accent")}
-      ${kpiTile("Temps moyen", k.avgHours ? formatDuration(k.avgHours) : "—", "", "accent")}
-    </div>
-    <div class="grid kpi-row">
-      ${kpiTile("+ rapide", k.fastestHours !== null ? formatDuration(k.fastestHours) : "—", "", "good")}
-      ${kpiTile("+ longue", k.longestHours !== null ? formatDuration(k.longestHours) : "—", "", "crit")}
-      ${kpiTile("Aujourd'hui", k.today, "")}
-      ${kpiTile("Cette semaine", k.week, "")}
-      ${kpiTile("Ce mois", k.month, "")}
-      ${kpiTile("Cette année", k.year, "")}
+      ${kpiTile("Fastest", k.fastestHours !== null ? formatDuration(k.fastestHours) : "—", "", "good")}
+      ${kpiTile("Longest", k.longestHours !== null ? formatDuration(k.longestHours) : "—", "", "crit")}
+      ${kpiTile("Today", k.today, "")}
+      ${kpiTile("This week", k.week, "")}
+      ${kpiTile("This month", k.month, "")}
+      ${kpiTile("This year", k.year, "")}
     </div>
     <div class="grid charts-2" style="margin-top:4px;">
-      <div class="card card-pad"><div class="card-title">Soumis vs Collectés</div><div id="chart-compare"></div></div>
-      <div class="card card-pad"><div class="card-title">Répartition des statuts</div><div id="chart-donut"></div></div>
+      <div class="card card-pad"><div class="card-title">Submitted vs Collected</div><div id="chart-compare"></div></div>
+      <div class="card card-pad"><div class="card-title">Status breakdown</div><div id="chart-donut"></div></div>
     </div>
-    <div class="card card-pad" style="margin-top:14px;"><div class="card-title">Évolution quotidienne (14 jours)</div><div id="chart-daily"></div></div>
+    <div class="card card-pad" style="margin-top:14px;"><div class="card-title">Daily trend (14 days)</div><div id="chart-daily"></div></div>
     <div class="grid charts-2" style="margin-top:14px;">
-      <div class="card card-pad"><div class="card-title">Évolution hebdomadaire (8 semaines)</div><div id="chart-weekly"></div></div>
-      <div class="card card-pad"><div class="card-title">Évolution mensuelle</div><div id="chart-monthly"></div></div>
+      <div class="card card-pad"><div class="card-title">Weekly trend (8 weeks)</div><div id="chart-weekly"></div></div>
+      <div class="card card-pad"><div class="card-title">Monthly trend</div><div id="chart-monthly"></div></div>
     </div>
-    <div class="card card-pad" style="margin-top:14px;"><div class="card-title">Performance par collecteur</div><div id="chart-collectors"></div></div>
+    <div class="card card-pad" style="margin-top:14px;"><div class="card-title">Collector performance</div><div id="chart-collectors"></div></div>
   `;
   renderCompareBars(document.getElementById("chart-compare"), [
-    { label: "Soumis", value: k.total, color: "var(--cat-blue)" },
-    { label: "Collectés", value: k.collected, color: "var(--good)" }
+    { label: "Submitted", value: k.total, color: "var(--navy-light)" },
+    { label: "Collected", value: k.collected, color: "var(--good)" }
   ]);
   renderDonut(document.getElementById("chart-donut"), computeStatusDistribution(rows));
   renderLineSeries(document.getElementById("chart-daily"), seriesBuckets(rows, "day", 14, now));
   renderLineSeries(document.getElementById("chart-weekly"), seriesBuckets(rows, "week", 8, now));
   renderLineSeries(document.getElementById("chart-monthly"), seriesBuckets(rows, "month", 12, now));
   renderHBars(document.getElementById("chart-collectors"), computeCollectorPerformance(rows));
+}
+function heroStat(label, value, tone) {
+  return `<div class="hero-stat"><div class="lbl">${esc(label)}</div><div class="val ${tone || ""}">${esc(value)}</div></div>`;
 }
 function kpiTile(label, value, sub, tone) {
   return `<div class="kpi"><div class="lbl">${esc(label)}</div><div class="val ${tone || ""}">${esc(value)}</div>${sub ? `<div class="sub">${esc(sub)}</div>` : ""}</div>`;
@@ -829,7 +847,7 @@ function renderTracker() {
   const rows = filteredGatePasses();
   mount.innerHTML = `
     <div class="page-head">
-      <div><span class="eyebrow">Ledger</span><h1>Gate Pass Tracker</h1><p>${rows.length} of ${DB.gatePasses.length} gate passes</p></div>
+      <div><span class="eyebrow">All records</span><h1>Gate Pass Tracker</h1><p>${rows.length} of ${DB.gatePasses.length} gate passes</p></div>
       <button class="btn btn-primary" id="btnNewGp">+ New Gate Pass</button>
     </div>
     <div class="card card-pad toolbar">
@@ -876,7 +894,8 @@ function filteredGatePasses() {
 }
 function renderTrackerBody() {
   const rows = filteredGatePasses();
-  document.querySelector(".page-head p") && (document.querySelector("#view-tracker .page-head p").textContent = `${rows.length} of ${DB.gatePasses.length} gate passes`);
+  const p = document.querySelector("#view-tracker .page-head p");
+  if (p) p.textContent = `${rows.length} of ${DB.gatePasses.length} gate passes`;
   const body = document.getElementById("trackerBody");
   if (!rows.length) { body.innerHTML = `<tr class="empty-row"><td colspan="11">No gate passes match these filters.</td></tr>`; return; }
   body.innerHTML = rows.map((g) => {
@@ -945,7 +964,7 @@ function openGatePassModal(id) {
         </div>
         <div class="field"><label>Submitted By</label><input type="text" id="gpSubmittedBy" required value="${esc(gp ? gp.submittedBy : "")}"></div>
       </div>
-      <div class="field"><label>Submission Date & Time</label>
+      <div class="field"><label>Submission Date &amp; Time</label>
         <input type="datetime-local" id="gpSubmissionAt" required value="${toLocalInput(gp ? gp.submissionAt : new Date().toISOString())}"></div>
       <div class="field"><label>Status</label>
         <select id="gpStatus">
@@ -959,7 +978,7 @@ function openGatePassModal(id) {
           <div class="field"><label>Collected By</label>
             <select id="gpCollector"><option value="">— Select —</option>${DB.collectors.map((c) => `<option value="${c.id}" ${gp && gp.collectorId === c.id ? "selected" : ""}>${esc(c.name)}</option>`).join("")}</select>
           </div>
-          <div class="field"><label>Collection Date & Time</label>
+          <div class="field"><label>Collection Date &amp; Time</label>
             <input type="datetime-local" id="gpCollectionAt" value="${toLocalInput(gp ? gp.collectionAt : null)}"></div>
         </div>
       </div>
@@ -1024,14 +1043,14 @@ function renderPending() {
     .sort((a, b) => b.days - a.days);
   const overdue = rows.filter((r) => r.days > 2).length;
   mount.innerHTML = `
-    <div class="page-head"><div><span class="eyebrow">Awaiting collection</span><h1>Pending Gate Pass</h1><p>Sorted by longest waiting time first</p></div></div>
+    <div class="page-head"><div><span class="eyebrow">Awaiting collection</span><h1>Pending Gate Passes</h1><p>Sorted by longest waiting time first</p></div></div>
     <div class="grid kpi-row" style="grid-template-columns:repeat(2,1fr); max-width:520px;">
-      ${kpiTile("Total en attente", rows.length, "", "warn")}
-      ${kpiTile("Dont en retard (>48h)", overdue, "", "crit")}
+      ${kpiTile("Total pending", rows.length, "", "warn")}
+      ${kpiTile("Overdue (>48h)", overdue, "", "crit")}
     </div>
     <div class="card table-wrap" style="margin-top:14px;">
       <table>
-        <thead><tr><th>Gate Pass #</th><th>Company</th><th>Submission</th><th class="num">Jours d'attente</th><th>Priorité</th><th></th></tr></thead>
+        <thead><tr><th>Gate Pass #</th><th>Company</th><th>Submission</th><th class="num">Days waiting</th><th>Priority</th><th></th></tr></thead>
         <tbody>
           ${rows.length ? rows.map((r) => `
             <tr>
@@ -1062,12 +1081,12 @@ function renderCollectors() {
   const perf = computeCollectorPerformance(DB.gatePasses);
   mount.innerHTML = `
     <div class="page-head">
-      <div><span class="eyebrow">Field team</span><h1>Collector Performance</h1><p>Performance des collecteurs</p></div>
+      <div><span class="eyebrow">Field team</span><h1>Collector Performance</h1><p>How each collector is performing</p></div>
       <button class="btn btn-primary" id="btnNewCollector">+ New Collector</button>
     </div>
     <div class="card table-wrap">
       <table>
-        <thead><tr><th>Collecteur</th><th class="num">Total collecté</th><th class="num">Temps moyen</th><th class="num">Plus rapide</th><th class="num">Plus long</th><th class="num">% des collectes</th><th class="num">Classement</th></tr></thead>
+        <thead><tr><th>Collector</th><th class="num">Total collected</th><th class="num">Avg. time</th><th class="num">Fastest</th><th class="num">Longest</th><th class="num">% of collections</th><th class="num">Rank</th></tr></thead>
         <tbody>${perf.length ? perf.map((r) => `
           <tr>
             <td>${esc(r.name)}</td><td class="num">${r.totalCollected}</td><td class="num">${formatDuration(r.avgHours)}</td>
@@ -1225,10 +1244,10 @@ function renderAnalytics() {
   const byCollector = computePivotByCollector(rows);
   const statusLabel = { CANCELLED: "Cancelled", COLLECTED: "Collected", PENDING: "Pending" };
   mount.innerHTML = `
-    <div class="page-head"><div><span class="eyebrow">Cross-tabs</span><h1>Analyse Pivot</h1><p>Tableaux croisés dynamiques</p></div></div>
+    <div class="page-head"><div><span class="eyebrow">Cross-tabs</span><h1>Analytics</h1><p>Cross-tab reports</p></div></div>
     <div class="grid pivot-grid">
       <div class="card table-wrap">
-        <div class="card-pad" style="padding-bottom:0;"><div class="card-title">Gate Pass par société et statut</div></div>
+        <div class="card-pad" style="padding-bottom:0;"><div class="card-title">Gate passes by company &amp; status</div></div>
         <table>
           <thead><tr><th>Company</th>${byCompany.statuses.map((s) => `<th class="num">${statusLabel[s]}</th>`).join("")}<th class="num">Grand Total</th></tr></thead>
           <tbody>
@@ -1238,7 +1257,7 @@ function renderAnalytics() {
         </table>
       </div>
       <div class="card table-wrap">
-        <div class="card-pad" style="padding-bottom:0;"><div class="card-title">Gate Pass par collecteur</div></div>
+        <div class="card-pad" style="padding-bottom:0;"><div class="card-title">Gate passes by collector</div></div>
         <table>
           <thead><tr><th>Row Labels</th><th class="num">Count of Gate Pass Number</th></tr></thead>
           <tbody>${byCollector.map((r) => `<tr><td>${esc(r.name)}</td><td class="num">${r.count}</td></tr>`).join("")}</tbody>
