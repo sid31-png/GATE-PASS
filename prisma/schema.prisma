@@ -40,17 +40,52 @@ enum Location {
   OFFSHORE
 }
 
+// Delivery / dispatch workflow:
+//   ONLINE       — internal team is preparing/validating the file
+//   DISPATCH     — ready and waiting for the manager (MED-DARWISH) to assign a field agent
+//   ASSIGNED     — manager has set an agent, a scheduled date/time and instructions
+//   IN_PROGRESS  — the assigned agent has started the mission
+//   COMPLETED    — mission finished
+//   BLOCKED      — agent reported a blocker (see blockedReason)
+enum DeliveryStage {
+  ONLINE
+  DISPATCH
+  ASSIGNED
+  IN_PROGRESS
+  COMPLETED
+  BLOCKED
+}
+
 model Company {
-  id         Int        @id @default(autoincrement())
-  name       String     @unique
-  sector     String?
-  contact    String?
-  phone      String?
-  email      String?
-  notes      String?
-  createdAt  DateTime   @default(now())
-  updatedAt  DateTime   @updatedAt
-  gatePasses GatePass[]
+  id            Int            @id @default(autoincrement())
+  name          String         @unique
+  sector        String?
+  contact       String?
+  phone         String?
+  email         String?
+  notes         String?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  gatePasses    GatePass[]
+  deliveryTasks DeliveryTask[]
+}
+
+// The delivery/dispatch team roster. Booleans (rather than a single role enum)
+// because several people are mixed profiles who work both Online and Field.
+model Employee {
+  id              Int            @id @default(autoincrement())
+  name            String         @unique
+  isManager       Boolean        @default(false)
+  isOnline        Boolean        @default(false)
+  isField         Boolean        @default(false)
+  phone           String?
+  email           String?
+  active          Boolean        @default(true)
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  tasksCreated    DeliveryTask[] @relation("TaskCreatedBy")
+  tasksAssignedTo DeliveryTask[] @relation("TaskAssignedTo")
+  tasksDispatched DeliveryTask[] @relation("TaskAssignedBy")
 }
 
 model Collector {
@@ -82,9 +117,41 @@ model GatePass {
   remarks         String?
   createdAt       DateTime       @default(now())
   updatedAt       DateTime       @updatedAt
+  deliveryTasks   DeliveryTask[]
 
   @@index([status])
   @@index([companyId])
   @@index([collectorId])
   @@index([location])
+}
+
+// A delivery/dispatch mission: an online prep step and/or a field trip
+// (government office pickup, physical delivery, etc). Optionally tied to
+// the GatePass it originated from.
+model DeliveryTask {
+  id            Int           @id @default(autoincrement())
+  gatePassId    Int?
+  gatePass      GatePass?     @relation(fields: [gatePassId], references: [id])
+  companyId     Int?
+  company       Company?      @relation(fields: [companyId], references: [id])
+  title         String
+  description   String?
+  stage         DeliveryStage @default(ONLINE)
+  createdById   Int?
+  createdBy     Employee?     @relation("TaskCreatedBy", fields: [createdById], references: [id])
+  assignedToId  Int?
+  assignedTo    Employee?     @relation("TaskAssignedTo", fields: [assignedToId], references: [id])
+  assignedById  Int?
+  assignedBy    Employee?     @relation("TaskAssignedBy", fields: [assignedById], references: [id])
+  scheduledAt   DateTime?
+  instructions  String?
+  startedAt     DateTime?
+  completedAt   DateTime?
+  blockedReason String?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  @@index([stage])
+  @@index([assignedToId])
+  @@index([gatePassId])
 }

@@ -68,3 +68,36 @@ export const PASS_CATEGORIES: { value: GatePassDTO["passCategory"]; label: strin
 export const PASS_CATEGORY_LABEL: Record<string, string> = Object.fromEntries(
   PASS_CATEGORIES.map((c) => [c.value, c.label])
 );
+
+/* ================= Delivery / Dispatch ================= */
+
+export type EmployeeDTO = {
+  id: number;
+  name: string;
+  isManager: boolean;
+  isOnline: boolean;
+  isField: boolean;
+  phone: string | null;
+  email: string | null;
+  active: boolean;
+};
+
+export type DeliveryStageValue = "ONLINE" | "DISPATCH" | "ASSIGNED" | "IN_PROGRESS" | "COMPLETED" | "BLOCKED";
+
+export type DeliveryTaskDTO = {
+  id: number;
+  title: string;
+  description: string | null;
+  stage: DeliveryStageValue;
+  scheduledAt: string | null;
+  instructions: string | null;
+  startedAt: string | null;
+  completedAt: string | null;
+  blockedReason: string | null;
+  createdAt: string;
+  gatePass: { id: number; number: string } | null;
+  company: { id: number; name: string } | null;
+  createdBy: { id: number; name: string } | null;
+  assignedTo: { id: number; name: string } | null;
+  assignedBy: { id: number; name: string } | null;
+};
