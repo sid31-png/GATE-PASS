@@ -120,6 +120,10 @@
   .sidebar-brand { padding: 22px 20px 16px; border-bottom: 1px solid #f1eef5; }
   .sidebar-brand img { display: block; height: 34px; width: auto; }
   .sidebar-brand .sub { margin-top: 8px; font-size: 12px; color: var(--ink-2); font-weight: 500; }
+  .current-user-box { padding: 12px 16px; border-bottom: 1px solid #f1eef5; }
+  .current-user-box label { display: block; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: #9aa0ac; margin-bottom: 4px; }
+  .current-user-box select { width: 100%; font-size: 12px; font-weight: 600; padding: 6px 8px; border-radius: 8px; border: 1px solid #e6e4ee; background: #fafafc; color: #181d27; }
+  .current-user-box .role { margin-top: 6px; font-size: 10.5px; font-weight: 700; color: var(--brand); }
   .nav { flex: 1; padding: 16px 12px; display: flex; flex-direction: column; gap: 2px; }
   .nav button {
     all: unset; cursor: pointer; display: flex; align-items: center; gap: 10px;
@@ -332,6 +336,11 @@
       <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAABmgAAAKYCAMAAABAeofgAAAA0lBMVEVHcEwnOYe1FoMjN3ujHn/BEIQlPHcnO4AmPH0kPIElO4YqPnSaIX4nOoLLDYa7FIRtJ3JEO3gqOngsQYMiN4CsHIREQH9INXWEInUeMnUoN2U9UInYCIcsO24mM2fJ0ApNN3Y1RoIsOmhEVYwsOWpLWY5MWoooN2c+S3s3SYa1D3uZK3w9SnOcE3EcJ2GJLnCUKHCdMnlFUn6vLoZBTXuxQoelPIS1P47EB3uuQIrUwi7MuUN8N0q7ilGbU07CtUomO4CvGIEoOW6pGn9XKW5BLWuf+dQhAAAAQHRSTlMA/f7+/v79/f39/f7+/f7+/gv+/f39FQP+/eUs/c/+/gYf3kXCapb0ov3+/cz8/fvgyLwlrkCqYv6G9sH38/Vl2YgTewAAIABJREFUeNrs3U9v2kgcBuDKwjfLQw5OOSCUsyOzRhGJORLw9/9KnT8m2+5u1W2anvo8RFUJOfny6p3fzPDpEwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAALzD57s7DwGA3xUyT8fT4SRpAPgNIXP/9PJ8GDebw/GzpwHARzeZGDJd3w3DsHlRaAD4wIx5WEKm6pqh7+vzs5wB4OOKzPF0OIzD5VxVl2Ez9Nt2ePJcAPiwkBm7ut1u23Pz13q9GaZp258MaAD41Ywpq2VjP8WQidq+WV+v6ya+mw4KDQC/FjL3x5fnsetjeykxsw0xZubrpkvVZrTjDIB3e7grO5i7sFSZmCxt3W2u+1hnqvhuGl4ePCYA3tVk0kjmeQx9Xydtm/pM26UyM1/Xq5Bjpz7ce1IAvC9kDuPj6jylEpNescnUIcQyM8/7ef24FJzx6GEB8HMe7p9eYsiEIgdKKTOha2LM7OfrpulCmxJoO50ePDAAfjZk8tx/W0pM/GdKq2ZTnWKm5MwltKXQ2HEGwM+ETNpcNq5WwznUOUli0LRJ/F+KmfX1ut9f15suLOtm7fBixxkA/z9khuF87vs+pJwpq2W5zrR1uKQtALHMXK/NpbrlTD24tBmAH1rm/s0w9HWZ+U9JSZpcasIqj2bi67pZhVJx8mkaC2cA/KDI3OW5/2ZYdVVZLksRU07LLItmdXUZ1tfdbr+b55Qz2zfTylFNAL5fZB7yUcxNuh0zhKqv6xIxy/A/VZm8E+CcF812u9ddOjsTpvTJMqFxxxkA3w2Z4+m5XMFcl51ly9i/XaYz5dRMVXWrGDO7KG0268oWgdsdARbOAPivkLlLITOOzSo2meW8f0qYKSVOlLtMiJ/UIW802y8x03R12X92G9GMdpwB8K+QeTo+xybz2KwuS8y02ym+cpeJ0RJfaStzDJrQ5ZiZd6+v+3xEsy4HN7e3nOlP7p4B4CvLPf9Dd77EkOn71Fna3GKmeoo/S6Gp856AdG9mGs3k2cx+Xjfhli/tcoFza+EMgL9DplzB3AyXc6j/IaQak0Nnyu9T0amrIV1pFkNmlw7PlAs035LGUU0AvgmZPPdPq2VdiKkyTWn6v5SX+IuqCqGkT+43bSijmZgzc94FkC82q2+bnW8Gd5wBcDuKOT7GlFl1XZXv+8/jmOktZ7I6L6CVflOt8mhmP+cjmvlis/IdAduvosYdZwCKzHLPf9OlW2VibUk3y4TcYKpcYm5LZm9dJsVM1V9ym9ntXtNsJn1Zc1U+f/vSs7R2No2+7QzgTy4yy0gmrZZdzv033SUFTcydJWdK1pTDM1Mdzl2Tvgdgzjnz+jrHmOnCcrRmKkET/3o7tYMdZwB/bpN5Wk7JxJCJZWYpL1UpMqnLvI1k0jLZF/bObTduIwnDQKN5ZYJNGWiJF4KhBPEuTILLEZwZSYCwQIsz7/9K23XoA0fZBxDn/6zoYCc38cWHv6q6yvCDTQk06doMj5rRGEBPi810F81j/oYGAZ5/YxIAAABuUjL8FNPHGOPDGrJZKkgzZdyMJwHST/JsRtMM7TUTzzxWuwK0R+MsCmcAAHBzlL7/GpOMZ9EE1UydZkgsuVEjZTPuzSTNsGgu1JwZWktnaZo6z3B/5nE+4TgAAADcVpARySxRDXaevV+5aBbCNtE4qZpRb8aZGHlINHRrZox/ppqhRzNRNJJmgmMnNU3a45wCzesBS5sBAOCGJMOnlw/LxCPM0TJ+nucYaYpotpbRNCPNG3aIWa1qhvr/ZBsaAggyBt3ov8Sakfs0bkbhDAAAbkgy1PefZ2tFMl7qZuSZdWOaohkNOM6laWefNUPPM0kz9ERT5pm7Jj3V7LJo5hMmzgAAYP/oCuZlWKbVGO8NRZgkmXVeg/fJM6G8m+ENMyQgxw80o2RsK5r5zw9JMz8+LuchesY06TZNtxFNDDnPKJwBAMDOHZNaMsswTNNko2jMWMLLGqRwxokmkGe8ikZf0wRd29w4b9OuGV5q9oNnAc4D7xDQ+wGPabNzHggw2HEGAAC7low8xVyiZaapbVuqmXnLQUaDyxgqqBeT/kCfbY5OJprzSjMul10uH98vMmzm81qatEWz45c2HU8OuGdMnAEAwH4lc+T3/lM7tEkyBH8npuHE4oMvojE65VwaNCO/1AyrppkYZj5ymumHljebaaEtHzqT716jZw4v+JsAAIA9Subu/vcbJ5lp4tb/ulKQ4SjTek01VCwL4ybO6DdZNBRuGunNpKIZjTN/XD5qzeQNaIk0eDb69g2BBgAA9ga3ZE4H7skM7bwZLhPIN3aNv/ijmGZU7yTRjKyemHlqzVDVLMUZa/QBp0qGN9PwlDN7pnEWS5sBAGBfQUZaMs/RMdyTmayfZHiZZOM109CrGPIOV9HayjTrNtGQZ9hLqpmPVDDjT+ehDY7t4nKY0c3O3KGhuQCPp5oAALCnJCN9/4GCDI2XSVNmnTXNzCSZaJpVSmQri4aos8xGNFFIbBlNM7zRTMIMDwFwnKnk0qXbAV0+R4NrZwAAsK8kc2DDaNefOzNWfMLxZY0/EVbSjSwD4HnmyjHrRjTxP6MTzXI8U/PMJW+caWSy7LXu0jRd9szja4fCGQAA7EEyd3J6eaHGf9u2szpmZrNQF0bmzDyLR/4h6+gmAGdKg4Y8k5c4m7DS68zhnOzyQR/fS3cmmaVEGflJfuCdAEf89QAAwNfm6U5eyQxDtExbTTBvKL8b0wx9JDTE0Df0gjOM/Lu0bSZaZ23zfmbmIw0B9APtaZbHNV2VZSTOsHfGhqLOisIZAAB85SDDkqE1/5xj2nZKrzEtG6etBdMmz1ibJGNXv9qtccQ6fMc58OJMXmn241LZhtMM7XrmmwGv2TVdngHoulf67eiZ8YTCGQAAfOUkI49k6MU/OYZkM6lQrixTf8vFtC2BdzOrb0ZilZpZfz5nxXy/yB6Ac09vZ7yscm4adU3pznQUZZrm8fX1cTwcEWgAAOCreublr3dqyAzDsAyLxhnJNYKYpv1UPvsnzwRu08ikABXEdHGmauZ8qQINa6b1PphyaDMXzsoogIw6zy94qgkAAF+W+7fDQC/+p2kS0UiiyZpp7WRzrCnGkdKZvSqZlURD6cYFCjO9hpnzhb/5njcB2JC2OzfNlWq6YprXx27EcQAAAPjSHE8DS2UYkl5ENfzL/p8ejdUxtE+dmTwVsGpv5pyf/+fyGR9r9ryQZhx5tfMnxDNulKua+EsCAIAvzcPxeWHL1CUz9oyGGq2elVxTUo2tPcPiCWmeechFs298cCYlG9LM0K6mSRs0R5VLMU5XSmiPrwE7zgAA4Mtz//I88GbmrJYkG0ulM7XMp1GA9IymiIa20LBndAJA9gDo5syUZvoy0yxmGVkx22TTpR0BMybOAABgD6Hm99thmYYUYjzJZkqTztKnUdVUceZKNPErZZ9UNDtvRpljrMlxpvXB5MMzqhf5ssk0XD0bHXacAQDAPkxzd3xepmkYprn1WiFrq4mA6zlnu0k0tAON/dJqt0d6M9+uVcNVM944Q/2ZEFQ0eoLzKtNIl2ZG4QwAAPZCVE0fVTMNczlrlvs0uXhWP9isRbPm/yK3ZiTGnAWebpZhM8cHAWjNZjq9qdeeN+Uz7tOMHjvOAABgR6nmj5dDT88259Tz10UBVl9wttvdALVoZIuAVc3Uz/+zaiK0cYamzeggQBTNKhU040Y9q7lJNWQad3hB4QwAAHbE0++3d14QIJNmZfaM+zR18Sy3aGzKM5x+0h2Ay7fzRXPMWb7rex4CiJ7RMQB6cmP08qYzTucBtsWz0Z5QOAMAgF1lmoen43MyDeWTekHAdvJsMwywipW0N3POjX8xje6boU0AsszZVZj0Wzrh3FTvatyKwhkAAOyP+xeaCtAoo5+5hmbTRudWPVNFGssrzYaNW1JzJs2a2TVmGQ4yvEPASazJonHpWU0JNePh5Ql/IQAAsDueeNR5qjbRaJxJPyW/pOKZphntzqhmKtWoZ4IZddhsLaK5SjTqGo03BoUzAADYqWqOp2WZhlmWBXjPJbN2yg0bTjF5CqCdaAKgT+mlNgz/FP9sof6OLN2sI4yOApgyddZwLY3OBnTN6A4onAEAwF65P9KqgKEd2snSwxrOLdEzpJq8ujmqg4bNKMqIZ2QO4DrM8HUzm84IcOt/26Zx6R1NKqbR/PPogsXEGQAA7JeH+5dDL3fQPN1zLucDtC2Tq2bDkDWTC2aXjWdaiTOy3VlV49Jkc9FMTjSOb50Zj6XNAACwa6hVQwvQ5nSSphx4zo8zrzRT1cvko5dhM8u3aoplTPKMy6tokmz0QU0MNPMzds8AAMDeU83xtJRdm/wg0+dhszwAoJ651Dnml35dhhRnzMi/qkxjtD9jKtWIZrqua0Y/YeIMAAD2D406L3JCgIebve6a4aecw6Y5Iwnm3Fea4apZq5cDXNQMHxCoQk3lGUk0PH1GNzVHP7+hcAYAALcQaqhVI89qvPXeJs2QZaqi2SXLpW7O8CaA1XNvhuKMGeUGZ0o0UkGrXEP+Yc80xuKpJgAA3Ihp7qhVs1Ck8ZGimZ7TTJ8qZaqcvtbMIM2ZwGlmZMWEbfHM1JlGBwFYNL7FxBkAANyOavhVzWz97Nky07TUlslqOUvA+dWLZiYdAoiMwZQrz0U2LvsmBZqRRdN0ZsZTTQAAuCXV0AHOYfLzTJaJYWZImiGnsFhIMvTxS75Ps2ZrqOHZsxDqNs3GM9yiGemCwPp8xP92AAC4KdVQ/aydWTPDJs305VcvX3PVzKtbRDKhaKeUz66nnSnUNM24YuIMAABuUDWnwzLEX6Vqtvy7pzijaabXCbT66Yz6hRRDH2HdFM+cFs+qPo1xzejc2p4wCQAAALfH0/HUJ5+kDJM/Kt/o0xnxzKqC2dbQ8uxZtShAF541zvn2gMIZAADcJH+csmhilEnfiWbSp7TYTC2zaqQJ16K59oxLOwFcmA9vmDgDAIDb5GctF4GE82vJEUeqZtr6t2oakQsvBtDSWdh0acrsGYsGhTMAALhZ7v/qS3SpyL9RdWdINLZ0ZkZaQmOuZpy98VWrJoqGJs7sAU9oAADgVnn4lyhlOW8zzTv/xCeg83HnQmnQfHpN4z37xRijRzc7Mx/e8IQGAABuluOfUSk0eHZ+T10a0k78idIMzTRfeUYmAT73aGTuLHgfeLdm/MnTBoHXzrc4DgAAADfM3d+fymYsHSmayU00OYr2z5HmSjXB85izG9MCtNH4A44DAADALYvm52fPvKfmDG9qFtN8CjXh89wZrz6jr2M57mzm9u0J/5sBAOCG+U3jAEuWzCKfkmaUa9XIfPNGNcZL9aw6h+ZcY/yEpc0AAHDjkebtLHZ5L64pmlnl/OY/lM6KZbx8LoEmPaVxTWNaXNUEAIAb5+H4Z0oyC32On8QzMgSQM82VbMJ1p4ZGmyXO+NSoaZwLC3acAQDArYvm7u+qdiaVMz6jOc1FNFky+burJTTe+FI2k8c0fMYZ184AAAA8/Ow1yeiX/74vy9TO0TPz6v/H3t0wpc2tURiuhEIgYTSEQCIDBikgRgio4IhaX8L//09nP0mQD8GK1vf0nN4XYFs/CDKdrFk7eyfZ7Fan2Tpe8xI06UXQLuMpzo5MPLs8vmTGGQDg27ebRpo0J/FlaZ6enn4+uippsllnY+gsLTTZHVPPnMzcWV7+bJ6upbk8XjgDlmoCAL7505dG47onj0+z2dPT46OcesZcZNelGbN+tGZZaJxkwpn6cBn/K5nZzIwzAIBoL+cCuOohQXM2U6UmjM/arJirmIlX1aQDaBvXo3Eyq0bjOMkhmkXAwBkAQFTHJ3L9M3UPTiRozs5mM4maxyAws+Zmp8luHaRJ+kx6kc34KE0ycvb9uyo0DJwBAETtXgWN5IybDJ2dJUkjh2oGcdK8dJq1arNqNDLjzEkmN8+TQuPIdTUzzDgDAKTqY4kZaTVhGjRClZrQXMWMcJa3l1Yj6zWd5WkBkj4jI2ffv1/ORyyhAQAkWvcqaFxxshY0ZzJ+FgaBuTF6tpY50mkcSZZ5cpu/BI3MORtMGTgDACRqE1ml6QbuRqNZHqpxA8cZZAeBeqh4UVUmaTULecwXCydJmnkygObIvy9VnzEZOAMArCqNTAcwVdCcuI8Pq6BJSs1P1zWdrEqZQEbRkqln8nCSkFlItsyTsJnPVfw482SpJm8rAGDJvw9D03TdMNwKmmWpMZ2BqjODgZOu2UznBsj4WZw1SczItICFE5/3LGDgDACwpj5yAxk7c0+2gmZ5qMYNJGacgWoxMmYmGZP88dJoZNGmE5/LOZNZMHAGANhgTZODNLuCRuafPT2GZlbCJD02k0aNVJq0zzjp9QLksmfOYHTHUk0AwBr/bpQETbgraM5mDw/j0DSl06SNRiInu2o0y8GzuSOXcR6EU5/3FACw7mYchipoAndn0JzNnid3UzcI4nlncbYk/Waj0WTkoYLGMacMnAEANln3bwbNw8Tyq3djN0jW1MRTACRkkpxZpLPOnIyzOD7OLFiqCQB4ZTI6UTkT7B46e5hIcvg396Nk+abKlvkingCQjJzFURNPO1tkMoOAQgMAeKU1lUZj7gqa2UM9PbRv3UxHZhCYAwkXOe9MupImnQwgJ3FWnxndMBMAALDNvwtPdgfNKme+fatV78ZyVhpZuJksnEkaTTx0JucGcAZZl4EzAMAO9VEoQ2c/t4Nm9lxdLyi16v0oDNxATqrppINn6ciZzAUYBO6YpZoAgB0sGTszt4Nm9vBc3f7Om2lSalYxs2o0g4BzzwAAdvInqtK8CpqH51f9pKa+dRpff9OJ558tVkdp5g4DZwCAfarj0HS3gubheXdsWHfTwDTN7Pr05uRim9Mq7yQAYKfafbh9jGZfznyr+Td3Y1eW1SzWLhQwn2eZcQYA2Ks+DsPwaRU069PNXpNVNSehqjRyYhrHuTyeH88d846ZAACAfaypuxE0e/vMstVM7kdmck5nJ3OcyQwWAwbOAABvJMddGD6+BI3qM/6vfqI6GQeBK6fazBxfqmozZsYZAOANrfHj8krOs63lM3ujRlbVmAPneDB3AmacAQDe5N+/BM2Oac17atDN/cjNqqBxzJBznAEA3g6N+jJodizT3PtD/mRqZgdZMxxNmHEGAHhT9ToJmnf3mYR1NwoCd8SMMwDAr9rJcxw0B+aMcnM/fmTGGQDg193k6mk2Ozxn1A9O7hk4AwD8stFYz08PyVXODv1J3jwAwHvyYvL8QDMBAHydVnvCIX0AwNfxLYtCAwD4yqTxCRoAwBeqETQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA8F9Rq/krtRpvCADgN/F9q9pqd7rK7e216HY7nXa7alm+z9sDAH/s7tvaZ604WNbb3/XVxaLmW/VO9/qqcd7rGYYRGVFTiZqRYZyfnzeuu512y/pk2Oz/FT/76r/umQHgz1drXTSu9rhed/XGd92qZtGut6zP7ur3vUYVMrdX5yphVLxEomwYtmKUy5GkjdxPG1fddtX/eODVOvt+w4v6515//XbfM3er/A8E8P+vfhXtZcQ31Rp2f7kntUJ9Wfb0zd55o3Hbbdervzls/Gq7e306lNcR5ex+39a8crmsxXdF121bN3LlOH1657edlvXBrLEumrt/zeaw/bm+Vj9vDne/hz9a/AcE8BcETaNp5HK6LnvtnFHO5cryQRjlqCx39QlDvmbnll+VD72ykTNkGMuwyzm1s480CaTm6bX0it/26qx6t3E6bBp92/P6uqeoYCnk8/lSpVIp6IqmaXpK9Zyo17jotD60ff8iWvvlc/Ke6AV50qjx6aAxIjun27lNRq/5g0YD4K8IGiOn5wuFQqmU1+NbepcPyQ48/ktehUleX32LrpdKpaP4VqkcFYvFo5Kn2XYk1abbtn7HMZtatX17qmqGpIx6fhUsBZUymqdVKvlSsVjQJAts9bokEvKVilfJ51W16cn2PxQ0eX1dIaaXo/PPBk2vn7O1or359HrOjggaAH9J0MS7VBUVxUI+vsl9ndq7y368Uki/nk++oXiU3Cp2UX1RhY38qdvlptE8ve18ehdaq3aumlFflYFh3q5UikUVNJpEjZ2PX43aVtpo0hdc7BcrnqZKmNr+Rfvg7fsXRmGLvCclvXz6+aDx4ifbfHY9R9AA+EuCRisV9VxOV5UkfxDVaIobt7gFySBcFEWnt+3P7URbnYYM5kmhkk3FObgWdCV1i8vV6nP50nL7OUO2f2CrsS7Km79fEjUl3fh0ozk1clqh8uoNJGgA/DVBc3SkG0audGjQvLYcFFKtwxvat23/w6/K7zSa/Y9u31Z3zdOvD4u6V0Gjnk61tpIe/Z6g0V6/WoIGAEHzwaDRVNRomn310fEzv37Ri8rDD2/f8+y+rUWnF4dE3b8eNHmCBgBB89FGoXkyE8yOet3qR3bRrc6p0W8O9zeaf5b2BE3O01TO9ZvN8wOijkYDAP9LjUY9PC8yjB/1g/fRtfp1P4rKtv3LmHkVNpubL0vSXNTfW2poNADw7wbNPwd4vaOXdfu2p/b014ceqLE6V8OmYcvw1ztSZuf2dakzfVsf9vvD5lXnnZMCaDQA8OcGzT9bQ2cSE56Wt4d9u/mjfdDLqXZPh/2y5xUKFb3wvph5vX1dxu40r++p+/C8+77l9zQaAPiDgybd1S+PxSdr9TX7yOvrzdtDzhTW6vaGfa9kVyq2/R/2zm23VR2KokVI2GDxEC8ryERBQC7EUsVDlQ848v9/1LEN2W0DadImp3v37DnStFXVhtAHD01f1orTWz1zdv2gmpiTDqdgbHe4af4OiQYAAP5o0fzzbqAfTtZnkVLulT9R0Gt16ITUUTScmklv1sz4BibXdy/jC9NsbzEFEg0AAHyvaO7ZDHAa6J1pGBfdraskxepYWcloXjQ3qG56/ZBpKrO9IVUh0QAAwA8Uja8WIMStRSlXL31FOp4Vzdxu5kngmV4/1JBJKpdpaiQaAAD4v4mGhWHeRZrqcNN42hytNVwyFQXTvPXMFcdcuP5omjRUYL66ToNEAwAAP040aeoTDU/MTVUpm4NI/FYxo/ORO68/FGB2piEtLV090YNEAwAAP000oR5m6kRD/fH6gLrcd0maxpoTP5XsvPf6vqeMN40yvZHVywqJBgAA/mei8bWXQzV8Ue3qK2+j3pVCZ0Sp1iS9oe4XTSLcXQ21/r1p+isTeEg0AADw/aLhtzDzJ2PXtFgOTSqtEOtrI+ruuas4KW0o5qE3wGn67NccWJ6NTGfV0tzPkQ27B17flb+pIBpFmmJprux+Q6IBAIBvFw2R8O2Hz1sQv/YiFlZrKUez5Mr9AdM6pWEZPx8G/dRpIb46VjfP1hJ7L5A8iiIvmjAD5puqRVEWDRsFhtY3Q29NxhT5xmg0tG47ecZddlgnCk1l/O9faWCGRAMAAN8tGm6tFfYGKmullHGsc6UzQ/0QOvLBNF40Slb7K2nCJKTPG6sNonGm8w2cnUkGy0RqVFiiK219wZvQxTkLbT7jOH4Vzbk48w+LFFwWTYlEAwAA/4Vo/qH9wNE9Xj/GTyMvL8/rti07LxvhxndKtSIvGpbLX6JRuew/LA9Q7EqrjZ628GTDkn6iU2MizWKtY+kuFBi/Os8lkpMhn8CCkvS4l2AyE0jdR0tF3y4aJBoAwN8umnzd1IuRZfgI3y3Hz8vXn6w2u+O6qyojdexG+rCreRjng2giTfLj6afV2vQJTczAZZI40aRJ6qv+Z2aQi/Na2649bcBZzv246q3RsV/dSenS5mhtys0fNHWGRAMA+OsTzbiAXzwV4fNTUYzfFqdx99f4Wy+azaHsLQnpIkWanhINC4lGk6ZuX38wxHeWqKfzqbtE+OUZZw6/5iN11ZXt9rjfrZrlMpjPfWlWq43XXGmMrQSJxK8RDXUFGD8f2WOqjos/RzRINAAAJJrPjIJFsVwdykokvTZeNDnLx7E6z6KsF+KDMXVTCkupUhdEw+JYSivLtXPMoi4mF67rerHaHdvS5x3iSg3lAM73w7GcetNfdgbWaAAA4DclmttZ7srKkI3D6kp+2u3sN31pUa0vLsQvjqY3XBs9EU0SNjpzTUaUx11TfzDeF3WzObZVJQz53WlONMlUNDGJY4NEAwAAPzLRhMF+sXnuhdGcsfz1WI3vFkDUt5eWR+pNJ4RkSpl8eownbEsWVXvYLK4O9kW92beV4HHuZ878aZz3Lxc5l9l2VyDRAADAT000XhqtMJa/c0WaqYh41e2LS4HGSsnCccyzkTgl389Zy3K/WjwVt13/0FXOakYTTww/3y6daWMvVsPBrjMAAPjjE40frXelJcnfiybKcmbFsZ7/k01pR8+cJZqMdGZibbabT7yR5c6FGuOyCyd9Lpos034e7NOiwa4zAAD4YxKNr/XfiXPRZKRiaZ8XF8b3avDMeUNNlmujtOkOq6fPjPOLzXMlXKRJjE4nolGad4f6DxENEg0AAInmK6OlXunHAAAYIUlEQVRgvVlXcix29ioaHVN14eVWLfF8rnMzyxWxvt01n3wHxeqlD3U5aXL+k5QiuW6QaAAA4AcnmqflwZ5EM5zsT9PIJRpj29ltZ/W+N4Nn+My5F9ve2gb63S09i8owfX4uhylSlMtyh0QDAAA/ONE8FXszIxqXJOZFs9xWFF0QjbXrq+0FZtmUlrMoOttc4DKT8pNxFxaLkGgAAOBnJJpi08pgmlfRhEKYcn4VflOK8YBlkpwNxNKUX/PM02LXasomoqGYoigWF8quIdEAAMB3i+aLo2Cz9ruV/TA9dpPxrcciPT9lVRw6isMByzdH+cfKz6LbfXUcbo4VqWnbA2000SVvzImGedGIB4lGItEAACCaRySap8WL9QX+mX/F4XR/nKlMS5o7KrncCn+S35nFN44ZK/xTT6RJf3CK//pdtU4q6nyNJs18y4ILZdcmonHvnft/inyIaKaJDYkGAPC3i+aLazRP9XEUjXCvGIr8x+kgmpnxfVPa3EWPaBCNM40/zx+pSDnP3DO+Lw69Ur7L55sHS0P/AmnnK2vOioY5CT5INDJBogEAQDQPSTT1QbwVTWin7ETD5EyQKPaddr/sLz0mmiCaLNI86faLu26LiKXvH9kgGjk/vF9INI8RjYxZzJFoAAAQzWMSzV6wd1NnQTTx7IzV4sXGfh0kfy8aN7prs17dc1v1sdL8jDB9JqWdf+XpGk2SsAdNnUmmMoVdZwAAiOZhiSaIJhlEIxI+iGYu0axakTAXM6LBNKNo/KBsP2pgcwu7ziTnyIATTXGTaIbNAA8RTe7uadrYDaIBACDRfIXF0Z5Ekw+bAZxomJ5LNPWmFM4reeSbpL0RjdHalKv77qvZVuIc34rT2qrc1DeKxs+cPWJ7sxdNlKVINAAAiOYxu85CoklfRaMG0Ux3ndX7znrRhO3MvgbNIJqYYkt3rdD4t7FvyzNa9yjbtt3OlhuYEY0/AfSY7c0+pZ2LBokGAIBE87VRcLkWfGhxOYiG89iLZq4TzOLoW2s6zUh2Eo1fSsk10b2l+Z3FmtVAs2res7xt11kaRJM9RDR+i3eKRAMAgGgeUhnAD6vvRJOyVCkpZg5sNlsrYlI5yyVnfhw+Ldpru20eeZNFUVwtAT0Vja9pkD1CNK2pKE5jJBoAAETziERT70XC8nDS/1QZgKWxu0A5LUGzWdvEicaXmxlEM0Yast29M2ef55Jo2L2iKVatrUhz4kg0AACI5hHVm7e+j1k6Fsn8JRo7s7pf+OKXKaWMyzeicX9Ioptdr/9m0fBBNMndHTbXwhqdnIsGiQYAgETzpVFw11o+Hoo5iSZ1oqlMOXm5xa6zNBWN11LZfPs/Yn4zgJ8DfN41y+Wyafzzcyw9za4V3MS+zgASDQAAorm/w+a2onGrcvoqGsUrsZ1MhtX7TlDYA+BEw9+IJrHrb585u1C92S/S9OV63bbh2X6B9bNmcZoSxxoNAACiuT/RFPtS+0mnYcpsFIfLLNLaaQvlxUHQSTTyjWh4cqEc2e8RTWpsZW1V+cOeQibueQUhh9/JpbT++I7WWaQyilEZAAAA0dydaBa70jCdh5OXKf8lGsakmDlGs3ixF0TTfbERzX8jGq4TcvjjPmp83kLkj626O2OKKIuiTKEyAAAAork30Sx3rej9LrJftcX4WBhAzm06W2wrkSoXeIaps9CExm8GkHa+SdpvEw0nrmPfzuDz+H+kzzPuI8uRaMC/7J3dbuK8FoYbWYqdWD7AyyoyiCiEkhAJcYC4gMr3f1HbTvgNCRPabqaf5n3S0qpTOm0P/PSNl9cCAKL5VqKZzssqI21PVcrBHHHT64x21NfJchkK1Cg1x+kA6mgavwAX89f/Iu5FEySRtOMLjuPYniJIqvmVNu+ld63OkGgAAEg0T62C+XK9JUYk2LlZcmh4JoNojKJqM+n5r51WFKlwsyzkH3U8eCPc4reI5v8JEg0AAIlm9Co4zd9X5Xa2s+EWk7gWzfHWGdWznvma88LpptnkvykaJBoAABLNMp/mN0w9ed6+nP5tMpnM1/tiJl0WE1kr6KQa3nrDe6Zm9HGvjmkrGtMnmtcfo4FoAADg5YlmVv6B/WG/32+3i2znapllUjAmyIeaK9Hw0MbF1DbraymzKqToFY1c/IUFGKIBAIBXi+bTHdFOOi3d8bq81M2MlyyrqZmjWYfSLGKMLgMtw454FBmle7u4zAup/wOi+fz8rlE+e78E9mgAAP+6aDgnobkOZ1w+dfPQXpd3nI59gqE6ESyc57fBMNaK+jI6uT1MElm96VtR/zOi+QGQaAAAEE2PaDg3XPlXM4BXAgtYkySm6WgWYPZSDtB6hgaGIYeqszDi+B8VDRINAACiUSp9eF031G+Pm9xCjCIbka2zzeRtSDTKUFc0jJBoAADgnxBN8hhvBS6uPvfUEOBMzHgabpxlH/O3IdGonltnMRINAABANG2LMq6DbIawRMZaK2cDncuWi9AZoHePBuXNAADwL4hG/BEtmmKBlnvR1GRTns3W/cvptJmRRua3dAY4oDMAAAC8WDQjTPOQmFle62ozFE/et0E09y1o/lJTzQMSDQAA/DrRPLpxJgRZRnY36Jm3yV723zpzxXr68l9EjkQDAAAvFc34fW7xORhpSGeb4btgQTT9LWiqMkeiAQAAiKYrGn41iKb5g126rFw+WtpJs4toLmMCtCtfP2GzN9GECu/k9K5Knrqan4cfOyQoJBoAAETzvGi8YZo3zT20JEkj/xVCu2ZLhlK+o3o3VAdwXNrLKmZJatoDOEm7Loe66Tr7CyvwfaIRYWZZlKbhBCopG5nnYTqONSlTKxsGjSLRAAAgmidFEzrR8CbCJFeiqRNjdnWd7Q6r/OHSvp5JdjrpyZtRzs3XMdwVr69v7puwyRvRCIqtZow+n6uF+FSfWjft4KxpWsAh0QAAIJquaET8KTsXxUl8fBVJ+2e/OAninGgSU9d6V5TzP2zpr7xowijnhN+IJrWyv2fNa0UTfhQeJjlnNKtucdU9bvADtROcCbJINAAAiKZzXjPczwrX9Ut8XXN2e7hTNaJpzs9Yq6v94zjz1gykkXFHNOEWXMp19fpNmj7RhKltIp6Vq9X6K6z85V9KolAYYZFoAAAQTV9586WBWXJ8aAUkrjoHnHfO271vRaS36xE3v94/slYsrWhOezSGrHz9EtwjGhm3DXFW3nrTaXid5s1LeGjeDHAy6bR5WC2c10wcI9EAACCaJ8tzr9vRXNyklGV6P89H/N+TTSa9VxrRiEY07UROsnXx7d4A+TBPJJogmmKVf/NXnDkvGkKiAQBANHe1vY+5Fc0p96QR0e4wagXNy0wKLxp1LRqRELd1tf7e4v6Wr8P8zx4Oh/69o/tigOAZ3ojmextG85nzohECiQYAANF0RZOkD69m/+bcYfPomUSFiZqLcWvzupKM0o5oBFmr5cc3I83kw7nQgO3ciq0pAAszQrPZepRojt/TT4im1sSIIdEAACCa7q0xYUR/22YetlQS2tWWEmO6oolIV5tRS+i8yGIKiYYL0Q4eaFIEMT3Y8nksq8K1Y9fOKCG15rpy/eK4E01TABee9X3RaB4GvCkkGgAARNMd5TzQw4xEHCZruiyzMSM6zgw43zqLjM7GRZr3rSSW3oombkWT7b8VafKyoq5ofEaLlNKuf/+nRzRpGKfD9Q+IRvWIBokGAPDPi0Y4F+40+ccbLh9ydSZrRvYkmlMxQGp5Ni7STA5hkkBbdubX9YTHAU1G66z4VqRZLlzYFBHnK5gjeCPSun/aTZ9oGkH9kGiiCIkGAADRdNbBYtFwfHOF/8h2u9/uD9vKuZqdqgFO5c1kKHOzMZ3+p+uKLEXXopGNaJiw2fYb6/u0zGor4htEm1CU+5iMEs3JND8jmshESDQAAIjmdoLxYj55RKgTXu5DPdWpvlkdD2zylKzMRkWa+YyEF406ikbEPijFghvDQwvnry/D88ILMO7Q7rloucnHiUaIYCb1E6LRTBmFqjMAAETTEc2fV8FpWbnjHo3n1IKGJcoKORuzPOd7mfg/9VXbEuAkGr8oKyL39XqA97KKbSpCPrpczTl/JXR/0Vl/C5o0TX9CNFIzwdC9GQAA0TwvmrflVrpTolEX0RhSxo6JNNNyJmwrGnEWDRmVqpR09vHFFX66nkkvmvS2WC58a/5y/Vs0PaIJzvM/WfwTonGh4g2JBgAA0dycohkjmulm1qzGjWlOokm4qY2tZ/MR6/NqQfw4t6Xp4hxucRFTqTGkZfVF08w/ZEY+jHTO/TQn/fXAFs2QaPhPlDfL2IsmRqIBAEA0zyca//Q6Y6JRhFCpavs5t4O+9GZEY8zJwUn/dCaI2LG/wHlQmLL28JXuL/P9rmbedSlX15cPMyQ4q8rpONHwpn5A/YxomGBINAAAiKazWz1KNJOyio9ZpNtiRRcjCs+m6xkxIZg3TfcvfmWI7fZPmyZfbqyt/ZNN0vEGxcKawe+qrxggCQc23Y+IJsEeDQAAovlSovHPlxRagpm7Xl5iVOHZ/CP0SPaiuXu+IsVstl0/txjnq31miaylJOku7DFjXA+1YXu5aJBoAABINCMbY7q4mRlwX1blxkSaybqSRIm4F01aW13LXVEunwg1k/XCEXFrbnpKtzBmOA1260SiAQCA35loQlMxF3ZpuOmupLo+jFDEvPCmooSzu+ezEEykrLbr5ciVPp+XlZPaWFb7pybdW3FGcT3YrBOJBgAAXiwaNVI0E7+2szDz+O5EotFj2gP452cuVKp1RRNqka0j4bJqv34foazJvJxltbaMWU6s6xmu0sjY4dGdSDQAAPBLE83baiE16xGNiiyNKTybL1zmEqXumk6Si0MwIaFdsS3nk4euyd9XZZFJqYkT+TR0P2hMRZF1i0H1IdEAAMAvTTRv+aGWzKRpaFl2s8eSRp8j1uhpvqldaDtzJ5pwmp8lqfLpREpXHNbz97zvy02nk+WqXMycs8J/bhq+ULjtdicaY+Ww+ZBoAADgtyaat9VMSusTzb1ofKQZU3i2kHJHqk80zdQB/41pbxpXFdvDerV8b/usNUwm78v5utwWlf+EpsWMCgc1zwdy2lt4bRmAT1j6wTg1JBoAAHixaPho0UzKSjJFaVc03hBszFyafF3JelebO9HER9H47yyOj1MKZsViG+YxH8rDfr/dbhdF9T/27m43bawNAygICRssDvC2QAaBAgkQSxEHVS6g8v1f1Odtk6QlmYSknfmY6VpJm7aKdhxU+cnr/fNWWdu3YDgan5wFTRlnf4ombMLxndPT/jpoFioagP9vRRMXnuWD8XnQjPr9UF7Ul2Z2V62Hr3/ib4+MadMjnu48HJaDfDis142uIU6Vda1xjuXwFEpdzIzOgmZwWtscDnebnooG4FqCZnJ50Ezv1yHpjyev2rlU5UXHA/RuF3X91vHGXXPo7kjMpN3VGUKoml8hHsZclnneNppp/j4aFKNTysTP/XnjZzKIS9rC+wdKm6MBuN6KZn67yMLkVdCE0XgQ8v0FC89u9of61XLkl6w5xU3cbFO2huVw0BQ4w7jTs0mQUZNBxSgeBfDWGEko2odn6eHdS1HRAFxvRTOfPdaDV0ETH3Y11cRFJc3ssTqeL0eOpzqfmmR2T9DKQRNe7SkC7ccQz30uiqL5bVBMkknxEkyvjgQITdiU7z04M0cDcM0VTZylWYc3JvPL0C8uKml6y4ds8CpnJpO0WwTQzb8MBvFk6DjlUgyiJmHKMm73TyaxbBmkL7qYepmkCUn50VLrfzxoVDSAiubyu+B89q2uunMxX+7vo2FIQ3lhX5reblWn3cxONyHT6CqamDNd0MRD/pvbdXhKoXimzHgcl0U3v/LJD0/aTjkTL+e0lqAcbPc3PRUNwL+1ountFvXTI65Je79PRuPRKN7s88NFJc3NbhHKpCqPp2aYbR3TNULrDu0832bTxk0yeXnMNhn3u9g55VDSXNGgiKujQ1rXh/0H346KBuAfDprkU0Ez+5Z1+yvHpzabSXfTT4fZO8e+/Jw0xxCOoSpfgiZGTOv79+Rjk251c9czLRrWaQj9/rhfptXHLQtUNABXXdHMd4fTVEp/3AXN6NRvM8/WF5U0vem+OlZVGdKnls7D5+dg3zt/mTHfX31CDLkwTMO4LMaTtKofNx9+eRUNwD8bNJNPBU1veheDZhw38p+CJt6p26S5qC9NY3N/yOr6WDU3+Fdrx75fID0T4qrnZDTKq/XHOaOiAbjuiqYtaYbJ6cCYtJ1WaSdX4uOz+oN5+Oek2TdlUVW322Ym58c5f5gzyfBZFzSDcTJIq2pYX5IzKhqAK69oerPVU9CMu6BpD8WcxNxZb5cXjtEkzTprn7vFkdppnue4+Shnkh9iJp5Jk5bjkKRZfdxecgyOigbgyiuaXm93GMaeL00+jLqgaZ+lxQrnmF02SxM7MS+qNmnaxIpRM/6hrnk3Zk5B83SSwGlFdH2sH3aXTRGpaACuu6KZT+/y/M2g6cdTxi4c5Gb3UNdZfkqsl/XK7yfNc0vOuKy6E4ajcVmGev3tnRObVTQA/6aKpilpjlVRhHLczuX/EDRlyO6nl45y+3io6zwpinHcjhnPAPhwpuZsjXM5DqO4EiBJ8vpwv7wwJVQ0AFde0fTmy4eQFPFx11nQFINs/XB78Tib3cO6zkMoq6Qs277Mf7Wa+XzF82TS5lrVlDJlOizLbL3dfeIIahUNwJVXNDf7RVY2lchT0MQJk7iFskjy9WJ/cUnTmzZFTZUdq7JJm/SsonlPnJSJQVP0QxWGWcgO95+ICBUNwLVXNE0tsqrKMhSjLmjiSTRdj5iQr7Pt7ScGmu1Wh+pYZWU5bKIm/WTQ9Msyr9frw93t9BNfU0UDcPUVTduTeVA9B83TvHwayro6XriX5jlqttW67g7UPB2SOfkoZxqxffRk0FRC9eFhN/tUPqhoAK6/oulttlkee5Sl7U7NU8PL2C4gC+vVZ0qa3vxmud9mWVOY1Kd9n+PxB0mTjtL2GM+kKaDWD7vNJ9NBh02A669oevO2U2bMlhgN/TZpmpyp65Dn5X762UvbPRzXTdhcGjTt8uY0z4+Lx0/HjA6bAH9r0MQtKP1+tw//2ReCpjdb1WHQNpRpd8K0QZOGsnkfhO3yk/fr+c1m97hYdw0D4rOxU0vnVndU82jSvCXxrV3l1qRStrjb3U6/kAxN0Pz8/U+6J3Fp/luCJimSs+GToaAB/gibVV4U/bd8JWiakiYr0/aWehrldFdt/nT4dEkTd4Eud48Ph/W6zoblYDBMX1KmiNqwKQZlbLo2zOrD4m5/O/taLNzc52cvQHvVRdEEzc0vBk1YV0k4f5WTTNAAf4L5ZlXnp1T4+Qfu/pfugstVVrXPzZ6awjz//N7P75ZfucCbJmvuV4tDU66EuDYgNnEu2t6aIbSbbNIQqiqr60VMmemXM+F1RdPJf0NFsz6GQXJe0eTV+m7jfyDw37e8W9d5lJ37UtBM93Fa5S159pWS5hQ2syZs7raLwyEuRKujPE8Hdblex2LnsFis7ne3s6+nTLzyxzevOs9+fdXZtl53S+jOCBrgDwma7Xbxg20rfrj/UiwsH7avRuusVve/cl+9mc42t7v942q7aq+4G/Pu7tvjfrfczKbzX30l9osz29PlPy5/aez58mFxaDLy9at82bHSAP92m9lmudy84Ys3wc2bgzXDNX45DHo3N9MmcBrL05jT6c3897wQ02bQxuvrX05/beB5N+7mfOjm+5j7/wf8Keat3zjYW//cvv+mL/H3vhp/3/i/71UGAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPhfe3AgAAAAACDI33qFASoAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAI6bqnB7YmWiPAAAAAElFTkSuQmCC" alt="RCH" />
       <div class="sub">Gate Pass CRM</div>
     </div>
+    <div class="current-user-box">
+      <label>Signed in as</label>
+      <select id="currentUserSelect"><option value="">Select your account…</option></select>
+      <div class="role" id="currentUserRole"></div>
+    </div>
     <nav class="nav" id="nav"></nav>
     <div class="sidebar-foot">
       RCH Business Solutions
@@ -349,6 +358,7 @@
     <div class="view" id="view-analytics"></div>
     <div class="view" id="view-account-managers"></div>
     <div class="view" id="view-online-queue"></div>
+    <div class="view" id="view-company-import"></div>
     <div class="view" id="view-dispatch"></div>
     <div class="view" id="view-online"></div>
     <div class="view" id="view-field"></div>
@@ -376,26 +386,66 @@ const LOCATIONS = ["Doha Towers", "Mesaieed", "Ras Laffan", "Dukhan", "Offshore"
 const GATE_PASS_TYPES = ["Permanent", "Temporary"];
 const REQUEST_TYPES = ["New Gate Pass", "Lost Gate Pass"];
 const PASS_CATEGORIES = ["Main", "Supplementary"];
-const STORAGE_KEY = "gatepass-crm-state-v6";
+const STORAGE_KEY = "gatepass-crm-state-v7";
 
 /* ================= delivery / dispatch seed ================= */
 const SEED_EMPLOYEES = [
-  { name: "MED-DARWISH", isManager: true, isOnline: false, isField: false, isAM: false, isAMLead: false },
-  { name: "ALAA", isManager: false, isOnline: true, isField: true, isAM: false, isAMLead: false },
-  { name: "AHMED", isManager: false, isOnline: true, isField: false, isAM: false, isAMLead: false },
-  { name: "SAMIM", isManager: false, isOnline: true, isField: true, isAM: false, isAMLead: false },
-  { name: "TAHA", isManager: false, isOnline: true, isField: true, isAM: false, isAMLead: false },
-  { name: "MUJEEB", isManager: false, isOnline: true, isField: true, isAM: false, isAMLead: false },
-  { name: "SALAH", isManager: false, isOnline: false, isField: true, isAM: false, isAMLead: false },
-  { name: "MED-HUSSAIN", isManager: false, isOnline: false, isField: true, isAM: false, isAMLead: false },
-  { name: "ABIN", isManager: false, isOnline: false, isField: true, isAM: false, isAMLead: false },
-  { name: "AITA", isManager: false, isOnline: false, isField: true, isAM: false, isAMLead: false },
-  { name: "ELENA", isManager: false, isOnline: false, isField: false, isAM: true, isAMLead: true },
-  { name: "Violetta", isManager: false, isOnline: false, isField: false, isAM: true, isAMLead: false },
-  { name: "Abegail", isManager: false, isOnline: false, isField: false, isAM: true, isAMLead: false },
-  { name: "Vongai", isManager: false, isOnline: false, isField: false, isAM: true, isAMLead: false },
-  { name: "Nasma", isManager: false, isOnline: false, isField: false, isAM: true, isAMLead: false },
-  { name: "Roxana", isManager: false, isOnline: false, isField: false, isAM: true, isAMLead: false }
+  { name: "MED-DARWISH", isManager: true, isOpsAdmin: false, isOnline: false, isField: false, isAM: false, isAMLead: false },
+  { name: "ALAA", isManager: false, isOpsAdmin: false, isOnline: true, isField: true, isAM: false, isAMLead: false },
+  { name: "AHMED", isManager: false, isOpsAdmin: true, isOnline: true, isField: false, isAM: false, isAMLead: false },
+  { name: "SAMIM", isManager: false, isOpsAdmin: false, isOnline: true, isField: true, isAM: false, isAMLead: false },
+  { name: "TAHA", isManager: false, isOpsAdmin: false, isOnline: true, isField: true, isAM: false, isAMLead: false },
+  { name: "MUJEEB", isManager: false, isOpsAdmin: false, isOnline: true, isField: true, isAM: false, isAMLead: false },
+  { name: "SALAH", isManager: false, isOpsAdmin: false, isOnline: false, isField: true, isAM: false, isAMLead: false },
+  { name: "MED-HUSSAIN", isManager: false, isOpsAdmin: false, isOnline: false, isField: true, isAM: false, isAMLead: false },
+  { name: "ABIN", isManager: false, isOpsAdmin: false, isOnline: false, isField: true, isAM: false, isAMLead: false },
+  { name: "AITA", isManager: false, isOpsAdmin: false, isOnline: false, isField: true, isAM: false, isAMLead: false },
+  { name: "ELENA", isManager: false, isOpsAdmin: false, isOnline: false, isField: false, isAM: true, isAMLead: true },
+  { name: "Violetta", isManager: false, isOpsAdmin: false, isOnline: false, isField: false, isAM: true, isAMLead: false },
+  { name: "Abegail", isManager: false, isOpsAdmin: false, isOnline: false, isField: false, isAM: true, isAMLead: false },
+  { name: "Vongai", isManager: false, isOpsAdmin: false, isOnline: false, isField: false, isAM: true, isAMLead: false },
+  { name: "Nasma", isManager: false, isOpsAdmin: false, isOnline: false, isField: false, isAM: true, isAMLead: false },
+  { name: "Roxana", isManager: false, isOpsAdmin: false, isOnline: false, isField: false, isAM: true, isAMLead: false },
+  { name: "Gabriela", isManager: false, isOpsAdmin: false, isOnline: false, isField: false, isAM: true, isAMLead: false }
+];
+
+/* ================= RBAC ================= */
+function roleOf(e) {
+  if (!e) return "UNASSIGNED";
+  if (e.isManager) return "SUPER_ADMIN";
+  if (e.isOpsAdmin) return "OPS_ADMIN";
+  if (e.isAMLead) return "AM_LEAD";
+  if (e.isOnline) return "OPERATOR";
+  if (e.isAM) return "AM";
+  if (e.isField) return "FIELD";
+  return "UNASSIGNED";
+}
+const ROLE_LABEL = {
+  SUPER_ADMIN: "Super Admin", OPS_ADMIN: "Operations Admin", OPERATOR: "Online Operator",
+  AM_LEAD: "Account Manager Lead", AM: "Account Manager", FIELD: "Field Agent", UNASSIGNED: "Unassigned"
+};
+const ROLE_PERMISSIONS = {
+  SUPER_ADMIN: ["view_all_online_queue", "reassign_requests", "import_companies", "view_all_am_requests"],
+  OPS_ADMIN: ["view_all_online_queue", "reassign_requests", "import_companies"],
+  AM_LEAD: ["view_all_am_requests"],
+  OPERATOR: [], AM: [], FIELD: [], UNASSIGNED: []
+};
+function can(e, permission) { return ROLE_PERMISSIONS[roleOf(e)].includes(permission); }
+
+/* ================= AM <-> Online Operator binome dispatch config ================= */
+// Default binomes. A single operator name is a fixed pair; multiple names round-robin.
+const PARTNERSHIPS_SEED = [
+  { amName: "Violetta", operatorNames: ["AHMED"] },
+  { amName: "Abegail", operatorNames: ["SAMIM"] },
+  { amName: "Vongai", operatorNames: ["ALAA"] },
+  { amName: "Roxana", operatorNames: ["SAMIM"] },
+  { amName: "Nasma", operatorNames: ["AHMED", "ALAA"], note: "Shared between Ahmed and ALAA (round-robin)." },
+  { amName: "Gabriela", operatorNames: ["ALAA"], flagManager: true, note: "External \"OUR partners\" accounts — online prep to ALAA, field validation direct to MED-DARWISH." },
+  { amName: "ELENA", operatorNames: ["TAHA"], flagManager: true, note: "AM Lead's own requests — flagged for MED-DARWISH's direct supervision." }
+];
+// Company-level exception: overrides the AM's default partnership.
+const ASSIGNMENT_RULES_SEED = [
+  { matchValue: "ABB", operatorNames: ["ALAA", "TAHA"], priority: 100, note: "ABB accounts (round-robin)" }
 ];
 
 const DeliveryStage = { ONLINE: "ONLINE", DISPATCH: "DISPATCH", ASSIGNED: "ASSIGNED", IN_PROGRESS: "IN_PROGRESS", COMPLETED: "COMPLETED", BLOCKED: "BLOCKED" };
@@ -466,6 +516,9 @@ const SEED_SERVICE_REQUESTS = [
   { title: "Visa renewal — missing Emirates ID copy", category: "PRO", companyName: "Welltec", clientName: "Jesper Holm", description: "Visa renewal for existing employee.", attachments: "passport_scan.pdf", createdByName: "Roxana", createdAt: "2026-06-16T09:00:00", claimedByName: "MUJEEB", claimedAt: "2026-06-20T09:00:00", status: "MISSING_INFO_RETURNED_TO_AM", returnComment: "Missing a clear scan of the Emirates ID (back side). Please re-upload and resubmit.", returnedAt: "2026-06-22T09:00:00" }
 ];
 
+/* ================= company -> AM allocation (imported from the real Excel sheet) ================= */
+const COMPANY_AM_ALLOCATION = {"Violetta": ["ABB AG", "ABB LLC", "ABB LLC BRANCH", "ACROGYM SPORT CENTER", "AL QUWA FOR COMMERCIAL BROKERAGE", "ASIAN PAINTS DOHA TRADING", "AUTOHAUS", "BEIJING PAN CHINA - liquidating", "BSU WEB DEVELOPMENT liquidating", "CREATIVE COMMUNICATION - RCHBS", "DALKIA U S CHILLERS SERVICES", "DJERROUFI MANAGEMENT CONSULTING", "DUNYO HARDWARES", "DYNAMIC INNOVATION SOFTWARE", "EY CONSULTING", "GHAIA SOFTWARE AND AI SOLUTIONS", "GULF COAST DRILLING AND GEOSOLUTIONS", "HITACHI ENERGY", "JANO SPARE PARTS", "JULI SLING - liquidating", "LIBRA TRADING", "LOGICOM FOR TRADING AND DISTRIBUTION", "MARA GALLERY", "PEREGRINE TRADING SOLUTIONS", "PROPERTY FINDER", "QATAR ALGERIAN INVESTMENT COMPANY", "QATAR OXYGEN", "QATSOL CONSULTING", "RAPISCAN SYSTEMS", "SOCIAL PLAY", "SPEAK EASY MANAGEMENT FOR CONSULTING", "Sulhafa Snacks for Trading of Diverse Food Products", "WANDERBEE TOYS"], "Abegail": ["AL HAMAD TRADING", "AL HAMAD TRADING AUTOMOTIVE", "SILVER GATE", "APTECH", "JADARA", "LG ELECTRONICS", "LIMITLESS MINDS DEEP TECHNOLOGY", "MASTERMINDS ADMINISTRATION", "PANOUTRON TRADING", "THE PEARL GATES", "VANESSA SHAH MAISON", "WELLTEC", "AQUALIA", "CHOCOLA CAFÉ", "TENARIS", "HIMA", "SEAQUEST - RCHBS", "INTEGRA Q", "NEWMATIC INTERNATIONAL", "NEXUS FOOD TRADING", "BLUEMINA LTD", "MADANAT MEDIA PRODUCTION", "DREAM MACHINE", "YOUR OWN FURNITURE", "FGREALTY"], "Vongai": ["ACTIVE EVENTS", "AL SAKA", "ALTASHERAH", "AMAL CONSULTING", "APEXUS METABUID", "BE LINKED", "BEEHIVE CONTRACTING COMPANY", "BESTE AND MORE", "CARTEL PRO", "CAVETTO TRADING AND CONTRACTING", "CRAFTS JOINERY TRADING", "DISHA BRANCH", "DISHA MAIN", "ELITE BUILDERS", "UGUR GURBUZ FOOD AND TRADING- will transfer to 100%", "FARINA RESTAURANT", "GLOBELINK (WINLANKA INTERNATIONAL)", "ITVAR REPRESENTATION SERVICES", "M SQUARE", "MAGNUM", "MANAGEMENT INFO", "MAPLES", "ULTRA SPORTS", "MEDAX", "NASA FOOD SERVICE", "PLATINUM HOUSE", "PROSYNC MANAGEMENT CONSULTING", "ROKAZ", "SAIF QATAR", "SATGURU TRAVEL AND TOURS", "SHEEN SERVICES", "SMART FAMILY FOOD", "SOTERIA liquidating", "STPEC", "TECHNICAL SOLUTIONS FOR TRADING AND CONTRACTING", "WORLD GATE BEAUTY", "BEYOND REAL ESTATE BROKERAGE"], "Nasma": ["BLOSSOME FOR MASSAGE AND NAILS", "FIT EXPRESS ONE GYM", "IN SHAPE", "INFRASTRUCTURE", "INTERWAY", "METES TRADING AND CONTRACTING", "MODO LUCE", "PERFECT PRINTING", "PLUTO DIGITAL", "PRESTIGE", "TABKHETNA", "THINK RED", "TIMELINE", "VTS CLIMA", "ZAHARA", "DIGGRI", "KMS DOCUMENTATION SERVICES", "NYRIX ENERGY TRADING AND SERVICES", "HERMANOS", "TCO DOHA JEWELRY", "BBG TRADING", "ARIMAX GLOBAL M.E. W.L.L", "PRO EVENT MANAGEMENT AND AV RENTAL", "CANDELA HOSPITALITY", "JUST WOOD CARPENTRY", "OLDTIMER - RCHBS", "CHINA HYWAY", "NEUXNET"], "Roxana": ["AEON", "AL BAZAR", "GBO 1- AL WASATH AL QADRA OILS", "LUXURY SQUARED", "ALLIED", "ANGIE FOR FOOD TRADING", "ARAB BUILDINGS", "AUCKLAND CONSTRUCTION", "BEE ARCHITECT", "BLANC STUDIOS", "CANDELA ENTERTAINMENT FOR MUSIC", "CAR WORKSHOP GROUP", "CONSTRUCTION ART", "CRAFTS INDUSTRIES", "DENIZLI GENTS SALON", "DENIZLI GENTS SALON- Branch", "ETERNITY ELECTROMECHANICAL", "TIMBER CRAFTS JOINERY", "REYNOLD TRADING & CONTRACTING", "SARAY INTERIOR", "SEVEN SCANE", "STEEL CRAFTS", "LEAN FOR CONSTRUCTION", "SIRENE EVENT MANAGEMENT"], "ELENA": ["KMD - AGS RELOCATIONS", "KMD - CONCEPT CAFÉ - LIQUIDATING", "KMD - KAAR TECH", "KMD - OP3 DESIGN", "KMD - ROYA", "KMD - SYSTEMAIR", "KMD Consulting", "KMD Corporate Solutions", "DHIAFATINA", "EMILIA CONSULTANCY", "EMILIA REAL ESTATE", "EVENTS AND ENTERTAINMENT", "HIKVISION INTERNATIONAL", "MOUAWAD DOHA", "ZAINAB IMPERIAL TRADING AND CONTRACTING", "ANTON OILFIELD SERVICES", "SULAVA AI", "VACHI WAREHOUSING & STORAGE MANAGEMENT & OPERATION", "SARIA'S JEWELERY", "REGAL ENERGY - liquidating", "GOV CAMPUS", "JUST WOOD CARPENTRY", "YOUSEF FOR QUALITY", "CHAUMET TRADING DOHA"], "Gabriela": ["RCH", "RCHBS", "RCH AUDIT", "PRIME VALUE", "FIT LIFE", "MDP PROPERTIES", "APEX CONSTRUCTION", "HELIUS", "GBO 2", "ACH", "KAIZEN PAINTS", "TDEC", "AL BARAKA"]};
+
 /* ================= state ================= */
 let DB = null; // { companies:[], collectors:[], gatePasses:[], nextIds:{} }
 
@@ -516,10 +569,54 @@ function buildInitialState() {
     const id = employees.length + 1;
     employeeId.set(e.name, id);
     employees.push({
-      id, name: e.name, isManager: e.isManager, isOnline: e.isOnline, isField: e.isField,
+      id, name: e.name, isManager: e.isManager, isOpsAdmin: e.isOpsAdmin, isOnline: e.isOnline, isField: e.isField,
       isAM: e.isAM, isAMLead: e.isAMLead, phone: null, email: null, active: true
     });
   }
+
+  // Import the real company -> Account Manager allocation. Companies already
+  // seeded from the gate pass data are matched case-insensitively and just
+  // get their accountManagerId set; everything else is created fresh.
+  const companyByUpper = new Map(companies.map((c) => [c.name.toUpperCase(), c.id]));
+  for (const [amName, companyNames] of Object.entries(COMPANY_AM_ALLOCATION)) {
+    const amId = employeeId.get(amName);
+    if (!amId) continue;
+    for (const companyName of companyNames) {
+      const key = companyName.toUpperCase();
+      const existingId = companyByUpper.get(key);
+      if (existingId) {
+        const c = companies.find((x) => x.id === existingId);
+        c.accountManagerId = amId;
+      } else {
+        const id = companies.length + 1;
+        companies.push({ id, name: companyName, sector: null, contact: null, phone: null, email: null, notes: null, accountManagerId: amId });
+        companyId.set(companyName, id);
+        companyByUpper.set(key, id);
+      }
+    }
+  }
+
+  const partnerships = [];
+  for (const p of PARTNERSHIPS_SEED) {
+    const amId = employeeId.get(p.amName);
+    if (!amId) continue;
+    partnerships.push({
+      id: partnerships.length + 1,
+      amEmployeeId: amId,
+      operatorIds: p.operatorNames.map((n) => employeeId.get(n)),
+      flagManager: p.flagManager || false,
+      note: p.note || null
+    });
+  }
+  const assignmentRules = ASSIGNMENT_RULES_SEED.map((r, i) => ({
+    id: i + 1,
+    matchValue: r.matchValue,
+    operatorIds: r.operatorNames.map((n) => employeeId.get(n)),
+    priority: r.priority,
+    flagManager: r.flagManager || false,
+    note: r.note || null,
+    active: true
+  }));
 
   const deliveryTasks = [];
   for (const t of SEED_DELIVERY_TASKS) {
@@ -577,6 +674,10 @@ function buildInitialState() {
       claimedAt: r.claimedAt || null,
       returnComment: r.returnComment || null,
       deliveryTaskId,
+      assignmentRuleId: null,
+      partnershipId: null,
+      flaggedForManager: false,
+      assignmentNote: null,
       createdAt: r.createdAt
     });
 
@@ -606,6 +707,7 @@ function buildInitialState() {
 
   return {
     companies, collectors, gatePasses, employees, deliveryTasks, serviceRequests, requestHistory,
+    partnerships, assignmentRules,
     nextIds: {
       company: companies.length + 1, collector: collectors.length + 1, gatePass: gatePasses.length + 1,
       employee: employees.length + 1, deliveryTask: deliveryTasks.length + 1,
@@ -796,6 +898,40 @@ function requestMeta(r) {
   if (r.companyId) parts.push(esc(companyName(r.companyId)));
   if (r.clientName) parts.push(esc(r.clientName));
   return parts.join(" · ") || "—";
+}
+
+/**
+ * Determines which Online Operator a service request should be auto-assigned
+ * to, applying the binome (AM <-> operator) rules: a company-level
+ * AssignmentRule (e.g. any company containing "ABB" round-robins between
+ * ALAA and TAHA) takes priority over the AM's default Partnership. Round-robin
+ * fairness is derived from how many past requests already used the same
+ * rule/partnership.
+ */
+function resolveOnlineOperator(companyId, amEmployeeId) {
+  const company = companyId ? DB.companies.find((c) => c.id === companyId) : null;
+  if (company) {
+    const rules = DB.assignmentRules.filter((r) => r.active).sort((a, b) => b.priority - a.priority);
+    const matched = rules.find((r) => company.name.toUpperCase().includes(r.matchValue.toUpperCase()));
+    if (matched) {
+      const priorCount = DB.serviceRequests.filter((r) => r.assignmentRuleId === matched.id).length;
+      const operatorId = matched.operatorIds[priorCount % matched.operatorIds.length];
+      return {
+        operatorId, flaggedForManager: matched.flagManager, assignmentRuleId: matched.id, partnershipId: null,
+        note: `Auto-assigned via rule "${matched.note || matched.matchValue}" (round-robin)`
+      };
+    }
+  }
+  const partnership = DB.partnerships.find((p) => p.amEmployeeId === amEmployeeId);
+  if (partnership) {
+    const priorCount = DB.serviceRequests.filter((r) => r.partnershipId === partnership.id).length;
+    const operatorId = partnership.operatorIds[priorCount % partnership.operatorIds.length];
+    return {
+      operatorId, flaggedForManager: partnership.flagManager, assignmentRuleId: null, partnershipId: partnership.id,
+      note: partnership.note || "Auto-assigned via the Account Manager's default partnership"
+    };
+  }
+  return { operatorId: null, flaggedForManager: false, assignmentRuleId: null, partnershipId: null, note: "No partnership configured for this Account Manager — needs manual assignment." };
 }
 
 /* ================= analytics ================= */
@@ -1101,26 +1237,57 @@ const NAV_ITEMS = [
   { id: "collectors", label: "Collector Performance", n: "04" },
   { id: "companies", label: "Companies", n: "05" },
   { id: "analytics", label: "Analytics", n: "06" },
-  { id: "account-managers", label: "Account Managers", n: "07" },
-  { id: "online-queue", label: "Online Queue", n: "08" },
-  { id: "dispatch", label: "Dispatch", n: "09" },
-  { id: "online", label: "Online Team", n: "10" },
-  { id: "field", label: "Field Team", n: "11" },
-  { id: "deliveries", label: "Deliveries", n: "12" }
+  { id: "account-managers", label: "Account Managers", n: "07", roles: ["AM", "AM_LEAD", "OPS_ADMIN", "SUPER_ADMIN"] },
+  { id: "online-queue", label: "Online Queue", n: "08", roles: ["OPERATOR", "OPS_ADMIN", "SUPER_ADMIN"] },
+  { id: "company-import", label: "Import Companies", n: "09", roles: ["OPS_ADMIN", "SUPER_ADMIN"] },
+  { id: "dispatch", label: "Dispatch", n: "10" },
+  { id: "online", label: "Online Team", n: "11" },
+  { id: "field", label: "Field Team", n: "12" },
+  { id: "deliveries", label: "Deliveries", n: "13" }
 ];
 let currentView = "dashboard";
+let currentEmployeeId = (function () {
+  try {
+    const raw = localStorage.getItem("gatepass-current-employee");
+    return raw ? Number(raw) : null;
+  } catch (e) { return null; }
+})();
+function currentEmployee() { return DB.employees.find((e) => e.id === currentEmployeeId) || null; }
+function currentRole() { return roleOf(currentEmployee()); }
 
 function setupNav() {
+  const role = currentRole();
+  const visibleItems = NAV_ITEMS.filter((it) => !it.roles || it.roles.includes(role));
   const nav = document.getElementById("nav");
-  nav.innerHTML = NAV_ITEMS.map((it) => `<button data-view="${it.id}"><span class="n">${it.n}</span>${esc(it.label)}</button>`).join("");
+  nav.innerHTML = visibleItems.map((it) => `<button data-view="${it.id}"><span class="n">${it.n}</span>${esc(it.label)}</button>`).join("");
   const mnav = document.getElementById("mobileNav");
-  mnav.innerHTML = NAV_ITEMS.map((it) => `<button data-view="${it.id}">${esc(it.label)}</button>`).join("");
+  mnav.innerHTML = visibleItems.map((it) => `<button data-view="${it.id}">${esc(it.label)}</button>`).join("");
   document.querySelectorAll("[data-view]").forEach((btn) => {
     btn.addEventListener("click", () => switchView(btn.getAttribute("data-view")));
   });
+  document.querySelectorAll("[data-view]").forEach((b) => b.classList.toggle("active", b.getAttribute("data-view") === currentView));
   document.getElementById("resetBtn").addEventListener("click", () => {
     if (confirm("Reset all data back to the original 30 seeded gate passes? Local edits will be lost.")) resetState();
   });
+
+  const userSelect = document.getElementById("currentUserSelect");
+  userSelect.innerHTML =
+    `<option value="">Select your account…</option>` +
+    DB.employees.map((e) => `<option value="${e.id}" ${e.id === currentEmployeeId ? "selected" : ""}>${esc(e.name)}</option>`).join("");
+  document.getElementById("currentUserRole").textContent = currentEmployeeId ? ROLE_LABEL[role] : "";
+  userSelect.onchange = (e) => {
+    currentEmployeeId = e.target.value ? Number(e.target.value) : null;
+    try {
+      if (currentEmployeeId) localStorage.setItem("gatepass-current-employee", String(currentEmployeeId));
+      else localStorage.removeItem("gatepass-current-employee");
+    } catch (err) { /* ignore */ }
+    setupNav();
+    if (!NAV_ITEMS.find((it) => it.id === currentView && (!it.roles || it.roles.includes(currentRole())))) {
+      switchView("dashboard");
+    } else {
+      renderView(currentView);
+    }
+  };
 }
 function switchView(id) {
   currentView = id;
@@ -1139,6 +1306,7 @@ function renderView(id) {
   else if (id === "analytics") renderAnalytics();
   else if (id === "account-managers") renderAccountManagers();
   else if (id === "online-queue") renderOnlineQueue();
+  else if (id === "company-import") renderCompanyImport();
   else if (id === "dispatch") renderDispatch();
   else if (id === "online") renderOnline();
   else if (id === "field") renderField();
@@ -2067,32 +2235,31 @@ function renderDeliveries() {
 }
 
 /* ================= account managers ================= */
-let amUserFilter = (function () {
-  try { return localStorage.getItem("gatepass-am-user") || ""; } catch (e) { return ""; }
-})();
 function renderAccountManagers() {
   const mount = document.getElementById("view-account-managers");
-  const amEmployees = DB.employees.filter((e) => e.isAM);
-  const selectedEmp = amEmployees.find((e) => e.name === amUserFilter);
-  const seesAll = !selectedEmp || selectedEmp.isAMLead;
-  const visible = (seesAll ? DB.serviceRequests.slice() : DB.serviceRequests.filter((r) => r.createdById === selectedEmp.id))
+  const me = currentEmployee();
+  const seesAll = can(me, "view_all_am_requests");
+  const isPlainAM = Boolean(me && me.isAM && !me.isAMLead);
+  const visible = (seesAll ? DB.serviceRequests.slice() : isPlainAM ? DB.serviceRequests.filter((r) => r.createdById === me.id) : [])
     .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+  if (!seesAll && !isPlainAM) {
+    mount.innerHTML = `
+      <div class="page-head"><div><span class="eyebrow">Account Managers</span><h1>Account Managers</h1></div></div>
+      <div class="card card-pad" style="max-width:420px;">
+        ${me ? "This account doesn't have Account Manager access. Switch your account in the sidebar if you have the right role." : "Select your account in the sidebar (“Signed in as”) to see your requests."}
+      </div>
+    `;
+    return;
+  }
+
   const byStatus = (s) => visible.filter((r) => r.status === s).length;
 
   mount.innerHTML = `
     <div class="page-head">
       <div><span class="eyebrow">Account Managers</span><h1>Account Managers</h1>
-      <p>${seesAll ? "Global view — all Account Managers' requests" : `${esc(amUserFilter)}'s requests`}</p></div>
+      <p>${seesAll ? "Global view — all Account Managers' requests" : `${esc(me.name)}'s requests`}</p></div>
       <button class="btn btn-primary" id="btnNewRequest">+ New request</button>
-    </div>
-    <div class="card card-pad field-select-card" style="margin-bottom:20px;">
-      <div class="field" style="margin-bottom:0;">
-        <label>I am…</label>
-        <select id="amUserSelect">
-          <option value="">All Account Managers (global view)</option>
-          ${amEmployees.map((e) => `<option value="${esc(e.name)}" ${amUserFilter === e.name ? "selected" : ""}>${esc(e.name)}${e.isAMLead ? " (Lead — sees all)" : ""}</option>`).join("")}
-        </select>
-      </div>
     </div>
     <div class="grid kpi-row" style="grid-template-columns:repeat(4,1fr);">
       ${kpiTile("Assigned to Online", byStatus("ASSIGNED_TO_ONLINE"), "")}
@@ -2106,9 +2273,9 @@ function renderAccountManagers() {
         <tbody>
           ${visible.map((r) => `<tr>
             <td>
-              <div style="font-weight:600;color:var(--ink);">${esc(r.title)}</div>
+              <div class="title-row" style="gap:6px;"><span style="font-weight:600;color:var(--ink);">${esc(r.title)}</span>${r.flaggedForManager ? `<span title="Flagged for MED-DARWISH">🚩</span>` : ""}</div>
               ${r.status === "MISSING_INFO_RETURNED_TO_AM" && r.returnComment ? `<div class="danger-box" style="max-width:260px;">⚠ ${esc(r.returnComment)}</div>` : ""}
-              ${r.claimedById && r.status !== "ASSIGNED_TO_ONLINE" ? `<div class="meta">Handled by ${esc(employeeName(r.claimedById))}</div>` : ""}
+              ${r.claimedById ? `<div class="meta">${r.status === "ASSIGNED_TO_ONLINE" ? "Auto-assigned to " : "Handled by "}${esc(employeeName(r.claimedById))}</div>` : ""}
             </td>
             <td>${r.category === "PRO" ? "PRO service" : "Delivery"}</td>
             <td>${esc(companyName(r.companyId))}${r.clientName ? `<div class="meta">${esc(r.clientName)}</div>` : ""}</td>
@@ -2121,11 +2288,6 @@ function renderAccountManagers() {
       </table>
     </div>
   `;
-  document.getElementById("amUserSelect").addEventListener("change", (e) => {
-    amUserFilter = e.target.value;
-    try { localStorage.setItem("gatepass-am-user", amUserFilter); } catch (err) { /* ignore */ }
-    renderAccountManagers();
-  });
   document.getElementById("btnNewRequest").addEventListener("click", () => openNewRequestModal());
   mount.querySelectorAll("[data-act=resubmit]").forEach((b) => b.addEventListener("click", () => {
     const r = DB.serviceRequests.find((x) => x.id === Number(b.getAttribute("data-id")));
@@ -2134,11 +2296,13 @@ function renderAccountManagers() {
 }
 function openNewRequestModal() {
   const amEmployees = DB.employees.filter((e) => e.isAM && !e.isAMLead);
+  const me = currentEmployee();
   const overlay = document.getElementById("overlay");
   const body = document.getElementById("modalBody");
   body.innerHTML = `
     <div class="kicker">New record</div>
     <h2>New service request</h2>
+    <p style="font-size:12px;color:var(--ink-2);margin:4px 0 14px;">It will be automatically routed to the Account Manager's Online Operations partner.</p>
     <form id="reqForm" style="margin-top:14px;">
       <div class="field"><label>Title</label>
         <input type="text" id="reqTitle" required placeholder="e.g. Licence Renewal, Visa Request…"></div>
@@ -2149,13 +2313,13 @@ function openNewRequestModal() {
         <div class="field"><label>Requested by</label>
           <select id="reqCreatedBy" required>
             <option value="">Select AM…</option>
-            ${amEmployees.map((e) => `<option value="${e.id}" ${amUserFilter === e.name ? "selected" : ""}>${esc(e.name)}</option>`).join("")}
+            ${amEmployees.map((e) => `<option value="${e.id}" ${me && me.id === e.id ? "selected" : ""}>${esc(e.name)}</option>`).join("")}
           </select>
         </div>
       </div>
       <div class="field-row">
         <div class="field"><label>Company</label>
-          <select id="reqCompany"><option value="">—</option>${DB.companies.map((c) => `<option value="${c.id}">${esc(c.name)}</option>`).join("")}</select>
+          <select id="reqCompany"><option value="">—</option>${DB.companies.slice().sort((a, b) => a.name.localeCompare(b.name)).map((c) => `<option value="${c.id}">${esc(c.name)}</option>`).join("")}</select>
         </div>
         <div class="field"><label>Client name</label><input type="text" id="reqClient"></div>
       </div>
@@ -2178,17 +2342,22 @@ function openNewRequestModal() {
     const createdByVal = document.getElementById("reqCreatedBy").value;
     if (!createdByVal) { showErr("reqErr", "Please select which Account Manager is filing this request."); return; }
     const companyVal = document.getElementById("reqCompany").value;
+    const companyIdNum = companyVal ? Number(companyVal) : null;
+    const resolution = resolveOnlineOperator(companyIdNum, Number(createdByVal));
     const id = DB.nextIds.serviceRequest++;
     const createdAt = new Date().toISOString();
     DB.serviceRequests.push({
       id, title, category: document.getElementById("reqCategory").value,
-      companyId: companyVal ? Number(companyVal) : null,
+      companyId: companyIdNum,
       clientName: document.getElementById("reqClient").value.trim() || null,
       description: document.getElementById("reqDesc").value.trim() || null,
       attachments: document.getElementById("reqAttachments").value.trim() || null,
       status: "ASSIGNED_TO_ONLINE",
       createdById: Number(createdByVal),
-      claimedById: null, claimedAt: null, returnComment: null, deliveryTaskId: null, createdAt
+      claimedById: resolution.operatorId, claimedAt: null, returnComment: null, deliveryTaskId: null,
+      assignmentRuleId: resolution.assignmentRuleId, partnershipId: resolution.partnershipId,
+      flaggedForManager: resolution.flaggedForManager, assignmentNote: resolution.note,
+      createdAt
     });
     DB.requestHistory.push({
       id: DB.nextIds.requestHistory++, requestId: id, fromStatus: null, toStatus: "ASSIGNED_TO_ONLINE",
@@ -2199,83 +2368,97 @@ function openNewRequestModal() {
 }
 
 /* ================= online queue ================= */
-let onlineOperatorFilter = (function () {
-  try { return localStorage.getItem("gatepass-online-operator") || ""; } catch (e) { return ""; }
-})();
 function renderOnlineQueue() {
   const mount = document.getElementById("view-online-queue");
   const onlineEmployees = DB.employees.filter((e) => e.isOnline && e.active);
+  const me = currentEmployee();
+  const viewAll = can(me, "view_all_online_queue");
   const requests = DB.serviceRequests.filter((r) => r.status === "ASSIGNED_TO_ONLINE" || r.status === "ONLINE_PROCESSING");
-  const operatorEmp = onlineEmployees.find((e) => e.name === onlineOperatorFilter);
-  const incoming = requests.filter((r) => r.status === "ASSIGNED_TO_ONLINE").sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
-  const mine = requests.filter((r) => r.status === "ONLINE_PROCESSING" && (!operatorEmp || r.claimedById === operatorEmp.id));
+  const visible = viewAll ? requests : requests.filter((r) => me && r.claimedById === me.id);
+
+  if (!viewAll && !me) {
+    mount.innerHTML = `
+      <div class="page-head"><div><span class="eyebrow">Online Operations</span><h1>Online Queue</h1></div></div>
+      <div class="card card-pad" style="max-width:420px;">Select your account in the sidebar (“Signed in as”) to see the requests auto-assigned to you.</div>
+    `;
+    return;
+  }
+
+  const toStart = visible.filter((r) => r.status === "ASSIGNED_TO_ONLINE").sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+  const inProgress = visible.filter((r) => r.status === "ONLINE_PROCESSING");
 
   mount.innerHTML = `
     <div class="page-head">
       <div><span class="eyebrow">Online Operations</span><h1>Online Queue — Account Manager requests</h1>
-      <p>Take incoming requests, verify documents, then send to Dispatch or return to the AM</p></div>
+      <p>${viewAll ? "Full queue — every Online Operator's auto-assigned requests" : `Requests auto-assigned to ${esc(me.name)} via the binome routing`}</p></div>
     </div>
-    <div class="card card-pad field-select-card" style="margin-bottom:20px;">
-      <div class="field" style="margin-bottom:0;">
-        <label>I am…</label>
-        <select id="opSelect">
-          <option value="">Select operator…</option>
-          ${onlineEmployees.map((e) => `<option value="${esc(e.name)}" ${onlineOperatorFilter === e.name ? "selected" : ""}>${esc(e.name)}</option>`).join("")}
-        </select>
-      </div>
+    <div class="grid kpi-row" style="grid-template-columns:repeat(3,1fr);">
+      ${kpiTile("To Start", toStart.length, "")}
+      ${kpiTile("In Progress", inProgress.length, "", "warn")}
+      ${kpiTile("Flagged for Manager", visible.filter((r) => r.flaggedForManager).length, "", "crit")}
     </div>
-    <div class="grid kpi-row" style="grid-template-columns:repeat(2,1fr);">
-      ${kpiTile("Incoming", incoming.length, "")}
-      ${kpiTile("Being Processed", requests.filter((r) => r.status === "ONLINE_PROCESSING").length, "", "warn")}
-    </div>
-    <div class="section-title">📨 Incoming — assigned to Online</div>
+    <div class="section-title">📨 To start</div>
     <div class="task-list" id="oqIncomingList"></div>
-    <div class="section-title">🗂 ${operatorEmp ? `My requests — ${esc(operatorEmp.name)}` : "In processing"}</div>
+    <div class="section-title">🗂 In progress</div>
     <div class="task-list" id="oqMineList"></div>
   `;
-  document.getElementById("opSelect").addEventListener("change", (e) => {
-    onlineOperatorFilter = e.target.value;
-    try { localStorage.setItem("gatepass-online-operator", onlineOperatorFilter); } catch (err) { /* ignore */ }
-    renderOnlineQueue();
-  });
-  renderOQIncoming(incoming);
-  renderOQMine(mine, operatorEmp);
+  renderOQIncoming(toStart, viewAll, onlineEmployees);
+  renderOQMine(inProgress, viewAll, onlineEmployees);
 }
-function renderOQIncoming(list) {
+function requestReassignSelect(r, onlineEmployees) {
+  return `
+    <div style="margin-top:8px;display:flex;align-items:center;gap:6px;">
+      <span style="font-size:11px;color:var(--muted);">Assigned to:</span>
+      <select class="reassign-select" data-id="${r.id}" style="font-size:11px;padding:3px 6px;border-radius:6px;border:1px solid var(--border-strong);background:var(--surface);color:var(--ink);">
+        <option value="">Unassigned</option>
+        ${onlineEmployees.map((e) => `<option value="${e.id}" ${r.claimedById === e.id ? "selected" : ""}>${esc(e.name)}</option>`).join("")}
+      </select>
+    </div>
+  `;
+}
+function renderOQIncoming(list, viewAll, onlineEmployees) {
   const mount = document.getElementById("oqIncomingList");
-  if (!list.length) { mount.innerHTML = `<div class="card card-pad empty-card">Queue is empty.</div>`; return; }
+  if (!list.length) { mount.innerHTML = `<div class="card card-pad empty-card">Nothing waiting to start.</div>`; return; }
   mount.innerHTML = list.map((r) => `
     <div class="card card-pad task-card">
       <div>
-        <div class="title-row"><span class="t">${esc(r.title)}</span>${requestStatusPill(r.status)}</div>
+        <div class="title-row"><span class="t">${esc(r.title)}</span>${requestStatusPill(r.status)}${r.flaggedForManager ? `<span title="Flagged for MED-DARWISH">🚩</span>` : ""}</div>
         ${r.description ? `<div class="desc">${esc(r.description)}</div>` : ""}
         <div class="meta">${requestMeta(r)} · requested by ${esc(employeeName(r.createdById))} · ${fmtDateTime(r.createdAt)}</div>
         ${r.attachments ? `<div class="meta">📎 ${esc(r.attachments)}</div>` : ""}
+        ${r.assignmentNote ? `<div class="meta" style="font-style:italic;">${esc(r.assignmentNote)}</div>` : ""}
+        ${viewAll ? requestReassignSelect(r, onlineEmployees) : ""}
       </div>
-      <div class="task-actions"><button class="btn btn-primary" data-act="claim" data-id="${r.id}">Prendre en charge</button></div>
+      <div class="task-actions"><button class="btn btn-primary" data-act="start" data-id="${r.id}">Start processing</button></div>
     </div>
   `).join("");
-  mount.querySelectorAll("[data-act=claim]").forEach((b) => b.addEventListener("click", () => claimRequest(Number(b.getAttribute("data-id")))));
+  mount.querySelectorAll("[data-act=start]").forEach((b) => b.addEventListener("click", () => updateRequestStatus(Number(b.getAttribute("data-id")), "ONLINE_PROCESSING")));
+  mount.querySelectorAll(".reassign-select").forEach((s) => s.addEventListener("change", (e) => reassignRequest(Number(e.target.getAttribute("data-id")), e.target.value ? Number(e.target.value) : null)));
 }
-function claimRequest(id) {
-  const onlineEmployees = DB.employees.filter((e) => e.isOnline && e.active);
-  const operatorEmp = onlineEmployees.find((e) => e.name === onlineOperatorFilter);
-  if (!operatorEmp) { alert('Select "I am…" first so the request can be assigned to you.'); return; }
-  updateRequestStatus(id, "ONLINE_PROCESSING", { claimedById: operatorEmp.id });
+function reassignRequest(requestId, operatorId) {
+  const r = DB.serviceRequests.find((x) => x.id === requestId);
+  if (!r) return;
+  const me = currentEmployee();
+  r.claimedById = operatorId;
+  r.claimedAt = operatorId ? (r.claimedAt || new Date().toISOString()) : null;
+  r.assignmentNote = `Manually reassigned by ${me ? me.name : "an administrator"}.`;
+  DB.requestHistory.push({
+    id: DB.nextIds.requestHistory++, requestId: r.id, fromStatus: r.status, toStatus: r.status,
+    changedById: me ? me.id : null, comment: r.assignmentNote, createdAt: new Date().toISOString()
+  });
+  saveState(); renderAll();
 }
-function renderOQMine(list, operatorEmp) {
+function renderOQMine(list, viewAll, onlineEmployees) {
   const mount = document.getElementById("oqMineList");
-  if (!list.length) {
-    mount.innerHTML = `<div class="card card-pad empty-card">${operatorEmp ? "Nothing in progress for you right now." : "Nothing in processing right now."}</div>`;
-    return;
-  }
+  if (!list.length) { mount.innerHTML = `<div class="card card-pad empty-card">Nothing in progress.</div>`; return; }
   mount.innerHTML = list.map((r) => `
     <div class="card card-pad task-card">
       <div>
-        <div class="title-row"><span class="t">${esc(r.title)}</span>${requestStatusPill(r.status)}</div>
+        <div class="title-row"><span class="t">${esc(r.title)}</span>${requestStatusPill(r.status)}${r.flaggedForManager ? `<span title="Flagged for MED-DARWISH">🚩</span>` : ""}</div>
         ${r.description ? `<div class="desc">${esc(r.description)}</div>` : ""}
         <div class="meta">${requestMeta(r)} · requested by ${esc(employeeName(r.createdById))}${r.claimedById ? ` · claimed by ${esc(employeeName(r.claimedById))}` : ""}</div>
         ${r.attachments ? `<div class="meta">📎 ${esc(r.attachments)}</div>` : ""}
+        ${viewAll ? requestReassignSelect(r, onlineEmployees) : ""}
       </div>
       <div class="task-actions">
         <button class="btn btn-success" data-act="ready" data-id="${r.id}">Prêt pour Dispatch</button>
@@ -2285,7 +2468,9 @@ function renderOQMine(list, operatorEmp) {
   `).join("");
   mount.querySelectorAll("[data-act=ready]").forEach((b) => b.addEventListener("click", () => updateRequestStatus(Number(b.getAttribute("data-id")), "PENDING_DISPATCH")));
   mount.querySelectorAll("[data-act=return]").forEach((b) => b.addEventListener("click", () => openReturnRequestModal(Number(b.getAttribute("data-id")))));
+  mount.querySelectorAll(".reassign-select").forEach((s) => s.addEventListener("change", (e) => reassignRequest(Number(e.target.getAttribute("data-id")), e.target.value ? Number(e.target.value) : null)));
 }
+
 function openReturnRequestModal(requestId) {
   const r = DB.serviceRequests.find((x) => x.id === requestId);
   if (!r) return;
@@ -2311,6 +2496,154 @@ function openReturnRequestModal(requestId) {
     if (!comment) return;
     const ok = updateRequestStatus(r.id, "MISSING_INFO_RETURNED_TO_AM", { returnComment: comment });
     if (ok) closeModal();
+  });
+}
+
+/* ================= company import (CSV) ================= */
+// The self-contained HTML build has no bundler, so binary .xlsx parsing isn't
+// practical here — export the allocation sheet as CSV first (one AM name per
+// column header, company names down the rows). The Next.js app's Import
+// Companies page accepts the original .xlsx directly.
+function parseAllocationCSV(text) {
+  const lines = text.split(/\r?\n/).filter((l) => l.trim().length);
+  if (!lines.length) return [];
+  const splitRow = (line) => line.split(",").map((c) => c.trim().replace(/^"|"$/g, ""));
+  const headers = splitRow(lines[0]);
+  const columns = headers.filter((h) => h).map((h) => ({ amRawName: h, companies: [] }));
+  for (const line of lines.slice(1)) {
+    const cells = splitRow(line);
+    headers.forEach((h, i) => {
+      if (!h) return;
+      const val = (cells[i] || "").trim();
+      if (val) columns.find((c) => c.amRawName === h)?.companies.push(val);
+    });
+  }
+  return columns;
+}
+function normalizeAMName(raw) {
+  const stripped = raw.replace(/\s*-\s*RCHBS\s*$/i, "").trim();
+  const aliases = { GABI: "Gabriela", GABRIELA: "Gabriela", ELENA: "ELENA" };
+  const upper = stripped.toUpperCase();
+  if (aliases[upper]) return aliases[upper];
+  return stripped.toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase());
+}
+function runCompanyImport(csvText, dryRun) {
+  const columns = parseAllocationCSV(csvText);
+  const amEmployees = DB.employees.filter((e) => e.isAM);
+  const amByUpper = new Map(amEmployees.map((e) => [e.name.toUpperCase(), e]));
+  const companyByUpper = new Map(DB.companies.map((c) => [c.name.toUpperCase(), c]));
+  const results = [];
+  let totalCreated = 0, totalLinked = 0;
+
+  for (const col of columns) {
+    const normalized = normalizeAMName(col.amRawName);
+    const employee = amByUpper.get(normalized.toUpperCase()) || amByUpper.get(col.amRawName.toUpperCase());
+    if (!employee) {
+      results.push({ amRawName: col.amRawName, matchedEmployee: null, companiesFound: col.companies.length, toCreate: 0, toLink: 0, alreadyLinked: 0 });
+      continue;
+    }
+    let toCreate = 0, toLink = 0, alreadyLinked = 0;
+    for (const name of col.companies) {
+      const key = name.toUpperCase();
+      const existing = companyByUpper.get(key);
+      if (existing) {
+        if (existing.accountManagerId === employee.id) {
+          alreadyLinked++;
+        } else {
+          toLink++;
+          if (!dryRun) existing.accountManagerId = employee.id;
+        }
+      } else {
+        toCreate++;
+        if (!dryRun) {
+          const created = { id: DB.nextIds.company++, name, sector: null, contact: null, phone: null, email: null, notes: null, accountManagerId: employee.id };
+          DB.companies.push(created);
+          companyByUpper.set(key, created);
+        } else {
+          companyByUpper.set(key, { id: -1, name, accountManagerId: employee.id });
+        }
+      }
+    }
+    totalCreated += toCreate; totalLinked += toLink;
+    results.push({ amRawName: col.amRawName, matchedEmployee: employee.name, companiesFound: col.companies.length, toCreate, toLink, alreadyLinked });
+  }
+  if (!dryRun) saveState();
+  return { dryRun, totalCompanies: columns.reduce((s, c) => s + c.companies.length, 0), totalCreated, totalLinked, columns: results };
+}
+function companyImportSummaryTable(summary) {
+  return `
+    <div class="card table-wrap">
+      <table>
+        <thead><tr><th>Column</th><th>Matched Employee</th><th>Companies</th><th>New</th><th>Re-linked</th><th>Already linked</th></tr></thead>
+        <tbody>
+          ${summary.columns.map((c) => `<tr style="${!c.matchedEmployee ? "background:var(--critical-bg);" : ""}">
+            <td style="font-weight:600;">${esc(c.amRawName)}</td>
+            <td>${c.matchedEmployee ? esc(c.matchedEmployee) : `<span style="color:var(--critical);">No matching Account Manager — skipped</span>`}</td>
+            <td>${c.companiesFound}</td><td>${c.toCreate}</td><td>${c.toLink}</td><td>${c.alreadyLinked}</td>
+          </tr>`).join("")}
+        </tbody>
+      </table>
+    </div>
+  `;
+}
+function renderCompanyImport() {
+  const mount = document.getElementById("view-company-import");
+  const me = currentEmployee();
+  if (!can(me, "import_companies")) {
+    mount.innerHTML = `
+      <div class="page-head"><div><span class="eyebrow">Import Companies</span><h1>Import Companies</h1></div></div>
+      <div class="card card-pad" style="max-width:460px;">
+        🔒 Access restricted to Operations Admin (Ahmed) and Super Admin (MED-DARWISH). Switch your account in the sidebar if you have the right role.
+      </div>
+    `;
+    return;
+  }
+  mount.innerHTML = `
+    <div class="page-head">
+      <div><span class="eyebrow">Import Companies</span><h1>Import Companies</h1>
+      <p>Paste or upload the AM allocation as CSV (one Account Manager name per column header, company names down the rows)</p></div>
+    </div>
+    <div class="card card-pad" style="max-width:600px;margin-bottom:20px;">
+      <div class="field"><label>CSV file</label><input type="file" id="ciFile" accept=".csv,.txt"></div>
+      <div class="field"><label>…or paste CSV text</label><textarea id="ciText" rows="6" placeholder="Violetta,Abegail,Vongai&#10;ABB AG,AL HAMAD TRADING,ACTIVE EVENTS"></textarea></div>
+      <p class="err-msg" id="ciErr" style="display:none;"></p>
+      <div class="modal-actions" style="justify-content:flex-start;">
+        <button type="button" class="btn btn-ghost" id="ciPreviewBtn">Preview</button>
+        <button type="button" class="btn btn-primary" id="ciApplyBtn" disabled>Apply Import</button>
+      </div>
+    </div>
+    <div id="ciResults"></div>
+  `;
+  const fileInput = document.getElementById("ciFile");
+  const textArea = document.getElementById("ciText");
+  fileInput.addEventListener("change", () => {
+    const file = fileInput.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => { textArea.value = String(reader.result || ""); };
+    reader.readAsText(file);
+  });
+  let lastPreview = null;
+  document.getElementById("ciPreviewBtn").addEventListener("click", () => {
+    const text = textArea.value.trim();
+    if (!text) { showErr("ciErr", "Provide a CSV file or paste CSV text first."); return; }
+    document.getElementById("ciErr").style.display = "none";
+    lastPreview = runCompanyImport(text, true);
+    document.getElementById("ciApplyBtn").disabled = false;
+    document.getElementById("ciResults").innerHTML = `
+      <h2 style="font-size:13px;font-weight:700;color:var(--ink);margin-bottom:10px;">Preview — ${lastPreview.totalCompanies} companies, ${lastPreview.totalCreated} new, ${lastPreview.totalLinked} re-linked</h2>
+      ${companyImportSummaryTable(lastPreview)}
+    `;
+  });
+  document.getElementById("ciApplyBtn").addEventListener("click", () => {
+    const text = textArea.value.trim();
+    if (!text) return;
+    const applied = runCompanyImport(text, false);
+    document.getElementById("ciApplyBtn").disabled = true;
+    document.getElementById("ciResults").innerHTML = `
+      <h2 style="font-size:13px;font-weight:700;color:var(--good);margin-bottom:10px;">✓ Import applied — ${applied.totalCreated} companies created, ${applied.totalLinked} re-linked to a new AM</h2>
+      ${companyImportSummaryTable(applied)}
+    `;
   });
 }
 
