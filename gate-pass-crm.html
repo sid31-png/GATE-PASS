@@ -347,6 +347,8 @@
     <div class="view" id="view-collectors"></div>
     <div class="view" id="view-companies"></div>
     <div class="view" id="view-analytics"></div>
+    <div class="view" id="view-account-managers"></div>
+    <div class="view" id="view-online-queue"></div>
     <div class="view" id="view-dispatch"></div>
     <div class="view" id="view-online"></div>
     <div class="view" id="view-field"></div>
@@ -374,20 +376,26 @@ const LOCATIONS = ["Doha Towers", "Mesaieed", "Ras Laffan", "Dukhan", "Offshore"
 const GATE_PASS_TYPES = ["Permanent", "Temporary"];
 const REQUEST_TYPES = ["New Gate Pass", "Lost Gate Pass"];
 const PASS_CATEGORIES = ["Main", "Supplementary"];
-const STORAGE_KEY = "gatepass-crm-state-v5";
+const STORAGE_KEY = "gatepass-crm-state-v6";
 
 /* ================= delivery / dispatch seed ================= */
 const SEED_EMPLOYEES = [
-  { name: "MED-DARWISH", isManager: true, isOnline: false, isField: false },
-  { name: "ALAA", isManager: false, isOnline: true, isField: true },
-  { name: "AHMED", isManager: false, isOnline: true, isField: false },
-  { name: "SAMIM", isManager: false, isOnline: true, isField: true },
-  { name: "TAHA", isManager: false, isOnline: true, isField: true },
-  { name: "MUJEEB", isManager: false, isOnline: true, isField: true },
-  { name: "SALAH", isManager: false, isOnline: false, isField: true },
-  { name: "MED-HUSSAIN", isManager: false, isOnline: false, isField: true },
-  { name: "ABIN", isManager: false, isOnline: false, isField: true },
-  { name: "AITA", isManager: false, isOnline: false, isField: true }
+  { name: "MED-DARWISH", isManager: true, isOnline: false, isField: false, isAM: false, isAMLead: false },
+  { name: "ALAA", isManager: false, isOnline: true, isField: true, isAM: false, isAMLead: false },
+  { name: "AHMED", isManager: false, isOnline: true, isField: false, isAM: false, isAMLead: false },
+  { name: "SAMIM", isManager: false, isOnline: true, isField: true, isAM: false, isAMLead: false },
+  { name: "TAHA", isManager: false, isOnline: true, isField: true, isAM: false, isAMLead: false },
+  { name: "MUJEEB", isManager: false, isOnline: true, isField: true, isAM: false, isAMLead: false },
+  { name: "SALAH", isManager: false, isOnline: false, isField: true, isAM: false, isAMLead: false },
+  { name: "MED-HUSSAIN", isManager: false, isOnline: false, isField: true, isAM: false, isAMLead: false },
+  { name: "ABIN", isManager: false, isOnline: false, isField: true, isAM: false, isAMLead: false },
+  { name: "AITA", isManager: false, isOnline: false, isField: true, isAM: false, isAMLead: false },
+  { name: "ELENA", isManager: false, isOnline: false, isField: false, isAM: true, isAMLead: true },
+  { name: "Violetta", isManager: false, isOnline: false, isField: false, isAM: true, isAMLead: false },
+  { name: "Abegail", isManager: false, isOnline: false, isField: false, isAM: true, isAMLead: false },
+  { name: "Vongai", isManager: false, isOnline: false, isField: false, isAM: true, isAMLead: false },
+  { name: "Nasma", isManager: false, isOnline: false, isField: false, isAM: true, isAMLead: false },
+  { name: "Roxana", isManager: false, isOnline: false, isField: false, isAM: true, isAMLead: false }
 ];
 
 const DeliveryStage = { ONLINE: "ONLINE", DISPATCH: "DISPATCH", ASSIGNED: "ASSIGNED", IN_PROGRESS: "IN_PROGRESS", COMPLETED: "COMPLETED", BLOCKED: "BLOCKED" };
@@ -428,6 +436,34 @@ const SEED_DELIVERY_TASKS = [
   { title: "Deliver collected pass to Tenaris Global — Offshore", description: null, stage: "COMPLETED", gatePassNumber: "GP-2026-023", companyName: "Tenaris Global", createdByName: "SAMIM", assignedToName: "SALAH", assignedByName: "MED-DARWISH", scheduledAt: "2026-07-06T13:00:00", startedAt: "2026-07-06T13:05:00", completedAt: "2026-07-06T15:10:00" },
   { title: "Collect renewed pass — Tenaris Investment gate office", description: null, stage: "COMPLETED", gatePassNumber: "GP-2026-016", companyName: "Tenaris Investment", createdByName: "AHMED", assignedToName: "AITA", assignedByName: "MED-DARWISH", scheduledAt: "2026-07-05T07:00:00", startedAt: "2026-07-05T07:05:00", completedAt: "2026-07-05T09:00:00" },
   { title: "Submit visitor pass request — Doha Towers reception", description: null, stage: "COMPLETED", gatePassNumber: null, companyName: "EY Consulting", createdByName: "ALAA", assignedToName: "ABIN", assignedByName: "MED-DARWISH", scheduledAt: "2026-07-04T06:00:00", startedAt: "2026-07-04T06:05:00", completedAt: "2026-07-04T07:05:00" }
+];
+
+/* ================= AM -> Online Operations intake seed ================= */
+const RequestStatus = {
+  ASSIGNED_TO_ONLINE: "ASSIGNED_TO_ONLINE", ONLINE_PROCESSING: "ONLINE_PROCESSING",
+  PENDING_DISPATCH: "PENDING_DISPATCH", MISSING_INFO_RETURNED_TO_AM: "MISSING_INFO_RETURNED_TO_AM"
+};
+const STATUS_LABEL = {
+  ASSIGNED_TO_ONLINE: "Assigned to Online", ONLINE_PROCESSING: "Online Processing",
+  PENDING_DISPATCH: "Pending Dispatch", MISSING_INFO_RETURNED_TO_AM: "Missing Info (Returned to AM)"
+};
+const STATUS_PILL = {
+  ASSIGNED_TO_ONLINE: "pill-mute", ONLINE_PROCESSING: "pill-warn",
+  PENDING_DISPATCH: "pill-good", MISSING_INFO_RETURNED_TO_AM: "pill-crit"
+};
+const VALID_REQUEST_TRANSITIONS = {
+  ASSIGNED_TO_ONLINE: ["ONLINE_PROCESSING"],
+  ONLINE_PROCESSING: ["PENDING_DISPATCH", "MISSING_INFO_RETURNED_TO_AM"],
+  PENDING_DISPATCH: [],
+  MISSING_INFO_RETURNED_TO_AM: ["ASSIGNED_TO_ONLINE"]
+};
+
+const SEED_SERVICE_REQUESTS = [
+  { title: "Trade licence renewal", category: "PRO", companyName: "EY Consulting", clientName: "Ahmed Al-Sayed", description: "Annual trade licence renewal, client documents attached.", attachments: "trade_licence_2025.pdf, passport_copy.pdf", createdByName: "Violetta", createdAt: "2026-07-13T09:00:00", status: "ASSIGNED_TO_ONLINE" },
+  { title: "Work visa application — new hire", category: "PRO", companyName: "Welltec", clientName: "Jesper Holm", description: "New hire work visa, needs sponsorship letter drafted.", attachments: "passport_scan.pdf, offer_letter.pdf", createdByName: "Abegail", createdAt: "2026-07-14T10:00:00", status: "ASSIGNED_TO_ONLINE" },
+  { title: "Deliver stamped contract to client office", category: "DELIVERY", companyName: "Tenaris Global", clientName: "Marco Ferraro", description: "Signed contract needs to be physically delivered and countersigned.", attachments: "signed_contract.pdf", createdByName: "Vongai", createdAt: "2026-07-08T08:00:00", claimedByName: "SAMIM", claimedAt: "2026-07-15T11:00:00", status: "ONLINE_PROCESSING" },
+  { title: "Company registration document pickup", category: "DELIVERY", companyName: "Tenaris Investment", clientName: "Sara Al-Kuwari", description: "Collect the stamped registration certificate from the ministry.", attachments: "authorization_letter.pdf", createdByName: "Nasma", createdAt: "2026-06-26T09:00:00", claimedByName: "TAHA", claimedAt: "2026-07-01T09:00:00", status: "PENDING_DISPATCH", readyAt: "2026-07-04T09:00:00" },
+  { title: "Visa renewal — missing Emirates ID copy", category: "PRO", companyName: "Welltec", clientName: "Jesper Holm", description: "Visa renewal for existing employee.", attachments: "passport_scan.pdf", createdByName: "Roxana", createdAt: "2026-06-16T09:00:00", claimedByName: "MUJEEB", claimedAt: "2026-06-20T09:00:00", status: "MISSING_INFO_RETURNED_TO_AM", returnComment: "Missing a clear scan of the Emirates ID (back side). Please re-upload and resubmit.", returnedAt: "2026-06-22T09:00:00" }
 ];
 
 /* ================= state ================= */
@@ -479,7 +515,10 @@ function buildInitialState() {
   for (const e of SEED_EMPLOYEES) {
     const id = employees.length + 1;
     employeeId.set(e.name, id);
-    employees.push({ id, name: e.name, isManager: e.isManager, isOnline: e.isOnline, isField: e.isField, phone: null, email: null, active: true });
+    employees.push({
+      id, name: e.name, isManager: e.isManager, isOnline: e.isOnline, isField: e.isField,
+      isAM: e.isAM, isAMLead: e.isAMLead, phone: null, email: null, active: true
+    });
   }
 
   const deliveryTasks = [];
@@ -503,11 +542,74 @@ function buildInitialState() {
     });
   }
 
+  const serviceRequests = [];
+  const requestHistory = [];
+  for (const r of SEED_SERVICE_REQUESTS) {
+    const id = serviceRequests.length + 1;
+    let deliveryTaskId = null;
+    if (r.status === "PENDING_DISPATCH") {
+      const dt = {
+        id: deliveryTasks.length + 1,
+        title: r.title,
+        description: r.description || null,
+        stage: "DISPATCH",
+        gatePassId: null,
+        companyId: r.companyName ? companyId.get(r.companyName) || null : null,
+        createdById: r.claimedByName ? employeeId.get(r.claimedByName) || null : null,
+        assignedToId: null, assignedById: null, scheduledAt: null, instructions: null,
+        startedAt: null, completedAt: null, blockedReason: null,
+        createdAt: r.readyAt || r.createdAt
+      };
+      deliveryTasks.push(dt);
+      deliveryTaskId = dt.id;
+    }
+    serviceRequests.push({
+      id,
+      title: r.title,
+      category: r.category,
+      companyId: r.companyName ? companyId.get(r.companyName) || null : null,
+      clientName: r.clientName || null,
+      description: r.description || null,
+      attachments: r.attachments || null,
+      status: r.status,
+      createdById: employeeId.get(r.createdByName),
+      claimedById: r.claimedByName ? employeeId.get(r.claimedByName) || null : null,
+      claimedAt: r.claimedAt || null,
+      returnComment: r.returnComment || null,
+      deliveryTaskId,
+      createdAt: r.createdAt
+    });
+
+    requestHistory.push({
+      id: requestHistory.length + 1, requestId: id, fromStatus: null, toStatus: "ASSIGNED_TO_ONLINE",
+      changedById: employeeId.get(r.createdByName), comment: null, createdAt: r.createdAt
+    });
+    if (r.claimedByName) {
+      requestHistory.push({
+        id: requestHistory.length + 1, requestId: id, fromStatus: "ASSIGNED_TO_ONLINE", toStatus: "ONLINE_PROCESSING",
+        changedById: employeeId.get(r.claimedByName), comment: null, createdAt: r.claimedAt
+      });
+    }
+    if (r.status === "PENDING_DISPATCH") {
+      requestHistory.push({
+        id: requestHistory.length + 1, requestId: id, fromStatus: "ONLINE_PROCESSING", toStatus: "PENDING_DISPATCH",
+        changedById: employeeId.get(r.claimedByName), comment: null, createdAt: r.readyAt
+      });
+    }
+    if (r.status === "MISSING_INFO_RETURNED_TO_AM") {
+      requestHistory.push({
+        id: requestHistory.length + 1, requestId: id, fromStatus: "ONLINE_PROCESSING", toStatus: "MISSING_INFO_RETURNED_TO_AM",
+        changedById: employeeId.get(r.claimedByName), comment: r.returnComment, createdAt: r.returnedAt
+      });
+    }
+  }
+
   return {
-    companies, collectors, gatePasses, employees, deliveryTasks,
+    companies, collectors, gatePasses, employees, deliveryTasks, serviceRequests, requestHistory,
     nextIds: {
       company: companies.length + 1, collector: collectors.length + 1, gatePass: gatePasses.length + 1,
-      employee: employees.length + 1, deliveryTask: deliveryTasks.length + 1
+      employee: employees.length + 1, deliveryTask: deliveryTasks.length + 1,
+      serviceRequest: serviceRequests.length + 1, requestHistory: requestHistory.length + 1
     }
   };
 }
@@ -639,6 +741,62 @@ function pillFor(text) {
   return `<span class="pill ${cls}">${esc(label)}</span>`;
 }
 function stagePill(stage) { return `<span class="pill ${STAGE_PILL[stage]}">${esc(STAGE_LABEL[stage])}</span>`; }
+function requestStatusPill(status) { return `<span class="pill ${STATUS_PILL[status]}">${esc(STATUS_LABEL[status])}</span>`; }
+function assertValidRequestTransition(from, to) {
+  if (from === to) return null;
+  if (!VALID_REQUEST_TRANSITIONS[from].includes(to)) return `Cannot move a request from ${STATUS_LABEL[from]} to ${STATUS_LABEL[to]}.`;
+  return null;
+}
+function updateRequestStatus(id, nextStatus, extra) {
+  extra = extra || {};
+  const r = DB.serviceRequests.find((x) => x.id === id);
+  if (!r) return false;
+  const err = assertValidRequestTransition(r.status, nextStatus);
+  if (err) { alert(err); return false; }
+
+  if (nextStatus === "ONLINE_PROCESSING") {
+    const claimedById = extra.claimedById !== undefined ? extra.claimedById : r.claimedById;
+    if (!claimedById) { alert("Claiming a request requires an operator."); return false; }
+    r.claimedById = claimedById;
+    r.claimedAt = r.claimedAt || new Date().toISOString();
+  }
+  if (nextStatus === "MISSING_INFO_RETURNED_TO_AM") {
+    const returnComment = extra.returnComment !== undefined ? extra.returnComment : r.returnComment;
+    if (!returnComment) { alert("Returning to the AM requires a comment explaining what's missing."); return false; }
+    r.returnComment = returnComment;
+  }
+  if (nextStatus === "ASSIGNED_TO_ONLINE" && r.status === "MISSING_INFO_RETURNED_TO_AM") {
+    r.claimedById = null; r.claimedAt = null; r.returnComment = null;
+  }
+  if (nextStatus === "PENDING_DISPATCH") {
+    if (!r.claimedById) { alert("A request must be claimed by an operator before it can be sent to dispatch."); return false; }
+    const dt = {
+      id: DB.nextIds.deliveryTask++, title: r.title, description: r.description || null, stage: "DISPATCH",
+      gatePassId: null, companyId: r.companyId, createdById: r.claimedById,
+      assignedToId: null, assignedById: null, scheduledAt: null, instructions: null,
+      startedAt: null, completedAt: null, blockedReason: null, createdAt: new Date().toISOString()
+    };
+    DB.deliveryTasks.push(dt);
+    r.deliveryTaskId = dt.id;
+  }
+
+  DB.requestHistory.push({
+    id: DB.nextIds.requestHistory++, requestId: r.id, fromStatus: r.status, toStatus: nextStatus,
+    changedById: extra.changedById !== undefined ? extra.changedById : (r.claimedById || r.createdById),
+    comment: nextStatus === "MISSING_INFO_RETURNED_TO_AM" ? r.returnComment : null,
+    createdAt: new Date().toISOString()
+  });
+  r.status = nextStatus;
+  saveState();
+  renderAll();
+  return true;
+}
+function requestMeta(r) {
+  const parts = [];
+  if (r.companyId) parts.push(esc(companyName(r.companyId)));
+  if (r.clientName) parts.push(esc(r.clientName));
+  return parts.join(" · ") || "—";
+}
 
 /* ================= analytics ================= */
 function computeKpis(rows, now = new Date()) {
@@ -943,10 +1101,12 @@ const NAV_ITEMS = [
   { id: "collectors", label: "Collector Performance", n: "04" },
   { id: "companies", label: "Companies", n: "05" },
   { id: "analytics", label: "Analytics", n: "06" },
-  { id: "dispatch", label: "Dispatch", n: "07" },
-  { id: "online", label: "Online Team", n: "08" },
-  { id: "field", label: "Field Team", n: "09" },
-  { id: "deliveries", label: "Deliveries", n: "10" }
+  { id: "account-managers", label: "Account Managers", n: "07" },
+  { id: "online-queue", label: "Online Queue", n: "08" },
+  { id: "dispatch", label: "Dispatch", n: "09" },
+  { id: "online", label: "Online Team", n: "10" },
+  { id: "field", label: "Field Team", n: "11" },
+  { id: "deliveries", label: "Deliveries", n: "12" }
 ];
 let currentView = "dashboard";
 
@@ -977,6 +1137,8 @@ function renderView(id) {
   else if (id === "collectors") renderCollectors();
   else if (id === "companies") renderCompanies();
   else if (id === "analytics") renderAnalytics();
+  else if (id === "account-managers") renderAccountManagers();
+  else if (id === "online-queue") renderOnlineQueue();
   else if (id === "dispatch") renderDispatch();
   else if (id === "online") renderOnline();
   else if (id === "field") renderField();
@@ -1902,6 +2064,254 @@ function renderDeliveries() {
     </div>
   `;
   mount.querySelectorAll("[data-filter]").forEach((b) => b.addEventListener("click", () => { deliveryFilter = b.getAttribute("data-filter"); renderDeliveries(); }));
+}
+
+/* ================= account managers ================= */
+let amUserFilter = (function () {
+  try { return localStorage.getItem("gatepass-am-user") || ""; } catch (e) { return ""; }
+})();
+function renderAccountManagers() {
+  const mount = document.getElementById("view-account-managers");
+  const amEmployees = DB.employees.filter((e) => e.isAM);
+  const selectedEmp = amEmployees.find((e) => e.name === amUserFilter);
+  const seesAll = !selectedEmp || selectedEmp.isAMLead;
+  const visible = (seesAll ? DB.serviceRequests.slice() : DB.serviceRequests.filter((r) => r.createdById === selectedEmp.id))
+    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+  const byStatus = (s) => visible.filter((r) => r.status === s).length;
+
+  mount.innerHTML = `
+    <div class="page-head">
+      <div><span class="eyebrow">Account Managers</span><h1>Account Managers</h1>
+      <p>${seesAll ? "Global view — all Account Managers' requests" : `${esc(amUserFilter)}'s requests`}</p></div>
+      <button class="btn btn-primary" id="btnNewRequest">+ New request</button>
+    </div>
+    <div class="card card-pad field-select-card" style="margin-bottom:20px;">
+      <div class="field" style="margin-bottom:0;">
+        <label>I am…</label>
+        <select id="amUserSelect">
+          <option value="">All Account Managers (global view)</option>
+          ${amEmployees.map((e) => `<option value="${esc(e.name)}" ${amUserFilter === e.name ? "selected" : ""}>${esc(e.name)}${e.isAMLead ? " (Lead — sees all)" : ""}</option>`).join("")}
+        </select>
+      </div>
+    </div>
+    <div class="grid kpi-row" style="grid-template-columns:repeat(4,1fr);">
+      ${kpiTile("Assigned to Online", byStatus("ASSIGNED_TO_ONLINE"), "")}
+      ${kpiTile("Online Processing", byStatus("ONLINE_PROCESSING"), "", "warn")}
+      ${kpiTile("Pending Dispatch", byStatus("PENDING_DISPATCH"), "", "good")}
+      ${kpiTile("Missing Info", byStatus("MISSING_INFO_RETURNED_TO_AM"), "", "crit")}
+    </div>
+    <div class="card table-wrap table-wide">
+      <table>
+        <thead><tr><th>Request</th><th>Category</th><th>Company / Client</th>${seesAll ? "<th>Requested by</th>" : ""}<th>Status</th><th>Created</th><th></th></tr></thead>
+        <tbody>
+          ${visible.map((r) => `<tr>
+            <td>
+              <div style="font-weight:600;color:var(--ink);">${esc(r.title)}</div>
+              ${r.status === "MISSING_INFO_RETURNED_TO_AM" && r.returnComment ? `<div class="danger-box" style="max-width:260px;">⚠ ${esc(r.returnComment)}</div>` : ""}
+              ${r.claimedById && r.status !== "ASSIGNED_TO_ONLINE" ? `<div class="meta">Handled by ${esc(employeeName(r.claimedById))}</div>` : ""}
+            </td>
+            <td>${r.category === "PRO" ? "PRO service" : "Delivery"}</td>
+            <td>${esc(companyName(r.companyId))}${r.clientName ? `<div class="meta">${esc(r.clientName)}</div>` : ""}</td>
+            ${seesAll ? `<td>${esc(employeeName(r.createdById))}</td>` : ""}
+            <td>${requestStatusPill(r.status)}</td>
+            <td class="mono-cell">${fmtDateTime(r.createdAt)}</td>
+            <td>${r.status === "MISSING_INFO_RETURNED_TO_AM" ? `<button class="btn-link link-edit" data-act="resubmit" data-id="${r.id}">Resubmit</button>` : ""}</td>
+          </tr>`).join("") || `<tr class="empty-row"><td colspan="${seesAll ? 7 : 6}">No requests yet.</td></tr>`}
+        </tbody>
+      </table>
+    </div>
+  `;
+  document.getElementById("amUserSelect").addEventListener("change", (e) => {
+    amUserFilter = e.target.value;
+    try { localStorage.setItem("gatepass-am-user", amUserFilter); } catch (err) { /* ignore */ }
+    renderAccountManagers();
+  });
+  document.getElementById("btnNewRequest").addEventListener("click", () => openNewRequestModal());
+  mount.querySelectorAll("[data-act=resubmit]").forEach((b) => b.addEventListener("click", () => {
+    const r = DB.serviceRequests.find((x) => x.id === Number(b.getAttribute("data-id")));
+    if (r) updateRequestStatus(r.id, "ASSIGNED_TO_ONLINE", { changedById: r.createdById });
+  }));
+}
+function openNewRequestModal() {
+  const amEmployees = DB.employees.filter((e) => e.isAM && !e.isAMLead);
+  const overlay = document.getElementById("overlay");
+  const body = document.getElementById("modalBody");
+  body.innerHTML = `
+    <div class="kicker">New record</div>
+    <h2>New service request</h2>
+    <form id="reqForm" style="margin-top:14px;">
+      <div class="field"><label>Title</label>
+        <input type="text" id="reqTitle" required placeholder="e.g. Licence Renewal, Visa Request…"></div>
+      <div class="field-row">
+        <div class="field"><label>Category</label>
+          <select id="reqCategory"><option value="PRO">PRO service</option><option value="DELIVERY">Delivery</option></select>
+        </div>
+        <div class="field"><label>Requested by</label>
+          <select id="reqCreatedBy" required>
+            <option value="">Select AM…</option>
+            ${amEmployees.map((e) => `<option value="${e.id}" ${amUserFilter === e.name ? "selected" : ""}>${esc(e.name)}</option>`).join("")}
+          </select>
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>Company</label>
+          <select id="reqCompany"><option value="">—</option>${DB.companies.map((c) => `<option value="${c.id}">${esc(c.name)}</option>`).join("")}</select>
+        </div>
+        <div class="field"><label>Client name</label><input type="text" id="reqClient"></div>
+      </div>
+      <div class="field"><label>Description</label><textarea id="reqDesc" rows="2"></textarea></div>
+      <div class="field"><label>Attached documents</label>
+        <input type="text" id="reqAttachments" placeholder="e.g. passport_copy.pdf, trade_licence.pdf"></div>
+      <p class="err-msg" id="reqErr" style="display:none;"></p>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-ghost" id="reqCancelBtn">Cancel</button>
+        <button type="submit" class="btn btn-primary">Submit request</button>
+      </div>
+    </form>
+  `;
+  overlay.classList.add("open");
+  document.getElementById("reqCancelBtn").addEventListener("click", closeModal);
+  document.getElementById("reqForm").addEventListener("submit", (e) => {
+    e.preventDefault();
+    const title = document.getElementById("reqTitle").value.trim();
+    if (!title) { showErr("reqErr", "A title is required."); return; }
+    const createdByVal = document.getElementById("reqCreatedBy").value;
+    if (!createdByVal) { showErr("reqErr", "Please select which Account Manager is filing this request."); return; }
+    const companyVal = document.getElementById("reqCompany").value;
+    const id = DB.nextIds.serviceRequest++;
+    const createdAt = new Date().toISOString();
+    DB.serviceRequests.push({
+      id, title, category: document.getElementById("reqCategory").value,
+      companyId: companyVal ? Number(companyVal) : null,
+      clientName: document.getElementById("reqClient").value.trim() || null,
+      description: document.getElementById("reqDesc").value.trim() || null,
+      attachments: document.getElementById("reqAttachments").value.trim() || null,
+      status: "ASSIGNED_TO_ONLINE",
+      createdById: Number(createdByVal),
+      claimedById: null, claimedAt: null, returnComment: null, deliveryTaskId: null, createdAt
+    });
+    DB.requestHistory.push({
+      id: DB.nextIds.requestHistory++, requestId: id, fromStatus: null, toStatus: "ASSIGNED_TO_ONLINE",
+      changedById: Number(createdByVal), comment: null, createdAt
+    });
+    saveState(); closeModal(); renderAll();
+  });
+}
+
+/* ================= online queue ================= */
+let onlineOperatorFilter = (function () {
+  try { return localStorage.getItem("gatepass-online-operator") || ""; } catch (e) { return ""; }
+})();
+function renderOnlineQueue() {
+  const mount = document.getElementById("view-online-queue");
+  const onlineEmployees = DB.employees.filter((e) => e.isOnline && e.active);
+  const requests = DB.serviceRequests.filter((r) => r.status === "ASSIGNED_TO_ONLINE" || r.status === "ONLINE_PROCESSING");
+  const operatorEmp = onlineEmployees.find((e) => e.name === onlineOperatorFilter);
+  const incoming = requests.filter((r) => r.status === "ASSIGNED_TO_ONLINE").sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+  const mine = requests.filter((r) => r.status === "ONLINE_PROCESSING" && (!operatorEmp || r.claimedById === operatorEmp.id));
+
+  mount.innerHTML = `
+    <div class="page-head">
+      <div><span class="eyebrow">Online Operations</span><h1>Online Queue — Account Manager requests</h1>
+      <p>Take incoming requests, verify documents, then send to Dispatch or return to the AM</p></div>
+    </div>
+    <div class="card card-pad field-select-card" style="margin-bottom:20px;">
+      <div class="field" style="margin-bottom:0;">
+        <label>I am…</label>
+        <select id="opSelect">
+          <option value="">Select operator…</option>
+          ${onlineEmployees.map((e) => `<option value="${esc(e.name)}" ${onlineOperatorFilter === e.name ? "selected" : ""}>${esc(e.name)}</option>`).join("")}
+        </select>
+      </div>
+    </div>
+    <div class="grid kpi-row" style="grid-template-columns:repeat(2,1fr);">
+      ${kpiTile("Incoming", incoming.length, "")}
+      ${kpiTile("Being Processed", requests.filter((r) => r.status === "ONLINE_PROCESSING").length, "", "warn")}
+    </div>
+    <div class="section-title">📨 Incoming — assigned to Online</div>
+    <div class="task-list" id="oqIncomingList"></div>
+    <div class="section-title">🗂 ${operatorEmp ? `My requests — ${esc(operatorEmp.name)}` : "In processing"}</div>
+    <div class="task-list" id="oqMineList"></div>
+  `;
+  document.getElementById("opSelect").addEventListener("change", (e) => {
+    onlineOperatorFilter = e.target.value;
+    try { localStorage.setItem("gatepass-online-operator", onlineOperatorFilter); } catch (err) { /* ignore */ }
+    renderOnlineQueue();
+  });
+  renderOQIncoming(incoming);
+  renderOQMine(mine, operatorEmp);
+}
+function renderOQIncoming(list) {
+  const mount = document.getElementById("oqIncomingList");
+  if (!list.length) { mount.innerHTML = `<div class="card card-pad empty-card">Queue is empty.</div>`; return; }
+  mount.innerHTML = list.map((r) => `
+    <div class="card card-pad task-card">
+      <div>
+        <div class="title-row"><span class="t">${esc(r.title)}</span>${requestStatusPill(r.status)}</div>
+        ${r.description ? `<div class="desc">${esc(r.description)}</div>` : ""}
+        <div class="meta">${requestMeta(r)} · requested by ${esc(employeeName(r.createdById))} · ${fmtDateTime(r.createdAt)}</div>
+        ${r.attachments ? `<div class="meta">📎 ${esc(r.attachments)}</div>` : ""}
+      </div>
+      <div class="task-actions"><button class="btn btn-primary" data-act="claim" data-id="${r.id}">Prendre en charge</button></div>
+    </div>
+  `).join("");
+  mount.querySelectorAll("[data-act=claim]").forEach((b) => b.addEventListener("click", () => claimRequest(Number(b.getAttribute("data-id")))));
+}
+function claimRequest(id) {
+  const onlineEmployees = DB.employees.filter((e) => e.isOnline && e.active);
+  const operatorEmp = onlineEmployees.find((e) => e.name === onlineOperatorFilter);
+  if (!operatorEmp) { alert('Select "I am…" first so the request can be assigned to you.'); return; }
+  updateRequestStatus(id, "ONLINE_PROCESSING", { claimedById: operatorEmp.id });
+}
+function renderOQMine(list, operatorEmp) {
+  const mount = document.getElementById("oqMineList");
+  if (!list.length) {
+    mount.innerHTML = `<div class="card card-pad empty-card">${operatorEmp ? "Nothing in progress for you right now." : "Nothing in processing right now."}</div>`;
+    return;
+  }
+  mount.innerHTML = list.map((r) => `
+    <div class="card card-pad task-card">
+      <div>
+        <div class="title-row"><span class="t">${esc(r.title)}</span>${requestStatusPill(r.status)}</div>
+        ${r.description ? `<div class="desc">${esc(r.description)}</div>` : ""}
+        <div class="meta">${requestMeta(r)} · requested by ${esc(employeeName(r.createdById))}${r.claimedById ? ` · claimed by ${esc(employeeName(r.claimedById))}` : ""}</div>
+        ${r.attachments ? `<div class="meta">📎 ${esc(r.attachments)}</div>` : ""}
+      </div>
+      <div class="task-actions">
+        <button class="btn btn-success" data-act="ready" data-id="${r.id}">Prêt pour Dispatch</button>
+        <button class="btn btn-danger-ghost" data-act="return" data-id="${r.id}">Retourner à l'AM</button>
+      </div>
+    </div>
+  `).join("");
+  mount.querySelectorAll("[data-act=ready]").forEach((b) => b.addEventListener("click", () => updateRequestStatus(Number(b.getAttribute("data-id")), "PENDING_DISPATCH")));
+  mount.querySelectorAll("[data-act=return]").forEach((b) => b.addEventListener("click", () => openReturnRequestModal(Number(b.getAttribute("data-id")))));
+}
+function openReturnRequestModal(requestId) {
+  const r = DB.serviceRequests.find((x) => x.id === requestId);
+  if (!r) return;
+  const overlay = document.getElementById("overlay");
+  const body = document.getElementById("modalBody");
+  body.innerHTML = `
+    <div class="kicker">Return to Account Manager</div>
+    <h2>${esc(r.title)}</h2>
+    <p style="font-size:12px;color:var(--ink-2);margin:4px 0 14px;">requested by ${esc(employeeName(r.createdById))}</p>
+    <form id="returnForm">
+      <div class="field"><textarea id="returnComment" rows="3" required placeholder="e.g. Missing a clear scan of the Emirates ID (back side)…"></textarea></div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-ghost" id="returnCancelBtn">Cancel</button>
+        <button type="submit" class="btn btn-danger">Return to AM</button>
+      </div>
+    </form>
+  `;
+  overlay.classList.add("open");
+  document.getElementById("returnCancelBtn").addEventListener("click", closeModal);
+  document.getElementById("returnForm").addEventListener("submit", (e) => {
+    e.preventDefault();
+    const comment = document.getElementById("returnComment").value.trim();
+    if (!comment) return;
+    const ok = updateRequestStatus(r.id, "MISSING_INFO_RETURNED_TO_AM", { returnComment: comment });
+    if (ok) closeModal();
+  });
 }
 
 /* ================= boot ================= */
