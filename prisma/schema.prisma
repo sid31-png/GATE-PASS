@@ -74,31 +74,38 @@ enum RequestStatus {
 }
 
 model Company {
-  id              Int              @id @default(autoincrement())
-  name            String           @unique
-  sector          String?
-  contact         String?
-  phone           String?
-  email           String?
-  notes           String?
-  createdAt       DateTime         @default(now())
-  updatedAt       DateTime         @updatedAt
-  gatePasses      GatePass[]
-  deliveryTasks   DeliveryTask[]
-  serviceRequests ServiceRequest[]
+  id               Int              @id @default(autoincrement())
+  name             String           @unique
+  sector           String?
+  contact          String?
+  phone            String?
+  email            String?
+  notes            String?
+  accountManagerId Int?
+  accountManager   Employee?        @relation("CompanyAccountManager", fields: [accountManagerId], references: [id])
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+  gatePasses       GatePass[]
+  deliveryTasks    DeliveryTask[]
+  serviceRequests  ServiceRequest[]
+
+  @@index([accountManagerId])
 }
 
 // The full staff roster. Booleans (rather than a single role enum) because
 // several people are mixed profiles (e.g. Online + Field, or AM + AM lead).
-//   isManager — Dispatch/field manager (MED-DARWISH)
-//   isOnline  — Online Operations (delivery prep)
-//   isField   — Field/government-trips agent
-//   isAM      — Account Manager, initiates client service requests
-//   isAMLead  — supervises all AM requests (ELENA); implies isAM
+// RBAC role is derived from these (see src/lib/rbac.ts):
+//   isManager  — Dispatch/field manager (MED-DARWISH) -> SUPER_ADMIN (full access)
+//   isOpsAdmin — Operations admin (AHMED) -> OPS_ADMIN (supervises online queue, can reassign)
+//   isOnline   — Online Operations (delivery prep) -> OPERATOR (sees only own auto-assigned tasks)
+//   isField    — Field/government-trips agent
+//   isAM       — Account Manager, initiates client service requests
+//   isAMLead   — supervises all AM requests (ELENA); implies isAM -> AM_LEAD
 model Employee {
   id               Int                    @id @default(autoincrement())
   name             String                 @unique
   isManager        Boolean                @default(false)
+  isOpsAdmin       Boolean                @default(false)
   isOnline         Boolean                @default(false)
   isField          Boolean                @default(false)
   isAM             Boolean                @default(false)
@@ -114,6 +121,8 @@ model Employee {
   requestsCreated  ServiceRequest[]       @relation("RequestCreatedBy")
   requestsClaimed  ServiceRequest[]       @relation("RequestClaimedBy")
   requestStatusLog RequestStatusHistory[] @relation("RequestStatusChangedBy")
+  companiesManaged Company[]              @relation("CompanyAccountManager")
+  partnership      Partnership?           @relation("PartnershipAM")
 }
 
 model Collector {
@@ -190,30 +199,69 @@ model DeliveryTask {
 // (a DeliveryTask is created for MED-DARWISH's dispatch board) or bounces it
 // back to the AM with a comment when something is missing.
 model ServiceRequest {
-  id             Int                    @id @default(autoincrement())
-  title          String
-  category       RequestCategory
-  companyId      Int?
-  company        Company?               @relation(fields: [companyId], references: [id])
-  clientName     String?
-  description    String?
-  attachments    String?
-  status         RequestStatus          @default(ASSIGNED_TO_ONLINE)
-  createdById    Int
-  createdBy      Employee               @relation("RequestCreatedBy", fields: [createdById], references: [id])
-  claimedById    Int?
-  claimedBy      Employee?              @relation("RequestClaimedBy", fields: [claimedById], references: [id])
-  claimedAt      DateTime?
-  returnComment  String?
-  deliveryTaskId Int?                   @unique
-  deliveryTask   DeliveryTask?          @relation(fields: [deliveryTaskId], references: [id])
-  createdAt      DateTime               @default(now())
-  updatedAt      DateTime               @updatedAt
-  history        RequestStatusHistory[]
+  id                Int                    @id @default(autoincrement())
+  title             String
+  category          RequestCategory
+  companyId         Int?
+  company           Company?               @relation(fields: [companyId], references: [id])
+  clientName        String?
+  description       String?
+  attachments       String?
+  status            RequestStatus          @default(ASSIGNED_TO_ONLINE)
+  createdById       Int
+  createdBy         Employee               @relation("RequestCreatedBy", fields: [createdById], references: [id])
+  claimedById       Int?
+  claimedBy         Employee?              @relation("RequestClaimedBy", fields: [claimedById], references: [id])
+  claimedAt         DateTime?
+  returnComment     String?
+  deliveryTaskId    Int?                   @unique
+  deliveryTask      DeliveryTask?          @relation(fields: [deliveryTaskId], references: [id])
+  // Automatic binome routing audit trail (see src/lib/dispatch.ts)
+  assignmentRuleId  Int?
+  assignmentRule    AssignmentRule?        @relation(fields: [assignmentRuleId], references: [id])
+  partnershipId     Int?
+  partnership       Partnership?           @relation(fields: [partnershipId], references: [id])
+  assignmentNote    String?
+  flaggedForManager Boolean                @default(false)
+  createdAt         DateTime               @default(now())
+  updatedAt         DateTime               @updatedAt
+  history           RequestStatusHistory[]
 
   @@index([status])
   @@index([createdById])
   @@index([claimedById])
+}
+
+// Default AM -> Online Operator binome. operatorIds is a comma-separated pool
+// of Employee ids; a single id means a fixed pair, multiple ids round-robin
+// (e.g. Nasma is shared between Ahmed and ALAA).
+model Partnership {
+  id           Int              @id @default(autoincrement())
+  amEmployeeId Int              @unique
+  amEmployee   Employee         @relation("PartnershipAM", fields: [amEmployeeId], references: [id])
+  operatorIds  String
+  flagManager  Boolean          @default(false)
+  note         String?
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+  requests     ServiceRequest[]
+}
+
+// Company-specific exception that overrides the AM's default Partnership
+// (e.g. any company matching "ABB" round-robins between ALAA and TAHA
+// regardless of which AM owns the account). Checked in priority order.
+model AssignmentRule {
+  id          Int              @id @default(autoincrement())
+  matchType   String // "COMPANY_NAME_CONTAINS"
+  matchValue  String
+  operatorIds String
+  priority    Int              @default(0)
+  flagManager Boolean          @default(false)
+  note        String?
+  active      Boolean          @default(true)
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  requests    ServiceRequest[]
 }
 
 model RequestStatusHistory {

@@ -30,6 +30,28 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   if (!existing) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
   if (body.status === undefined) {
+    if (body.claimedById !== undefined) {
+      // Manual reassignment (Ops Admin / Super Admin) — no stage transition.
+      const request = await prisma.serviceRequest.update({
+        where: { id: Number(id) },
+        data: {
+          claimedById: body.claimedById,
+          claimedAt: body.claimedById ? (existing.claimedAt ?? new Date()) : null,
+          assignmentNote: body.assignmentNote ?? "Manually reassigned by an administrator.",
+        },
+        include: includeRelations,
+      });
+      await prisma.requestStatusHistory.create({
+        data: {
+          requestId: request.id,
+          fromStatus: existing.status,
+          toStatus: existing.status,
+          changedById: body.changedById ?? null,
+          comment: body.assignmentNote ?? "Manually reassigned by an administrator.",
+        },
+      });
+      return NextResponse.json(request);
+    }
     return NextResponse.json({ error: "status is required" }, { status: 400 });
   }
   const nextStatus = body.status as RequestStatus;

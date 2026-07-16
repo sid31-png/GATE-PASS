@@ -75,6 +75,7 @@ export type EmployeeDTO = {
   id: number;
   name: string;
   isManager: boolean;
+  isOpsAdmin: boolean;
   isOnline: boolean;
   isField: boolean;
   isAM: boolean;
@@ -125,9 +126,31 @@ export type ServiceRequestDTO = {
   returnComment: string | null;
   createdAt: string;
   deliveryTaskId: number | null;
+  flaggedForManager: boolean;
+  assignmentNote: string | null;
   company: { id: number; name: string } | null;
   createdBy: { id: number; name: string };
   claimedBy: { id: number; name: string } | null;
+};
+
+export type PartnershipDTO = {
+  id: number;
+  amEmployeeId: number;
+  operatorIds: string;
+  flagManager: boolean;
+  note: string | null;
+  amEmployee: { id: number; name: string };
+};
+
+export type AssignmentRuleDTO = {
+  id: number;
+  matchType: string;
+  matchValue: string;
+  operatorIds: string;
+  priority: number;
+  flagManager: boolean;
+  note: string | null;
+  active: boolean;
 };
 
 export type RequestHistoryDTO = {

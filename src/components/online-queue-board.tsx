@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { EmployeeDTO, ServiceRequestDTO } from "@/lib/types";
 import { STATUS_LABEL } from "@/lib/service-requests";
 import { Badge, Card, KpiCard, SectionHeader } from "@/components/ui";
+import { useCurrentUser } from "@/lib/current-user";
 
 function fmt(d: string) {
   return new Date(d).toLocaleString(undefined, {
@@ -77,6 +78,88 @@ function ReturnModal({
   );
 }
 
+function RequestCard({
+  r,
+  viewAll,
+  onlineEmployees,
+  onStart,
+  onReady,
+  onReturn,
+  onReassign,
+}: {
+  r: ServiceRequestDTO;
+  viewAll: boolean;
+  onlineEmployees: EmployeeDTO[];
+  onStart?: (r: ServiceRequestDTO) => void;
+  onReady?: (r: ServiceRequestDTO) => void;
+  onReturn?: (r: ServiceRequestDTO) => void;
+  onReassign: (r: ServiceRequestDTO, operatorId: number) => void;
+}) {
+  return (
+    <Card className="flex flex-wrap items-center justify-between gap-3">
+      <div>
+        <div className="flex items-center gap-2">
+          <span className="font-medium text-slate-900 dark:text-slate-100">{r.title}</span>
+          <Badge>{STATUS_LABEL[r.status]}</Badge>
+          {r.flaggedForManager && (
+            <span className="inline-flex items-center rounded-full bg-violet-50 px-2.5 py-1 text-xs font-medium text-violet-700 ring-1 ring-inset ring-violet-600/20 dark:bg-violet-500/10 dark:text-violet-400 dark:ring-violet-400/20">
+              🚩 Flagged for MED-DARWISH
+            </span>
+          )}
+        </div>
+        {r.description && <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">{r.description}</p>}
+        <div className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+          {r.company?.name && <span>{r.company.name}</span>}
+          {r.clientName && <span> · {r.clientName}</span>}
+          <span> · requested by {r.createdBy.name}</span>
+          <span> · {fmt(r.createdAt)}</span>
+        </div>
+        {r.attachments && <div className="mt-1 text-xs text-slate-500 dark:text-slate-400">📎 {r.attachments}</div>}
+        {r.assignmentNote && (
+          <div className="mt-1 text-[11px] italic text-slate-400 dark:text-slate-500">{r.assignmentNote}</div>
+        )}
+        {viewAll && (
+          <div className="mt-2 flex items-center gap-2">
+            <span className="text-xs text-slate-500 dark:text-slate-400">Assigned to:</span>
+            <select
+              className="rounded-md border border-slate-300 bg-white px-2 py-1 text-xs dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
+              value={r.claimedBy?.id ?? ""}
+              onChange={(e) => e.target.value && onReassign(r, Number(e.target.value))}
+            >
+              <option value="">Unassigned</option>
+              {onlineEmployees.map((e) => (
+                <option key={e.id} value={e.id}>
+                  {e.name}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+      </div>
+      <div className="flex shrink-0 gap-2">
+        {onStart && (
+          <button onClick={() => onStart(r)} className="rounded-lg bg-[#af1882] px-3 py-1.5 text-xs font-medium text-white hover:bg-[#8f1468]">
+            Start processing
+          </button>
+        )}
+        {onReady && (
+          <button onClick={() => onReady(r)} className="rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-emerald-700">
+            Prêt pour Dispatch
+          </button>
+        )}
+        {onReturn && (
+          <button
+            onClick={() => onReturn(r)}
+            className="rounded-lg border border-red-300 px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50 dark:border-red-500/30 dark:hover:bg-red-500/10"
+          >
+            Retourner à l&apos;AM
+          </button>
+        )}
+      </div>
+    </Card>
+  );
+}
+
 export function OnlineQueueBoard({
   initialRequests,
   onlineEmployees,
@@ -84,41 +167,22 @@ export function OnlineQueueBoard({
   initialRequests: ServiceRequestDTO[];
   onlineEmployees: EmployeeDTO[];
 }) {
+  const { currentEmployee, can } = useCurrentUser();
   const [requests, setRequests] = useState(initialRequests);
-  const [operator, setOperator] = useState("");
   const [returning, setReturning] = useState<ServiceRequestDTO | null>(null);
 
-  useEffect(() => {
-    try {
-      const saved = window.localStorage.getItem("rch-online-operator");
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- syncing from localStorage on mount only
-      if (saved) setOperator(saved);
-    } catch {
-      /* ignore */
-    }
-  }, []);
-
-  function selectOperator(name: string) {
-    setOperator(name);
-    try { window.localStorage.setItem("rch-online-operator", name); } catch { /* ignore */ }
-  }
+  const viewAll = can("view_all_online_queue");
 
   async function refresh() {
     const res = await fetch("/api/service-requests?statuses=ASSIGNED_TO_ONLINE,ONLINE_PROCESSING", { cache: "no-store" });
     setRequests(await res.json());
   }
 
-  const operatorEmp = onlineEmployees.find((e) => e.name === operator);
-
-  async function claim(r: ServiceRequestDTO) {
-    if (!operatorEmp) {
-      alert('Select "I am…" first so the request can be assigned to you.');
-      return;
-    }
+  async function start(r: ServiceRequestDTO) {
     await fetch(`/api/service-requests/${r.id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ status: "ONLINE_PROCESSING", claimedById: operatorEmp.id }),
+      body: JSON.stringify({ status: "ONLINE_PROCESSING" }),
     });
     await refresh();
   }
@@ -132,119 +196,82 @@ export function OnlineQueueBoard({
     await refresh();
   }
 
-  const incoming = requests.filter((r) => r.status === "ASSIGNED_TO_ONLINE");
-  const mine = requests.filter(
-    (r) => r.status === "ONLINE_PROCESSING" && (!operatorEmp || r.claimedBy?.id === operatorEmp.id)
-  );
+  async function reassign(r: ServiceRequestDTO, operatorId: number) {
+    await fetch(`/api/service-requests/${r.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        claimedById: operatorId,
+        changedById: currentEmployee?.id ?? null,
+        assignmentNote: `Manually reassigned by ${currentEmployee?.name ?? "an administrator"}.`,
+      }),
+    });
+    await refresh();
+  }
 
-  const kpis = { incoming: incoming.length, processing: requests.filter((r) => r.status === "ONLINE_PROCESSING").length };
+  const visible = viewAll
+    ? requests
+    : requests.filter((r) => currentEmployee && r.claimedBy?.id === currentEmployee.id);
+
+  const toStart = visible.filter((r) => r.status === "ASSIGNED_TO_ONLINE");
+  const inProgress = visible.filter((r) => r.status === "ONLINE_PROCESSING");
+
+  const kpis = {
+    toStart: toStart.length,
+    processing: inProgress.length,
+    flagged: visible.filter((r) => r.flaggedForManager).length,
+  };
+
+  if (!viewAll && !currentEmployee) {
+    return (
+      <div>
+        <SectionHeader title="📥 Online Queue" subtitle="Take incoming requests, verify documents, then send to Dispatch" />
+        <Card className="max-w-md text-sm text-slate-600 dark:text-slate-400">
+          Select your account in the sidebar (“Signed in as”) to see the requests auto-assigned to you.
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div>
       <SectionHeader
         title="📥 Online Queue — Account Manager requests"
-        subtitle="Take incoming requests, verify documents, then send to Dispatch or return to the AM"
+        subtitle={
+          viewAll
+            ? "Full queue — every Online Operator's auto-assigned requests"
+            : `Requests auto-assigned to ${currentEmployee?.name} via the binome routing`
+        }
       />
 
-      <Card className="mb-6 max-w-md">
-        <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
-          I am…
-        </label>
-        <select
-          className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
-          value={operator}
-          onChange={(e) => selectOperator(e.target.value)}
-        >
-          <option value="">Select operator…</option>
-          {onlineEmployees.map((e) => (
-            <option key={e.id} value={e.name}>{e.name}</option>
-          ))}
-        </select>
-      </Card>
-
-      <div className="mb-6 grid grid-cols-2 gap-4">
-        <KpiCard label="Incoming" value={String(kpis.incoming)} accent="slate" />
-        <KpiCard label="Being Processed" value={String(kpis.processing)} accent="amber" />
+      <div className="mb-6 grid grid-cols-3 gap-4">
+        <KpiCard label="To Start" value={String(kpis.toStart)} accent="slate" />
+        <KpiCard label="In Progress" value={String(kpis.processing)} accent="amber" />
+        <KpiCard label="Flagged for Manager" value={String(kpis.flagged)} accent="red" />
       </div>
 
-      <h2 className="mb-3 text-sm font-semibold text-slate-700 dark:text-slate-300">
-        📨 Incoming — assigned to Online
-      </h2>
+      <h2 className="mb-3 text-sm font-semibold text-slate-700 dark:text-slate-300">📨 To start</h2>
       <div className="mb-6 space-y-3">
-        {incoming.map((r) => (
-          <Card key={r.id} className="flex flex-wrap items-center justify-between gap-3">
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="font-medium text-slate-900 dark:text-slate-100">{r.title}</span>
-                <Badge>{STATUS_LABEL[r.status]}</Badge>
-              </div>
-              {r.description && <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">{r.description}</p>}
-              <div className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-                {r.company?.name && <span>{r.company.name}</span>}
-                {r.clientName && <span> · {r.clientName}</span>}
-                <span> · requested by {r.createdBy.name}</span>
-                <span> · {fmt(r.createdAt)}</span>
-              </div>
-              {r.attachments && (
-                <div className="mt-1 text-xs text-slate-500 dark:text-slate-400">📎 {r.attachments}</div>
-              )}
-            </div>
-            <button
-              onClick={() => claim(r)}
-              className="shrink-0 rounded-lg bg-[#af1882] px-4 py-2 text-sm font-medium text-white hover:bg-[#8f1468]"
-            >
-              Prendre en charge
-            </button>
-          </Card>
+        {toStart.map((r) => (
+          <RequestCard key={r.id} r={r} viewAll={viewAll} onlineEmployees={onlineEmployees} onStart={start} onReassign={reassign} />
         ))}
-        {incoming.length === 0 && (
-          <Card className="text-center text-sm text-slate-400 dark:text-slate-500">Queue is empty.</Card>
-        )}
+        {toStart.length === 0 && <Card className="text-center text-sm text-slate-400 dark:text-slate-500">Nothing waiting to start.</Card>}
       </div>
 
-      <h2 className="mb-3 text-sm font-semibold text-slate-700 dark:text-slate-300">
-        🗂 {operatorEmp ? `My requests — ${operatorEmp.name}` : "In processing"}
-      </h2>
+      <h2 className="mb-3 text-sm font-semibold text-slate-700 dark:text-slate-300">🗂 In progress</h2>
       <div className="space-y-3">
-        {mine.map((r) => (
-          <Card key={r.id} className="flex flex-wrap items-center justify-between gap-3">
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="font-medium text-slate-900 dark:text-slate-100">{r.title}</span>
-                <Badge>{STATUS_LABEL[r.status]}</Badge>
-              </div>
-              {r.description && <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">{r.description}</p>}
-              <div className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-                {r.company?.name && <span>{r.company.name}</span>}
-                {r.clientName && <span> · {r.clientName}</span>}
-                <span> · requested by {r.createdBy.name}</span>
-                {r.claimedBy && <span> · claimed by {r.claimedBy.name}</span>}
-              </div>
-              {r.attachments && (
-                <div className="mt-1 text-xs text-slate-500 dark:text-slate-400">📎 {r.attachments}</div>
-              )}
-            </div>
-            <div className="flex shrink-0 gap-2">
-              <button
-                onClick={() => readyForDispatch(r)}
-                className="rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-emerald-700"
-              >
-                Prêt pour Dispatch
-              </button>
-              <button
-                onClick={() => setReturning(r)}
-                className="rounded-lg border border-red-300 px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50 dark:border-red-500/30 dark:hover:bg-red-500/10"
-              >
-                Retourner à l&apos;AM
-              </button>
-            </div>
-          </Card>
+        {inProgress.map((r) => (
+          <RequestCard
+            key={r.id}
+            r={r}
+            viewAll={viewAll}
+            onlineEmployees={onlineEmployees}
+            onReady={readyForDispatch}
+            onReturn={() => setReturning(r)}
+            onReassign={reassign}
+          />
         ))}
-        {mine.length === 0 && (
-          <Card className="text-center text-sm text-slate-400 dark:text-slate-500">
-            {operatorEmp ? "Nothing in progress for you right now." : "Nothing in processing right now."}
-          </Card>
-        )}
+        {inProgress.length === 0 && <Card className="text-center text-sm text-slate-400 dark:text-slate-500">Nothing in progress.</Card>}
       </div>
 
       {returning && (

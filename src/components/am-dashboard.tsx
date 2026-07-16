@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { CompanyDTO, EmployeeDTO, ServiceRequestDTO } from "@/lib/types";
 import { STATUS_LABEL } from "@/lib/service-requests";
 import { Badge, Card, KpiCard, SectionHeader } from "@/components/ui";
+import { useCurrentUser } from "@/lib/current-user";
 
 function fmt(d: string) {
   return new Date(d).toLocaleString(undefined, {
@@ -192,25 +193,10 @@ export function AMDashboard({
   employees: EmployeeDTO[];
   companies: CompanyDTO[];
 }) {
+  const { currentEmployee, can } = useCurrentUser();
   const [requests, setRequests] = useState(initialRequests);
-  const [amUser, setAmUser] = useState("");
   const [formOpen, setFormOpen] = useState(false);
   const amEmployees = employees.filter((e) => e.isAM);
-
-  useEffect(() => {
-    try {
-      const saved = window.localStorage.getItem("rch-am-user");
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- syncing from localStorage on mount only
-      if (saved) setAmUser(saved);
-    } catch {
-      /* ignore */
-    }
-  }, []);
-
-  function selectUser(name: string) {
-    setAmUser(name);
-    try { window.localStorage.setItem("rch-am-user", name); } catch { /* ignore */ }
-  }
 
   async function refresh() {
     const res = await fetch("/api/service-requests", { cache: "no-store" });
@@ -226,9 +212,13 @@ export function AMDashboard({
     await refresh();
   }
 
-  const selectedEmp = amEmployees.find((e) => e.name === amUser);
-  const seesAll = !selectedEmp || selectedEmp.isAMLead;
-  const visible = seesAll ? requests : requests.filter((r) => r.createdBy.name === selectedEmp!.name);
+  const seesAll = can("view_all_am_requests");
+  const isPlainAM = Boolean(currentEmployee?.isAM && !currentEmployee?.isAMLead);
+  const visible = seesAll
+    ? requests
+    : isPlainAM
+      ? requests.filter((r) => r.createdBy.id === currentEmployee!.id)
+      : [];
 
   const kpiByStatus = (s: string) => visible.filter((r) => r.status === s).length;
   const kpis = {
@@ -239,15 +229,24 @@ export function AMDashboard({
     missingInfo: kpiByStatus("MISSING_INFO_RETURNED_TO_AM"),
   };
 
+  if (!seesAll && !isPlainAM) {
+    return (
+      <div>
+        <SectionHeader title="🧑‍💼 Account Managers" subtitle="Client service requests" />
+        <Card className="max-w-md text-sm text-slate-600 dark:text-slate-400">
+          {currentEmployee
+            ? "This account doesn't have Account Manager access. Switch your account in the sidebar if you have the right role."
+            : "Select your account in the sidebar (“Signed in as”) to see your requests."}
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div>
       <SectionHeader
         title="🧑‍💼 Account Managers"
-        subtitle={
-          seesAll
-            ? "Global view — all Account Managers' requests"
-            : `${amUser}'s requests`
-        }
+        subtitle={seesAll ? "Global view — all Account Managers' requests" : `${currentEmployee?.name}'s requests`}
         action={
           <button
             onClick={() => setFormOpen(true)}
@@ -257,24 +256,6 @@ export function AMDashboard({
           </button>
         }
       />
-
-      <Card className="mb-6 max-w-md">
-        <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
-          I am…
-        </label>
-        <select
-          className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
-          value={amUser}
-          onChange={(e) => selectUser(e.target.value)}
-        >
-          <option value="">All Account Managers (global view)</option>
-          {amEmployees.map((e) => (
-            <option key={e.id} value={e.name}>
-              {e.name}{e.isAMLead ? " (Lead — sees all)" : ""}
-            </option>
-          ))}
-        </select>
-      </Card>
 
       <div className="mb-6 grid grid-cols-2 gap-4 md:grid-cols-4">
         <KpiCard label="Assigned to Online" value={String(kpis.assignedToOnline)} accent="slate" />
@@ -300,14 +281,20 @@ export function AMDashboard({
             {visible.map((r) => (
               <tr key={r.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/40">
                 <td className="px-4 py-3">
-                  <div className="font-medium text-slate-900 dark:text-slate-100">{r.title}</div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="font-medium text-slate-900 dark:text-slate-100">{r.title}</span>
+                    {r.flaggedForManager && <span title="Flagged for MED-DARWISH">🚩</span>}
+                  </div>
                   {r.status === "MISSING_INFO_RETURNED_TO_AM" && r.returnComment && (
                     <div className="mt-1 max-w-xs rounded-md bg-red-50 px-2 py-1 text-xs text-red-700 dark:bg-red-500/10 dark:text-red-400">
                       ⚠ {r.returnComment}
                     </div>
                   )}
-                  {r.claimedBy && r.status !== "ASSIGNED_TO_ONLINE" && (
-                    <div className="mt-1 text-xs text-slate-500 dark:text-slate-400">Handled by {r.claimedBy.name}</div>
+                  {r.claimedBy && (
+                    <div className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                      {r.status === "ASSIGNED_TO_ONLINE" ? "Auto-assigned to " : "Handled by "}
+                      {r.claimedBy.name}
+                    </div>
                   )}
                 </td>
                 <td className="px-4 py-3 text-slate-600 dark:text-slate-400">
@@ -351,7 +338,7 @@ export function AMDashboard({
         <NewRequestModal
           amEmployees={amEmployees}
           companies={companies}
-          defaultCreatedBy={amUser}
+          defaultCreatedBy={currentEmployee?.name ?? ""}
           onClose={() => setFormOpen(false)}
           onSaved={async () => {
             setFormOpen(false);

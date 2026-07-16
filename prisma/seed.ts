@@ -10,6 +10,7 @@ import {
   RequestStatus,
 } from "../src/generated/prisma/client";
 import seedData from "./data/gatepass_seed.json";
+import companyAllocation from "./data/company_am_allocation.json";
 
 const prisma = new PrismaClient();
 
@@ -55,6 +56,7 @@ const LOCATION_MAP: Record<string, Location> = {
 const EMPLOYEES: {
   name: string;
   isManager?: boolean;
+  isOpsAdmin?: boolean;
   isOnline?: boolean;
   isField?: boolean;
   isAM?: boolean;
@@ -62,7 +64,7 @@ const EMPLOYEES: {
 }[] = [
   { name: "MED-DARWISH", isManager: true },
   { name: "ALAA", isOnline: true, isField: true },
-  { name: "AHMED", isOnline: true },
+  { name: "AHMED", isOnline: true, isOpsAdmin: true },
   { name: "SAMIM", isOnline: true, isField: true },
   { name: "TAHA", isOnline: true, isField: true },
   { name: "MUJEEB", isOnline: true, isField: true },
@@ -76,16 +78,47 @@ const EMPLOYEES: {
   { name: "Vongai", isAM: true },
   { name: "Nasma", isAM: true },
   { name: "Roxana", isAM: true },
+  { name: "Gabriela", isAM: true },
+];
+
+// Default AM <-> Online Operator binomes. A single operator name is a fixed
+// pair; multiple names round-robin (Nasma is shared between Ahmed and ALAA).
+const PARTNERSHIPS: { amName: string; operatorNames: string[]; flagManager?: boolean; note?: string }[] = [
+  { amName: "Violetta", operatorNames: ["AHMED"] },
+  { amName: "Abegail", operatorNames: ["SAMIM"] },
+  { amName: "Vongai", operatorNames: ["ALAA"] },
+  { amName: "Roxana", operatorNames: ["SAMIM"] },
+  { amName: "Nasma", operatorNames: ["AHMED", "ALAA"], note: "Shared between Ahmed and ALAA (round-robin)." },
+  {
+    amName: "Gabriela",
+    operatorNames: ["ALAA"],
+    flagManager: true,
+    note: "External \"OUR partners\" accounts — online prep to ALAA, field validation direct to MED-DARWISH.",
+  },
+  {
+    amName: "ELENA",
+    operatorNames: ["TAHA"],
+    flagManager: true,
+    note: "AM Lead's own requests — flagged for MED-DARWISH's direct supervision.",
+  },
+];
+
+// Company-level exception: ABB accounts round-robin between ALAA and TAHA
+// regardless of which AM owns them, overriding the default partnership.
+const ASSIGNMENT_RULES: { matchType: string; matchValue: string; operatorNames: string[]; priority: number; note: string }[] = [
+  { matchType: "COMPANY_NAME_CONTAINS", matchValue: "ABB", operatorNames: ["ALAA", "TAHA"], priority: 100, note: "ABB accounts (round-robin)" },
 ];
 
 async function main() {
   await prisma.requestStatusHistory.deleteMany();
   await prisma.serviceRequest.deleteMany();
+  await prisma.partnership.deleteMany();
+  await prisma.assignmentRule.deleteMany();
   await prisma.deliveryTask.deleteMany();
-  await prisma.employee.deleteMany();
   await prisma.gatePass.deleteMany();
   await prisma.collector.deleteMany();
   await prisma.company.deleteMany();
+  await prisma.employee.deleteMany();
 
   const companyNames = [...new Set(seedData.map((r) => r.company))];
   const companies = new Map<string, number>();
@@ -132,6 +165,7 @@ async function main() {
       data: {
         name: e.name,
         isManager: e.isManager ?? false,
+        isOpsAdmin: e.isOpsAdmin ?? false,
         isOnline: e.isOnline ?? false,
         isField: e.isField ?? false,
         isAM: e.isAM ?? false,
@@ -139,6 +173,48 @@ async function main() {
       },
     });
     employees.set(e.name, employee.id);
+  }
+
+  // Import the real company -> Account Manager allocation. Companies already
+  // seeded from the gate pass data are matched case-insensitively and just
+  // get their accountManagerId set; everything else is created fresh.
+  const companiesByUpper = new Map<string, number>();
+  for (const [name, id] of companies) companiesByUpper.set(name.toUpperCase(), id);
+
+  let importedCompanies = 0;
+  let linkedCompanies = 0;
+  for (const [amName, companyNames] of Object.entries(companyAllocation) as [string, string[]][]) {
+    const amId = employees.get(amName);
+    if (!amId) continue;
+    for (const companyName of companyNames) {
+      const key = companyName.toUpperCase();
+      const existingId = companiesByUpper.get(key);
+      if (existingId) {
+        await prisma.company.update({ where: { id: existingId }, data: { accountManagerId: amId } });
+        linkedCompanies++;
+      } else {
+        const created = await prisma.company.create({ data: { name: companyName, accountManagerId: amId } });
+        companies.set(companyName, created.id);
+        companiesByUpper.set(key, created.id);
+        importedCompanies++;
+      }
+    }
+  }
+
+  for (const p of PARTNERSHIPS) {
+    const amId = employees.get(p.amName);
+    if (!amId) continue;
+    const operatorIds = p.operatorNames.map((n) => employees.get(n)!).join(",");
+    await prisma.partnership.create({
+      data: { amEmployeeId: amId, operatorIds, flagManager: p.flagManager ?? false, note: p.note ?? null },
+    });
+  }
+
+  for (const r of ASSIGNMENT_RULES) {
+    const operatorIds = r.operatorNames.map((n) => employees.get(n)!).join(",");
+    await prisma.assignmentRule.create({
+      data: { matchType: r.matchType, matchValue: r.matchValue, operatorIds, priority: r.priority, note: r.note },
+    });
   }
 
   const managerId = employees.get("MED-DARWISH")!;
@@ -462,7 +538,7 @@ async function main() {
   }
 
   console.log(
-    `Seeded ${companies.size} companies, ${collectors.size} collectors, ${seedData.length} gate passes, ${employees.size} employees, ${tasks.length} delivery tasks, ${requestCount} service requests.`
+    `Seeded ${companies.size} companies (${importedCompanies} imported, ${linkedCompanies} linked to an existing company), ${collectors.size} collectors, ${seedData.length} gate passes, ${employees.size} employees, ${tasks.length} delivery tasks, ${requestCount} service requests.`
   );
 }
 

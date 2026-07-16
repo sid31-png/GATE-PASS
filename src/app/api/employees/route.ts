@@ -3,20 +3,22 @@ import { prisma } from "@/lib/prisma";
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
-  const role = searchParams.get("role"); // "manager" | "online" | "field" | "am" | "amLead"
+  const role = searchParams.get("role"); // "manager" | "opsAdmin" | "online" | "field" | "am" | "amLead"
 
   const roleFilter =
     role === "manager"
       ? { isManager: true }
-      : role === "online"
-        ? { isOnline: true }
-        : role === "field"
-          ? { isField: true }
-          : role === "am"
-            ? { isAM: true }
-            : role === "amLead"
-              ? { isAMLead: true }
-              : {};
+      : role === "opsAdmin"
+        ? { isOpsAdmin: true }
+        : role === "online"
+          ? { isOnline: true }
+          : role === "field"
+            ? { isField: true }
+            : role === "am"
+              ? { isAM: true }
+              : role === "amLead"
+                ? { isAMLead: true }
+                : {};
 
   const employees = await prisma.employee.findMany({
     where: roleFilter,
@@ -34,6 +36,7 @@ export async function POST(req: NextRequest) {
     data: {
       name: body.name,
       isManager: Boolean(body.isManager),
+      isOpsAdmin: Boolean(body.isOpsAdmin),
       isOnline: Boolean(body.isOnline),
       isField: Boolean(body.isField),
       isAM: Boolean(body.isAM),
