@@ -11,6 +11,8 @@ const NAV_ITEMS = [
   { href: "/collectors", label: "Performance" },
   { href: "/companies", label: "Companies" },
   { href: "/analytics", label: "Analytics" },
+  { href: "/account-managers", label: "Account Managers" },
+  { href: "/request-queue", label: "Online Queue" },
   { href: "/dispatch", label: "Dispatch" },
   { href: "/online", label: "Online Team" },
   { href: "/field", label: "Field Team" },

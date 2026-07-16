@@ -56,36 +56,64 @@ enum DeliveryStage {
   BLOCKED
 }
 
-model Company {
-  id            Int            @id @default(autoincrement())
-  name          String         @unique
-  sector        String?
-  contact       String?
-  phone         String?
-  email         String?
-  notes         String?
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
-  gatePasses    GatePass[]
-  deliveryTasks DeliveryTask[]
+enum RequestCategory {
+  PRO
+  DELIVERY
 }
 
-// The delivery/dispatch team roster. Booleans (rather than a single role enum)
-// because several people are mixed profiles who work both Online and Field.
-model Employee {
-  id              Int            @id @default(autoincrement())
-  name            String         @unique
-  isManager       Boolean        @default(false)
-  isOnline        Boolean        @default(false)
-  isField         Boolean        @default(false)
+// Account Manager -> Online Operations intake workflow:
+//   ASSIGNED_TO_ONLINE           — AM created the request, waiting in the Online Operations queue
+//   ONLINE_PROCESSING            — an operator claimed it and is checking documents (claimedBy)
+//   PENDING_DISPATCH             — operator validated the file; a DeliveryTask is created for MED-DARWISH
+//   MISSING_INFO_RETURNED_TO_AM  — operator sent it back with a comment for the AM to fix with the client
+enum RequestStatus {
+  ASSIGNED_TO_ONLINE
+  ONLINE_PROCESSING
+  PENDING_DISPATCH
+  MISSING_INFO_RETURNED_TO_AM
+}
+
+model Company {
+  id              Int              @id @default(autoincrement())
+  name            String           @unique
+  sector          String?
+  contact         String?
   phone           String?
   email           String?
-  active          Boolean        @default(true)
-  createdAt       DateTime       @default(now())
-  updatedAt       DateTime       @updatedAt
-  tasksCreated    DeliveryTask[] @relation("TaskCreatedBy")
-  tasksAssignedTo DeliveryTask[] @relation("TaskAssignedTo")
-  tasksDispatched DeliveryTask[] @relation("TaskAssignedBy")
+  notes           String?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  gatePasses      GatePass[]
+  deliveryTasks   DeliveryTask[]
+  serviceRequests ServiceRequest[]
+}
+
+// The full staff roster. Booleans (rather than a single role enum) because
+// several people are mixed profiles (e.g. Online + Field, or AM + AM lead).
+//   isManager — Dispatch/field manager (MED-DARWISH)
+//   isOnline  — Online Operations (delivery prep)
+//   isField   — Field/government-trips agent
+//   isAM      — Account Manager, initiates client service requests
+//   isAMLead  — supervises all AM requests (ELENA); implies isAM
+model Employee {
+  id               Int                    @id @default(autoincrement())
+  name             String                 @unique
+  isManager        Boolean                @default(false)
+  isOnline         Boolean                @default(false)
+  isField          Boolean                @default(false)
+  isAM             Boolean                @default(false)
+  isAMLead         Boolean                @default(false)
+  phone            String?
+  email            String?
+  active           Boolean                @default(true)
+  createdAt        DateTime               @default(now())
+  updatedAt        DateTime               @updatedAt
+  tasksCreated     DeliveryTask[]         @relation("TaskCreatedBy")
+  tasksAssignedTo  DeliveryTask[]         @relation("TaskAssignedTo")
+  tasksDispatched  DeliveryTask[]         @relation("TaskAssignedBy")
+  requestsCreated  ServiceRequest[]       @relation("RequestCreatedBy")
+  requestsClaimed  ServiceRequest[]       @relation("RequestClaimedBy")
+  requestStatusLog RequestStatusHistory[] @relation("RequestStatusChangedBy")
 }
 
 model Collector {
@@ -100,24 +128,24 @@ model Collector {
 }
 
 model GatePass {
-  id              Int            @id @default(autoincrement())
-  number          String         @unique
-  companyId       Int
-  company         Company        @relation(fields: [companyId], references: [id])
-  location        Location
-  gatePassType    GatePassType
-  requestType     RequestType
-  passCategory    PassCategory
-  submittedBy     String
-  submissionAt    DateTime
-  collectorId     Int?
-  collector       Collector?     @relation(fields: [collectorId], references: [id])
-  collectionAt    DateTime?
-  status          GatePassStatus @default(PENDING)
-  remarks         String?
-  createdAt       DateTime       @default(now())
-  updatedAt       DateTime       @updatedAt
-  deliveryTasks   DeliveryTask[]
+  id            Int            @id @default(autoincrement())
+  number        String         @unique
+  companyId     Int
+  company       Company        @relation(fields: [companyId], references: [id])
+  location      Location
+  gatePassType  GatePassType
+  requestType   RequestType
+  passCategory  PassCategory
+  submittedBy   String
+  submissionAt  DateTime
+  collectorId   Int?
+  collector     Collector?     @relation(fields: [collectorId], references: [id])
+  collectionAt  DateTime?
+  status        GatePassStatus @default(PENDING)
+  remarks       String?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  deliveryTasks DeliveryTask[]
 
   @@index([status])
   @@index([companyId])
@@ -129,29 +157,75 @@ model GatePass {
 // (government office pickup, physical delivery, etc). Optionally tied to
 // the GatePass it originated from.
 model DeliveryTask {
-  id            Int           @id @default(autoincrement())
-  gatePassId    Int?
-  gatePass      GatePass?     @relation(fields: [gatePassId], references: [id])
-  companyId     Int?
-  company       Company?      @relation(fields: [companyId], references: [id])
-  title         String
-  description   String?
-  stage         DeliveryStage @default(ONLINE)
-  createdById   Int?
-  createdBy     Employee?     @relation("TaskCreatedBy", fields: [createdById], references: [id])
-  assignedToId  Int?
-  assignedTo    Employee?     @relation("TaskAssignedTo", fields: [assignedToId], references: [id])
-  assignedById  Int?
-  assignedBy    Employee?     @relation("TaskAssignedBy", fields: [assignedById], references: [id])
-  scheduledAt   DateTime?
-  instructions  String?
-  startedAt     DateTime?
-  completedAt   DateTime?
-  blockedReason String?
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
+  id             Int             @id @default(autoincrement())
+  gatePassId     Int?
+  gatePass       GatePass?       @relation(fields: [gatePassId], references: [id])
+  companyId      Int?
+  company        Company?        @relation(fields: [companyId], references: [id])
+  title          String
+  description    String?
+  stage          DeliveryStage   @default(ONLINE)
+  createdById    Int?
+  createdBy      Employee?       @relation("TaskCreatedBy", fields: [createdById], references: [id])
+  assignedToId   Int?
+  assignedTo     Employee?       @relation("TaskAssignedTo", fields: [assignedToId], references: [id])
+  assignedById   Int?
+  assignedBy     Employee?       @relation("TaskAssignedBy", fields: [assignedById], references: [id])
+  scheduledAt    DateTime?
+  instructions   String?
+  startedAt      DateTime?
+  completedAt    DateTime?
+  blockedReason  String?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  serviceRequest ServiceRequest?
 
   @@index([stage])
   @@index([assignedToId])
   @@index([gatePassId])
+}
+
+// AM -> Online Operations intake: an Account Manager creates it for a client,
+// an Online Operations agent claims and vets it, then either sends it onward
+// (a DeliveryTask is created for MED-DARWISH's dispatch board) or bounces it
+// back to the AM with a comment when something is missing.
+model ServiceRequest {
+  id             Int                    @id @default(autoincrement())
+  title          String
+  category       RequestCategory
+  companyId      Int?
+  company        Company?               @relation(fields: [companyId], references: [id])
+  clientName     String?
+  description    String?
+  attachments    String?
+  status         RequestStatus          @default(ASSIGNED_TO_ONLINE)
+  createdById    Int
+  createdBy      Employee               @relation("RequestCreatedBy", fields: [createdById], references: [id])
+  claimedById    Int?
+  claimedBy      Employee?              @relation("RequestClaimedBy", fields: [claimedById], references: [id])
+  claimedAt      DateTime?
+  returnComment  String?
+  deliveryTaskId Int?                   @unique
+  deliveryTask   DeliveryTask?          @relation(fields: [deliveryTaskId], references: [id])
+  createdAt      DateTime               @default(now())
+  updatedAt      DateTime               @updatedAt
+  history        RequestStatusHistory[]
+
+  @@index([status])
+  @@index([createdById])
+  @@index([claimedById])
+}
+
+model RequestStatusHistory {
+  id          Int            @id @default(autoincrement())
+  requestId   Int
+  request     ServiceRequest @relation(fields: [requestId], references: [id])
+  fromStatus  RequestStatus?
+  toStatus    RequestStatus
+  changedById Int?
+  changedBy   Employee?      @relation("RequestStatusChangedBy", fields: [changedById], references: [id])
+  comment     String?
+  createdAt   DateTime       @default(now())
+
+  @@index([requestId])
 }

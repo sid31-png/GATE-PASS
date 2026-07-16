@@ -12,6 +12,8 @@ const NAV_ITEMS = [
   { href: "/collectors", label: "Collector Performance", icon: "\u{1F3C6}" },
   { href: "/companies", label: "Companies", icon: "\u{1F3E2}" },
   { href: "/analytics", label: "Analytics", icon: "\u{1F4CA}" },
+  { href: "/account-managers", label: "Account Managers", icon: "\u{1F9D1}‍\u{1F4BC}" },
+  { href: "/request-queue", label: "Online Queue", icon: "\u{1F4E5}" },
   { href: "/dispatch", label: "Dispatch", icon: "\u{1F4E1}" },
   { href: "/online", label: "Online Team", icon: "\u{1F4BB}" },
   { href: "/field", label: "Field Team", icon: "\u{1F69A}" },

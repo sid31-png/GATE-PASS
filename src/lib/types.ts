@@ -77,6 +77,8 @@ export type EmployeeDTO = {
   isManager: boolean;
   isOnline: boolean;
   isField: boolean;
+  isAM: boolean;
+  isAMLead: boolean;
   phone: string | null;
   email: string | null;
   active: boolean;
@@ -100,4 +102,39 @@ export type DeliveryTaskDTO = {
   createdBy: { id: number; name: string } | null;
   assignedTo: { id: number; name: string } | null;
   assignedBy: { id: number; name: string } | null;
+};
+
+/* ================= Account Manager / Online Operations intake ================= */
+
+export type RequestCategoryValue = "PRO" | "DELIVERY";
+export type RequestStatusValue =
+  | "ASSIGNED_TO_ONLINE"
+  | "ONLINE_PROCESSING"
+  | "PENDING_DISPATCH"
+  | "MISSING_INFO_RETURNED_TO_AM";
+
+export type ServiceRequestDTO = {
+  id: number;
+  title: string;
+  category: RequestCategoryValue;
+  description: string | null;
+  attachments: string | null;
+  clientName: string | null;
+  status: RequestStatusValue;
+  claimedAt: string | null;
+  returnComment: string | null;
+  createdAt: string;
+  deliveryTaskId: number | null;
+  company: { id: number; name: string } | null;
+  createdBy: { id: number; name: string };
+  claimedBy: { id: number; name: string } | null;
+};
+
+export type RequestHistoryDTO = {
+  id: number;
+  fromStatus: RequestStatusValue | null;
+  toStatus: RequestStatusValue;
+  comment: string | null;
+  createdAt: string;
+  changedBy: { id: number; name: string } | null;
 };

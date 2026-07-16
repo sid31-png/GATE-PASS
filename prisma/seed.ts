@@ -6,6 +6,8 @@ import {
   PassCategory,
   Location,
   DeliveryStage,
+  RequestCategory,
+  RequestStatus,
 } from "../src/generated/prisma/client";
 import seedData from "./data/gatepass_seed.json";
 
@@ -49,12 +51,14 @@ const LOCATION_MAP: Record<string, Location> = {
   Offshore: Location.OFFSHORE,
 };
 
-// The real delivery/dispatch team roster.
+// The real delivery/dispatch/AM team roster.
 const EMPLOYEES: {
   name: string;
   isManager?: boolean;
   isOnline?: boolean;
   isField?: boolean;
+  isAM?: boolean;
+  isAMLead?: boolean;
 }[] = [
   { name: "MED-DARWISH", isManager: true },
   { name: "ALAA", isOnline: true, isField: true },
@@ -66,9 +70,17 @@ const EMPLOYEES: {
   { name: "MED-HUSSAIN", isField: true },
   { name: "ABIN", isField: true },
   { name: "AITA", isField: true },
+  { name: "ELENA", isAM: true, isAMLead: true },
+  { name: "Violetta", isAM: true },
+  { name: "Abegail", isAM: true },
+  { name: "Vongai", isAM: true },
+  { name: "Nasma", isAM: true },
+  { name: "Roxana", isAM: true },
 ];
 
 async function main() {
+  await prisma.requestStatusHistory.deleteMany();
+  await prisma.serviceRequest.deleteMany();
   await prisma.deliveryTask.deleteMany();
   await prisma.employee.deleteMany();
   await prisma.gatePass.deleteMany();
@@ -122,6 +134,8 @@ async function main() {
         isManager: e.isManager ?? false,
         isOnline: e.isOnline ?? false,
         isField: e.isField ?? false,
+        isAM: e.isAM ?? false,
+        isAMLead: e.isAMLead ?? false,
       },
     });
     employees.set(e.name, employee.id);
@@ -286,8 +300,169 @@ async function main() {
     });
   }
 
+  // AM -> Online Operations intake requests (separate front-door pipeline
+  // that feeds into the existing DeliveryTask/dispatch board once validated).
+  const requests: {
+    title: string;
+    category: RequestCategory;
+    companyName?: string;
+    clientName?: string;
+    description?: string;
+    attachments?: string;
+    createdBy: string;
+    createdAt: Date;
+    claimedBy?: string;
+    claimedAt?: Date;
+    status: RequestStatus;
+    readyAt?: Date;
+    returnComment?: string;
+    returnedAt?: Date;
+  }[] = [
+    {
+      title: "Trade licence renewal",
+      category: RequestCategory.PRO,
+      companyName: "EY Consulting",
+      clientName: "Ahmed Al-Sayed",
+      description: "Annual trade licence renewal, client documents attached.",
+      attachments: "trade_licence_2025.pdf, passport_copy.pdf",
+      createdBy: "Violetta",
+      createdAt: hours(-3),
+      status: RequestStatus.ASSIGNED_TO_ONLINE,
+    },
+    {
+      title: "Work visa application — new hire",
+      category: RequestCategory.PRO,
+      companyName: "Welltec",
+      clientName: "Jesper Holm",
+      description: "New hire work visa, needs sponsorship letter drafted.",
+      attachments: "passport_scan.pdf, offer_letter.pdf",
+      createdBy: "Abegail",
+      createdAt: hours(-2),
+      status: RequestStatus.ASSIGNED_TO_ONLINE,
+    },
+    {
+      title: "Deliver stamped contract to client office",
+      category: RequestCategory.DELIVERY,
+      companyName: "Tenaris Global",
+      clientName: "Marco Ferraro",
+      description: "Signed contract needs to be physically delivered and countersigned.",
+      attachments: "signed_contract.pdf",
+      createdBy: "Vongai",
+      createdAt: hours(-8),
+      claimedBy: "SAMIM",
+      claimedAt: hours(-1),
+      status: RequestStatus.ONLINE_PROCESSING,
+    },
+    {
+      title: "Company registration document pickup",
+      category: RequestCategory.DELIVERY,
+      companyName: "Tenaris Investment",
+      clientName: "Sara Al-Kuwari",
+      description: "Collect the stamped registration certificate from the ministry.",
+      attachments: "authorization_letter.pdf",
+      createdBy: "Nasma",
+      createdAt: hours(-20),
+      claimedBy: "TAHA",
+      claimedAt: hours(-15),
+      status: RequestStatus.PENDING_DISPATCH,
+      readyAt: hours(-12),
+    },
+    {
+      title: "Visa renewal — missing Emirates ID copy",
+      category: RequestCategory.PRO,
+      companyName: "Welltec",
+      clientName: "Jesper Holm",
+      description: "Visa renewal for existing employee.",
+      attachments: "passport_scan.pdf",
+      createdBy: "Roxana",
+      createdAt: hours(-30),
+      claimedBy: "MUJEEB",
+      claimedAt: hours(-26),
+      status: RequestStatus.MISSING_INFO_RETURNED_TO_AM,
+      returnComment: "Missing a clear scan of the Emirates ID (back side). Please re-upload and resubmit.",
+      returnedAt: hours(-24),
+    },
+  ];
+
+  let requestCount = 0;
+  for (const r of requests) {
+    let deliveryTaskId: number | null = null;
+    if (r.status === RequestStatus.PENDING_DISPATCH) {
+      const dt = await prisma.deliveryTask.create({
+        data: {
+          companyId: r.companyName ? companies.get(r.companyName) : null,
+          title: r.title,
+          description: r.description ?? null,
+          stage: DeliveryStage.DISPATCH,
+          createdById: r.claimedBy ? employees.get(r.claimedBy) : null,
+        },
+      });
+      deliveryTaskId = dt.id;
+    }
+
+    const request = await prisma.serviceRequest.create({
+      data: {
+        title: r.title,
+        category: r.category,
+        companyId: r.companyName ? companies.get(r.companyName) : null,
+        clientName: r.clientName ?? null,
+        description: r.description ?? null,
+        attachments: r.attachments ?? null,
+        status: r.status,
+        createdById: employees.get(r.createdBy)!,
+        createdAt: r.createdAt,
+        claimedById: r.claimedBy ? employees.get(r.claimedBy) : null,
+        claimedAt: r.claimedAt ?? null,
+        returnComment: r.returnComment ?? null,
+        deliveryTaskId,
+      },
+    });
+
+    const history: { fromStatus: RequestStatus | null; toStatus: RequestStatus; changedBy?: string; comment?: string; createdAt: Date }[] = [
+      { fromStatus: null, toStatus: RequestStatus.ASSIGNED_TO_ONLINE, changedBy: r.createdBy, createdAt: r.createdAt },
+    ];
+    if (r.claimedBy) {
+      history.push({
+        fromStatus: RequestStatus.ASSIGNED_TO_ONLINE,
+        toStatus: RequestStatus.ONLINE_PROCESSING,
+        changedBy: r.claimedBy,
+        createdAt: r.claimedAt!,
+      });
+    }
+    if (r.status === RequestStatus.PENDING_DISPATCH) {
+      history.push({
+        fromStatus: RequestStatus.ONLINE_PROCESSING,
+        toStatus: RequestStatus.PENDING_DISPATCH,
+        changedBy: r.claimedBy,
+        createdAt: r.readyAt!,
+      });
+    }
+    if (r.status === RequestStatus.MISSING_INFO_RETURNED_TO_AM) {
+      history.push({
+        fromStatus: RequestStatus.ONLINE_PROCESSING,
+        toStatus: RequestStatus.MISSING_INFO_RETURNED_TO_AM,
+        changedBy: r.claimedBy,
+        comment: r.returnComment,
+        createdAt: r.returnedAt!,
+      });
+    }
+    for (const h of history) {
+      await prisma.requestStatusHistory.create({
+        data: {
+          requestId: request.id,
+          fromStatus: h.fromStatus,
+          toStatus: h.toStatus,
+          changedById: h.changedBy ? employees.get(h.changedBy) : null,
+          comment: h.comment ?? null,
+          createdAt: h.createdAt,
+        },
+      });
+    }
+    requestCount++;
+  }
+
   console.log(
-    `Seeded ${companies.size} companies, ${collectors.size} collectors, ${seedData.length} gate passes, ${employees.size} employees, ${tasks.length} delivery tasks.`
+    `Seeded ${companies.size} companies, ${collectors.size} collectors, ${seedData.length} gate passes, ${employees.size} employees, ${tasks.length} delivery tasks, ${requestCount} service requests.`
   );
 }
 
