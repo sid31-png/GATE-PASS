@@ -1,3 +1,4 @@
+<meta charset="UTF-8">
 <title>RCH · Gate Pass CRM</title>
 <style>
   :root {
@@ -157,6 +158,12 @@
   .btn-primary:hover { background: var(--brand-hover); }
   .btn-ghost { border-color: var(--border-strong); color: var(--ink); }
   .btn-ghost:hover { background: var(--surface-2); }
+  .btn-success { background: var(--good); color: #fff; box-shadow: 0 1px 2px rgba(11,125,11,.25); }
+  .btn-success:hover { filter: brightness(1.08); }
+  .btn-danger { background: var(--critical); color: #fff; box-shadow: 0 1px 2px rgba(208,59,59,.25); }
+  .btn-danger:hover { filter: brightness(1.08); }
+  .btn-danger-ghost { border-color: rgba(208,59,59,.35); color: var(--critical); }
+  .btn-danger-ghost:hover { background: var(--critical-bg); }
   .btn-link { all: unset; cursor: pointer; font-size: 12px; font-weight: 600; }
   .link-edit { color: var(--navy-light); }
   .link-warn { color: var(--warning-ink); }
@@ -231,6 +238,27 @@
   .pill-crit { background: var(--critical-bg); color: var(--critical); }
   .pill-serious { background: var(--serious-bg); color: var(--serious); }
   .pill-mute { background: var(--cancelled-bg); color: var(--cancelled-ink); }
+  .pill-info { background: rgba(66,88,179,.12); color: var(--navy-light); }
+  .pill-brand { background: var(--brand-soft); color: var(--brand); }
+
+  /* ---------- delivery / dispatch task cards ---------- */
+  .section-title { font-size: 13px; font-weight: 700; color: var(--ink); margin: 22px 0 10px; }
+  .section-title:first-child { margin-top: 0; }
+  .task-list { display: flex; flex-direction: column; gap: 12px; margin-bottom: 6px; }
+  .task-card { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-start; gap: 12px; }
+  .task-card .title-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .task-card .title-row .t { font-weight: 700; font-size: 13.5px; color: var(--ink); }
+  .task-card .meta { font-size: 11.5px; color: var(--muted); margin-top: 4px; }
+  .task-card .desc { font-size: 12.5px; color: var(--ink-2); margin-top: 4px; }
+  .task-actions { display: flex; gap: 8px; flex-shrink: 0; flex-wrap: wrap; }
+  .info-box { background: var(--surface-2); border-radius: 8px; padding: 8px 11px; font-size: 12px; color: var(--ink-2); margin-top: 8px; }
+  .danger-box { background: var(--critical-bg); border-radius: 8px; padding: 8px 11px; font-size: 12px; color: var(--critical); margin-top: 8px; }
+  .empty-card { text-align: center; padding: 26px; color: var(--muted); font-size: 13px; }
+  .chip-row { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; }
+  .chip { all: unset; cursor: pointer; padding: 7px 14px; border-radius: 100px; font-size: 12px; font-weight: 600; background: var(--surface-2); color: var(--ink-2); }
+  .chip.active { background: var(--brand); color: #fff; }
+  .btn-block { width: 100%; justify-content: center; }
+  .field-select-card { max-width: 420px; }
 
   .toolbar { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
   .toolbar input, .toolbar select, .field input, .field select, .field textarea {
@@ -319,6 +347,10 @@
     <div class="view" id="view-collectors"></div>
     <div class="view" id="view-companies"></div>
     <div class="view" id="view-analytics"></div>
+    <div class="view" id="view-dispatch"></div>
+    <div class="view" id="view-online"></div>
+    <div class="view" id="view-field"></div>
+    <div class="view" id="view-deliveries"></div>
     <div class="footnote">Static, self-contained build — data lives in this browser's local storage only.</div>
   </main>
 </div>
@@ -342,7 +374,61 @@ const LOCATIONS = ["Doha Towers", "Mesaieed", "Ras Laffan", "Dukhan", "Offshore"
 const GATE_PASS_TYPES = ["Permanent", "Temporary"];
 const REQUEST_TYPES = ["New Gate Pass", "Lost Gate Pass"];
 const PASS_CATEGORIES = ["Main", "Supplementary"];
-const STORAGE_KEY = "gatepass-crm-state-v4";
+const STORAGE_KEY = "gatepass-crm-state-v5";
+
+/* ================= delivery / dispatch seed ================= */
+const SEED_EMPLOYEES = [
+  { name: "MED-DARWISH", isManager: true, isOnline: false, isField: false },
+  { name: "ALAA", isManager: false, isOnline: true, isField: true },
+  { name: "AHMED", isManager: false, isOnline: true, isField: false },
+  { name: "SAMIM", isManager: false, isOnline: true, isField: true },
+  { name: "TAHA", isManager: false, isOnline: true, isField: true },
+  { name: "MUJEEB", isManager: false, isOnline: true, isField: true },
+  { name: "SALAH", isManager: false, isOnline: false, isField: true },
+  { name: "MED-HUSSAIN", isManager: false, isOnline: false, isField: true },
+  { name: "ABIN", isManager: false, isOnline: false, isField: true },
+  { name: "AITA", isManager: false, isOnline: false, isField: true }
+];
+
+const DeliveryStage = { ONLINE: "ONLINE", DISPATCH: "DISPATCH", ASSIGNED: "ASSIGNED", IN_PROGRESS: "IN_PROGRESS", COMPLETED: "COMPLETED", BLOCKED: "BLOCKED" };
+const STAGE_LABEL = {
+  ONLINE: "Online Prep", DISPATCH: "Ready for Dispatch", ASSIGNED: "Assigned",
+  IN_PROGRESS: "In Progress", COMPLETED: "Completed", BLOCKED: "Blocked"
+};
+const STAGE_PILL = {
+  ONLINE: "pill-info", DISPATCH: "pill-brand", ASSIGNED: "pill-warn",
+  IN_PROGRESS: "pill-info", COMPLETED: "pill-good", BLOCKED: "pill-crit"
+};
+const VALID_TRANSITIONS = {
+  ONLINE: ["DISPATCH", "COMPLETED"],
+  DISPATCH: ["ASSIGNED", "ONLINE"],
+  ASSIGNED: ["IN_PROGRESS", "BLOCKED", "DISPATCH"],
+  IN_PROGRESS: ["COMPLETED", "BLOCKED"],
+  BLOCKED: ["IN_PROGRESS", "ASSIGNED"],
+  COMPLETED: []
+};
+
+const SEED_DELIVERY_TASKS = [
+  { title: "Prepare renewal file for EY Consulting — Ras Laffan", description: "Verify supplementary pass documents before submission.", stage: "ONLINE", gatePassNumber: "GP-2026-032", companyName: "EY Consulting", createdByName: "AHMED" },
+  { title: "Validate Tenaris Global offshore pass documents", description: null, stage: "ONLINE", gatePassNumber: "GP-2026-031", companyName: "Tenaris Global", createdByName: "ALAA" },
+  { title: "Prepare lost-pass police report file — EY Consulting Mesaieed", description: "Awaiting scanned police report from claimant before dispatch.", stage: "ONLINE", gatePassNumber: "GP-2026-027", companyName: "EY Consulting", createdByName: "SAMIM" },
+
+  { title: "Submit Doha Towers pass application — Tenaris Investment", description: "Documents validated online, ready for government submission.", stage: "DISPATCH", gatePassNumber: "GP-2026-030", companyName: "Tenaris Investment", createdByName: "TAHA" },
+  { title: "Collect stamped approval letter — Ministry of Interior", description: "Administrative trip — no linked gate pass.", stage: "DISPATCH", gatePassNumber: null, companyName: "Welltec", createdByName: "MUJEEB" },
+
+  { title: "Go to Immigration Department for Mesaieed site pass", description: null, stage: "ASSIGNED", gatePassNumber: null, companyName: "EY Consulting", createdByName: "ALAA", assignedToName: "ABIN", assignedByName: "MED-DARWISH", scheduledAt: "2026-07-16T15:00:00", instructions: "Bring company CR copy + authorization letter. Counter 4." },
+  { title: "Deliver collected pass to Welltec HQ", description: null, stage: "ASSIGNED", gatePassNumber: "GP-2026-028", companyName: "Welltec", createdByName: "SAMIM", assignedToName: "SALAH", assignedByName: "MED-DARWISH", scheduledAt: "2026-07-17T13:00:00", instructions: "Confirm recipient ID before handover. Get signed receipt." },
+  { title: "Renewal submission — Dukhan government office", description: null, stage: "ASSIGNED", gatePassNumber: "GP-2026-029", companyName: "Welltec", createdByName: "TAHA", assignedToName: "MED-HUSSAIN", assignedByName: "MED-DARWISH", scheduledAt: "2026-07-15T08:00:00", instructions: "Standard renewal protocol, queue at counter 2." },
+
+  { title: "Lost pass police report follow-up — Ras Laffan", description: null, stage: "IN_PROGRESS", gatePassNumber: null, companyName: "Welltec", createdByName: "SAMIM", assignedToName: "AITA", assignedByName: "MED-DARWISH", scheduledAt: "2026-07-16T07:00:00", startedAt: "2026-07-16T07:10:00", instructions: "Collect police report copy, then proceed to gate office." },
+  { title: "Site access badge pickup — Ras Laffan", description: null, stage: "IN_PROGRESS", gatePassNumber: null, companyName: "Tenaris Global", createdByName: "TAHA", assignedToName: "MED-HUSSAIN", assignedByName: "MED-DARWISH", scheduledAt: "2026-07-16T08:00:00", startedAt: "2026-07-16T08:15:00", instructions: "Coordinate with site security desk." },
+
+  { title: "Supplementary pass pickup — Mesaieed", description: null, stage: "BLOCKED", gatePassNumber: null, companyName: "Tenaris Global", createdByName: "MUJEEB", assignedToName: "MED-HUSSAIN", assignedByName: "MED-DARWISH", scheduledAt: "2026-07-16T05:00:00", startedAt: "2026-07-16T05:10:00", blockedReason: "Office closed for maintenance — need a rescheduled slot from the ministry." },
+
+  { title: "Deliver collected pass to Tenaris Global — Offshore", description: null, stage: "COMPLETED", gatePassNumber: "GP-2026-023", companyName: "Tenaris Global", createdByName: "SAMIM", assignedToName: "SALAH", assignedByName: "MED-DARWISH", scheduledAt: "2026-07-06T13:00:00", startedAt: "2026-07-06T13:05:00", completedAt: "2026-07-06T15:10:00" },
+  { title: "Collect renewed pass — Tenaris Investment gate office", description: null, stage: "COMPLETED", gatePassNumber: "GP-2026-016", companyName: "Tenaris Investment", createdByName: "AHMED", assignedToName: "AITA", assignedByName: "MED-DARWISH", scheduledAt: "2026-07-05T07:00:00", startedAt: "2026-07-05T07:05:00", completedAt: "2026-07-05T09:00:00" },
+  { title: "Submit visitor pass request — Doha Towers reception", description: null, stage: "COMPLETED", gatePassNumber: null, companyName: "EY Consulting", createdByName: "ALAA", assignedToName: "ABIN", assignedByName: "MED-DARWISH", scheduledAt: "2026-07-04T06:00:00", startedAt: "2026-07-04T06:05:00", completedAt: "2026-07-04T07:05:00" }
+];
 
 /* ================= state ================= */
 let DB = null; // { companies:[], collectors:[], gatePasses:[], nextIds:{} }
@@ -386,9 +472,43 @@ function buildInitialState() {
     });
   }
 
+  const gpIdByNumber = new Map(gatePasses.map((g) => [g.number, g.id]));
+
+  const employees = [];
+  const employeeId = new Map();
+  for (const e of SEED_EMPLOYEES) {
+    const id = employees.length + 1;
+    employeeId.set(e.name, id);
+    employees.push({ id, name: e.name, isManager: e.isManager, isOnline: e.isOnline, isField: e.isField, phone: null, email: null, active: true });
+  }
+
+  const deliveryTasks = [];
+  for (const t of SEED_DELIVERY_TASKS) {
+    deliveryTasks.push({
+      id: deliveryTasks.length + 1,
+      title: t.title,
+      description: t.description || null,
+      stage: t.stage,
+      gatePassId: t.gatePassNumber ? gpIdByNumber.get(t.gatePassNumber) || null : null,
+      companyId: t.companyName ? companyId.get(t.companyName) || null : null,
+      createdById: t.createdByName ? employeeId.get(t.createdByName) || null : null,
+      assignedToId: t.assignedToName ? employeeId.get(t.assignedToName) || null : null,
+      assignedById: t.assignedByName ? employeeId.get(t.assignedByName) || null : null,
+      scheduledAt: t.scheduledAt || null,
+      instructions: t.instructions || null,
+      startedAt: t.startedAt || null,
+      completedAt: t.completedAt || null,
+      blockedReason: t.blockedReason || null,
+      createdAt: t.scheduledAt || t.startedAt || t.completedAt || "2026-07-01T08:00:00"
+    });
+  }
+
   return {
-    companies, collectors, gatePasses,
-    nextIds: { company: companies.length + 1, collector: collectors.length + 1, gatePass: gatePasses.length + 1 }
+    companies, collectors, gatePasses, employees, deliveryTasks,
+    nextIds: {
+      company: companies.length + 1, collector: collectors.length + 1, gatePass: gatePasses.length + 1,
+      employee: employees.length + 1, deliveryTask: deliveryTasks.length + 1
+    }
   };
 }
 
@@ -411,6 +531,58 @@ function esc(s) {
 }
 function companyName(id) { const c = DB.companies.find((x) => x.id === id); return c ? c.name : "—"; }
 function collectorName(id) { const c = DB.collectors.find((x) => x.id === id); return c ? c.name : null; }
+function employeeName(id) { const e = DB.employees.find((x) => x.id === id); return e ? e.name : null; }
+function gatePassNumber(id) { const g = DB.gatePasses.find((x) => x.id === id); return g ? g.number : null; }
+function managerEmployee() { return DB.employees.find((e) => e.isManager); }
+function assertValidTransition(from, to) {
+  if (from === to) return null;
+  if (!VALID_TRANSITIONS[from].includes(to)) return `Cannot move a task from ${STAGE_LABEL[from]} to ${STAGE_LABEL[to]}.`;
+  return null;
+}
+function isOverdue(t, now = new Date()) {
+  if (!t.scheduledAt || t.stage !== "ASSIGNED") return false;
+  return new Date(t.scheduledAt).getTime() < now.getTime();
+}
+function taskDuration(startIso, endIso) {
+  if (!startIso || !endIso) return "—";
+  const hours = (new Date(endIso) - new Date(startIso)) / 36e5;
+  return hours < 1 ? `${Math.round(hours * 60)} min` : `${hours.toFixed(1)} h`;
+}
+function taskMeta(t) {
+  const parts = [];
+  if (t.companyId) parts.push(esc(companyName(t.companyId)));
+  const gpNum = gatePassNumber(t.gatePassId);
+  if (gpNum) parts.push(esc(gpNum));
+  if (t.createdById) parts.push(`prepared by ${esc(employeeName(t.createdById))}`);
+  return parts.join(" · ") || "—";
+}
+function updateTaskStage(id, nextStage, extra) {
+  extra = extra || {};
+  const t = DB.deliveryTasks.find((x) => x.id === id);
+  if (!t) return false;
+  const err = assertValidTransition(t.stage, nextStage);
+  if (err) { alert(err); return false; }
+  if (nextStage === "ASSIGNED") {
+    const assignedToId = extra.assignedToId !== undefined ? extra.assignedToId : t.assignedToId;
+    const assignedById = extra.assignedById !== undefined ? extra.assignedById : t.assignedById;
+    const scheduledAt = extra.scheduledAt !== undefined ? extra.scheduledAt : t.scheduledAt;
+    if (!assignedToId || !assignedById || !scheduledAt) {
+      alert("Assigning a task requires an agent, a manager (MED-DARWISH) and a scheduled date/time.");
+      return false;
+    }
+  }
+  if (nextStage === "BLOCKED") {
+    const blockedReason = extra.blockedReason !== undefined ? extra.blockedReason : t.blockedReason;
+    if (!blockedReason) { alert("Blocking a task requires a comment explaining the problem."); return false; }
+  }
+  if (nextStage === "IN_PROGRESS" && !t.startedAt) t.startedAt = new Date().toISOString();
+  if (nextStage === "COMPLETED" && !t.completedAt) t.completedAt = new Date().toISOString();
+  Object.keys(extra).forEach((k) => { if (extra[k] !== undefined) t[k] = extra[k]; });
+  t.stage = nextStage;
+  saveState();
+  renderAll();
+  return true;
+}
 function fmtDateTime(iso) {
   if (!iso) return "—";
   const d = new Date(iso);
@@ -420,6 +592,10 @@ function fmtDate(iso) {
   if (!iso) return "—";
   const d = new Date(iso);
   return d.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "2-digit" });
+}
+function fmtTime(iso) {
+  if (!iso) return "—";
+  return new Date(iso).toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" });
 }
 function toLocalInput(iso) {
   if (!iso) return "";
@@ -462,6 +638,7 @@ function pillFor(text) {
   const label = text === "PENDING" ? "Pending" : text === "COLLECTED" ? "Collected" : text === "CANCELLED" ? "Cancelled" : text;
   return `<span class="pill ${cls}">${esc(label)}</span>`;
 }
+function stagePill(stage) { return `<span class="pill ${STAGE_PILL[stage]}">${esc(STAGE_LABEL[stage])}</span>`; }
 
 /* ================= analytics ================= */
 function computeKpis(rows, now = new Date()) {
@@ -765,7 +942,11 @@ const NAV_ITEMS = [
   { id: "pending", label: "Pending", n: "03" },
   { id: "collectors", label: "Collector Performance", n: "04" },
   { id: "companies", label: "Companies", n: "05" },
-  { id: "analytics", label: "Analytics", n: "06" }
+  { id: "analytics", label: "Analytics", n: "06" },
+  { id: "dispatch", label: "Dispatch", n: "07" },
+  { id: "online", label: "Online Team", n: "08" },
+  { id: "field", label: "Field Team", n: "09" },
+  { id: "deliveries", label: "Deliveries", n: "10" }
 ];
 let currentView = "dashboard";
 
@@ -796,6 +977,10 @@ function renderView(id) {
   else if (id === "collectors") renderCollectors();
   else if (id === "companies") renderCompanies();
   else if (id === "analytics") renderAnalytics();
+  else if (id === "dispatch") renderDispatch();
+  else if (id === "online") renderOnline();
+  else if (id === "field") renderField();
+  else if (id === "deliveries") renderDeliveries();
 }
 function renderAll() { renderView(currentView); }
 
@@ -1315,6 +1500,408 @@ function renderAnalytics() {
       </div>
     </div>
   `;
+}
+
+/* ================= dispatch (MED-DARWISH) ================= */
+function renderDispatch() {
+  const mount = document.getElementById("view-dispatch");
+  const tasks = DB.deliveryTasks.filter((t) => t.stage !== "COMPLETED");
+  const now = new Date();
+  const byStage = (s) => tasks.filter((t) => t.stage === s);
+  const manager = managerEmployee();
+  const overdue = tasks.filter((t) => isOverdue(t, now)).length;
+  mount.innerHTML = `
+    <div class="page-head">
+      <div><span class="eyebrow">Manager supervision</span><h1>Dispatch — MED-DARWISH</h1>
+      <p>${manager ? `Signed in as ${esc(manager.name)}` : "Real-time operations view"}</p></div>
+    </div>
+    <div class="hero-band">
+      <div class="hero-stats">
+        ${heroStat("Active tasks", tasks.length)}
+        ${heroStat("Online prep", byStage("ONLINE").length)}
+        ${heroStat("Ready to dispatch", byStage("DISPATCH").length, "t-brand")}
+        ${heroStat("Assigned", byStage("ASSIGNED").length, "t-warn")}
+        ${heroStat("In progress", byStage("IN_PROGRESS").length, "t-good")}
+        ${heroStat("Blocked", byStage("BLOCKED").length, "t-crit")}
+        ${heroStat("Overdue", overdue, "t-crit")}
+      </div>
+    </div>
+
+    <div class="section-title">🟣 Ready for Dispatch — needs assignment</div>
+    <div class="task-list" id="dispatchReadyList"></div>
+
+    <div class="section-title">🚚 Assigned &amp; In Progress</div>
+    <div class="task-list" id="dispatchActiveList"></div>
+
+    <div class="section-title">🔴 Blocked</div>
+    <div class="task-list" id="dispatchBlockedList"></div>
+
+    <div class="section-title">💻 In Online Preparation</div>
+    <div class="card table-wrap table-wide">
+      <table>
+        <thead><tr><th>Task</th><th>Company</th><th>Prepared by</th><th>Created</th></tr></thead>
+        <tbody>
+          ${byStage("ONLINE").map((t) => `<tr>
+            <td>${esc(t.title)}</td>
+            <td>${esc(companyName(t.companyId))}</td>
+            <td>${esc(employeeName(t.createdById) || "—")}</td>
+            <td class="mono-cell">${fmtDateTime(t.createdAt)}</td>
+          </tr>`).join("") || `<tr class="empty-row"><td colspan="4">Nothing in preparation right now.</td></tr>`}
+        </tbody>
+      </table>
+    </div>
+  `;
+  renderDispatchReady(byStage("DISPATCH"));
+  renderDispatchActive([...byStage("ASSIGNED"), ...byStage("IN_PROGRESS")]);
+  renderDispatchBlocked(byStage("BLOCKED"));
+}
+function renderDispatchReady(list) {
+  const mount = document.getElementById("dispatchReadyList");
+  if (!list.length) { mount.innerHTML = `<div class="card card-pad empty-card">Nothing waiting for dispatch right now.</div>`; return; }
+  mount.innerHTML = list.map((t) => `
+    <div class="card card-pad task-card">
+      <div>
+        <div class="title-row"><span class="t">${esc(t.title)}</span>${stagePill(t.stage)}</div>
+        ${t.description ? `<div class="desc">${esc(t.description)}</div>` : ""}
+        <div class="meta">${taskMeta(t)}</div>
+      </div>
+      <div class="task-actions"><button class="btn btn-primary" data-act="assign" data-id="${t.id}">Assign agent</button></div>
+    </div>
+  `).join("");
+  mount.querySelectorAll("[data-act=assign]").forEach((b) => b.addEventListener("click", () => openAssignModal(Number(b.getAttribute("data-id")))));
+}
+function renderDispatchActive(list) {
+  const mount = document.getElementById("dispatchActiveList");
+  if (!list.length) { mount.innerHTML = `<div class="card card-pad empty-card">No missions currently assigned or in progress.</div>`; return; }
+  mount.innerHTML = list.map((t) => `
+    <div class="card card-pad task-card">
+      <div>
+        <div class="title-row"><span class="t">${esc(t.title)}</span>${stagePill(t.stage)}</div>
+        <div class="meta">${taskMeta(t)}</div>
+        <div class="meta">Agent: <strong>${esc(employeeName(t.assignedToId) || "—")}</strong> · Departure: ${fmtDateTime(t.scheduledAt)}</div>
+        ${t.instructions ? `<div class="info-box">“${esc(t.instructions)}”</div>` : ""}
+      </div>
+      <div class="task-actions"><button class="btn btn-ghost" data-act="reassign" data-id="${t.id}">Reassign</button></div>
+    </div>
+  `).join("");
+  mount.querySelectorAll("[data-act=reassign]").forEach((b) => b.addEventListener("click", () => openAssignModal(Number(b.getAttribute("data-id")))));
+}
+function renderDispatchBlocked(list) {
+  const mount = document.getElementById("dispatchBlockedList");
+  if (!list.length) { mount.innerHTML = `<div class="card card-pad empty-card">No blockers reported.</div>`; return; }
+  mount.innerHTML = list.map((t) => `
+    <div class="card card-pad task-card">
+      <div>
+        <div class="title-row"><span class="t">${esc(t.title)}</span>${stagePill(t.stage)}</div>
+        <div class="meta">${taskMeta(t)}</div>
+        <div class="meta">Agent: <strong>${esc(employeeName(t.assignedToId) || "—")}</strong></div>
+        ${t.blockedReason ? `<div class="danger-box">⚠ ${esc(t.blockedReason)}</div>` : ""}
+      </div>
+      <div class="task-actions">
+        <button class="btn btn-primary" data-act="resolve" data-id="${t.id}">Resolve &amp; reassign</button>
+        <button class="btn btn-ghost" data-act="requeue" data-id="${t.id}">Send back to queue</button>
+      </div>
+    </div>
+  `).join("");
+  mount.querySelectorAll("[data-act=resolve]").forEach((b) => b.addEventListener("click", () => openAssignModal(Number(b.getAttribute("data-id")))));
+  mount.querySelectorAll("[data-act=requeue]").forEach((b) => b.addEventListener("click", () => updateTaskStage(Number(b.getAttribute("data-id")), "DISPATCH")));
+}
+function openAssignModal(taskId) {
+  const t = DB.deliveryTasks.find((x) => x.id === taskId);
+  if (!t) return;
+  const fieldEmployees = DB.employees.filter((e) => e.isField && e.active);
+  const overlay = document.getElementById("overlay");
+  const body = document.getElementById("modalBody");
+  body.innerHTML = `
+    <div class="kicker">Assign task</div>
+    <h2>Assign · ${esc(t.title)}</h2>
+    <p style="font-size:12px;color:var(--ink-2);margin:4px 0 14px;">Choose the field agent, the departure date/time, and the protocol instructions.</p>
+    <form id="assignForm">
+      <div class="field"><label>Field agent</label>
+        <select id="asAgent" required>
+          <option value="">Select an agent…</option>
+          ${fieldEmployees.map((e) => `<option value="${e.id}" ${t.assignedToId === e.id ? "selected" : ""}>${esc(e.name)}</option>`).join("")}
+        </select>
+      </div>
+      <div class="field"><label>Departure date/time</label>
+        <input type="datetime-local" id="asScheduledAt" required value="${toLocalInput(t.scheduledAt)}"></div>
+      <div class="field"><label>Instructions / protocol</label>
+        <textarea id="asInstructions" rows="3" placeholder="e.g. Go to the Ministry of Labour, ask for Mr. X, bring the stamped letter…">${esc(t.instructions || "")}</textarea></div>
+      <p class="err-msg" id="asErr" style="display:none;"></p>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-ghost" id="asCancelBtn">Cancel</button>
+        <button type="submit" class="btn btn-primary">Assign &amp; Dispatch</button>
+      </div>
+    </form>
+  `;
+  overlay.classList.add("open");
+  document.getElementById("asCancelBtn").addEventListener("click", closeModal);
+  document.getElementById("assignForm").addEventListener("submit", (e) => {
+    e.preventDefault();
+    const agentId = Number(document.getElementById("asAgent").value);
+    const scheduledAtVal = document.getElementById("asScheduledAt").value;
+    const instructions = document.getElementById("asInstructions").value.trim();
+    if (!agentId || !scheduledAtVal) { showErr("asErr", "Please choose an agent and a departure date/time."); return; }
+    const manager = managerEmployee();
+    if (!manager) { showErr("asErr", "No manager (MED-DARWISH) found in the employee roster."); return; }
+    const ok = updateTaskStage(t.id, "ASSIGNED", {
+      assignedToId: agentId,
+      assignedById: manager.id,
+      scheduledAt: new Date(scheduledAtVal).toISOString(),
+      instructions: instructions || null
+    });
+    if (ok) closeModal();
+  });
+}
+
+/* ================= online team ================= */
+function renderOnline() {
+  const mount = document.getElementById("view-online");
+  const inPrep = DB.deliveryTasks.filter((t) => t.stage === "ONLINE");
+  const sent = DB.deliveryTasks.filter((t) => t.stage === "DISPATCH");
+  mount.innerHTML = `
+    <div class="page-head">
+      <div><span class="eyebrow">Digital operations</span><h1>Online Team — Order Processing</h1>
+      <p>Validate documents and prepare files before sending to Dispatch</p></div>
+      <button class="btn btn-primary" id="btnNewTask">+ New order / task</button>
+    </div>
+    <div class="grid kpi-row" style="grid-template-columns:repeat(2,1fr);">
+      ${kpiTile("In Preparation", inPrep.length, "", "accent")}
+      ${kpiTile("Sent to Dispatch", sent.length, "")}
+    </div>
+    <div class="section-title">🗂 In preparation — validate &amp; prepare before sending</div>
+    <div class="task-list" id="onlinePrepList"></div>
+    <div class="section-title">⏩ Sent — awaiting MED-DARWISH assignment</div>
+    <div class="task-list" id="onlineSentList"></div>
+  `;
+  document.getElementById("btnNewTask").addEventListener("click", () => openTaskModal());
+  renderOnlinePrep(inPrep);
+  renderOnlineSent(sent);
+}
+function renderOnlinePrep(list) {
+  const mount = document.getElementById("onlinePrepList");
+  if (!list.length) { mount.innerHTML = `<div class="card card-pad empty-card">Nothing in preparation. Use “New order / task” to add one.</div>`; return; }
+  mount.innerHTML = list.map((t) => `
+    <div class="card card-pad task-card">
+      <div>
+        <div class="title-row"><span class="t">${esc(t.title)}</span>${stagePill(t.stage)}</div>
+        ${t.description ? `<div class="desc">${esc(t.description)}</div>` : ""}
+        <div class="meta">${taskMeta(t)} · ${fmtDateTime(t.createdAt)}</div>
+      </div>
+      <div class="task-actions"><button class="btn btn-primary" data-act="send" data-id="${t.id}">Send to Dispatch →</button></div>
+    </div>
+  `).join("");
+  mount.querySelectorAll("[data-act=send]").forEach((b) => b.addEventListener("click", () => updateTaskStage(Number(b.getAttribute("data-id")), "DISPATCH")));
+}
+function renderOnlineSent(list) {
+  const mount = document.getElementById("onlineSentList");
+  if (!list.length) { mount.innerHTML = `<div class="card card-pad empty-card">Nothing waiting on the manager right now.</div>`; return; }
+  mount.innerHTML = list.map((t) => `
+    <div class="card card-pad task-card">
+      <div>
+        <div class="title-row"><span class="t">${esc(t.title)}</span>${stagePill(t.stage)}</div>
+        <div class="meta">${taskMeta(t)}</div>
+      </div>
+    </div>
+  `).join("");
+}
+function openTaskModal() {
+  const onlineEmployees = DB.employees.filter((e) => e.isOnline && e.active);
+  const pendingGatePasses = DB.gatePasses.filter((g) => g.status === "PENDING");
+  const overlay = document.getElementById("overlay");
+  const body = document.getElementById("modalBody");
+  body.innerHTML = `
+    <div class="kicker">New record</div>
+    <h2>New order / task</h2>
+    <form id="taskForm" style="margin-top:14px;">
+      <div class="field"><label>Title</label>
+        <input type="text" id="tkTitle" required placeholder="e.g. Prepare renewal file for…"></div>
+      <div class="field"><label>Description</label><textarea id="tkDesc" rows="2"></textarea></div>
+      <div class="field-row">
+        <div class="field"><label>Company</label>
+          <select id="tkCompany"><option value="">—</option>${DB.companies.map((c) => `<option value="${c.id}">${esc(c.name)}</option>`).join("")}</select>
+        </div>
+        <div class="field"><label>Gate pass</label>
+          <select id="tkGatePass"><option value="">—</option>${pendingGatePasses.map((g) => `<option value="${g.id}">${esc(g.number)}</option>`).join("")}</select>
+        </div>
+      </div>
+      <div class="field"><label>Prepared by</label>
+        <select id="tkCreatedBy"><option value="">—</option>${onlineEmployees.map((e) => `<option value="${e.id}">${esc(e.name)}</option>`).join("")}</select>
+      </div>
+      <p class="err-msg" id="tkErr" style="display:none;"></p>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-ghost" id="tkCancelBtn">Cancel</button>
+        <button type="submit" class="btn btn-primary">Save</button>
+      </div>
+    </form>
+  `;
+  overlay.classList.add("open");
+  document.getElementById("tkCancelBtn").addEventListener("click", closeModal);
+  document.getElementById("taskForm").addEventListener("submit", (e) => {
+    e.preventDefault();
+    const title = document.getElementById("tkTitle").value.trim();
+    if (!title) { showErr("tkErr", "A title is required."); return; }
+    const companyVal = document.getElementById("tkCompany").value;
+    const gpVal = document.getElementById("tkGatePass").value;
+    const createdByVal = document.getElementById("tkCreatedBy").value;
+    DB.deliveryTasks.push({
+      id: DB.nextIds.deliveryTask++,
+      title,
+      description: document.getElementById("tkDesc").value.trim() || null,
+      stage: "ONLINE",
+      gatePassId: gpVal ? Number(gpVal) : null,
+      companyId: companyVal ? Number(companyVal) : null,
+      createdById: createdByVal ? Number(createdByVal) : null,
+      assignedToId: null, assignedById: null, scheduledAt: null, instructions: null,
+      startedAt: null, completedAt: null, blockedReason: null,
+      createdAt: new Date().toISOString()
+    });
+    saveState(); closeModal(); renderAll();
+  });
+}
+
+/* ================= field team (mobile-friendly) ================= */
+let fieldAgentFilter = (function () {
+  try { return localStorage.getItem("gatepass-field-agent") || ""; } catch (e) { return ""; }
+})();
+function renderField() {
+  const mount = document.getElementById("view-field");
+  const fieldEmployees = DB.employees.filter((e) => e.isField && e.active);
+  const tasks = DB.deliveryTasks.filter((t) => t.stage === "ASSIGNED" || t.stage === "IN_PROGRESS" || t.stage === "BLOCKED");
+  const filtered = fieldAgentFilter ? tasks.filter((t) => employeeName(t.assignedToId) === fieldAgentFilter) : tasks;
+  const order = { ASSIGNED: 0, IN_PROGRESS: 1, BLOCKED: 2 };
+  const sorted = filtered.slice().sort((a, b) => (order[a.stage] ?? 3) - (order[b.stage] ?? 3));
+  mount.innerHTML = `
+    <div class="page-head">
+      <div><span class="eyebrow">Field &amp; government trips</span><h1>Field Missions</h1><p>Today's deliveries &amp; government trips</p></div>
+    </div>
+    <div class="card card-pad field-select-card">
+      <div class="field" style="margin-bottom:0;">
+        <label>I am…</label>
+        <select id="fieldAgentSelect">
+          <option value="">All agents (supervisor view)</option>
+          ${fieldEmployees.map((e) => `<option value="${esc(e.name)}" ${fieldAgentFilter === e.name ? "selected" : ""}>${esc(e.name)}</option>`).join("")}
+        </select>
+      </div>
+    </div>
+    <div class="task-list" id="fieldTaskList" style="margin-top:16px;"></div>
+  `;
+  document.getElementById("fieldAgentSelect").addEventListener("change", (e) => {
+    fieldAgentFilter = e.target.value;
+    try { localStorage.setItem("gatepass-field-agent", fieldAgentFilter); } catch (err) { /* ignore */ }
+    renderField();
+  });
+  renderFieldTasks(sorted);
+}
+function renderFieldTasks(list) {
+  const mount = document.getElementById("fieldTaskList");
+  if (!list.length) {
+    mount.innerHTML = `<div class="card card-pad empty-card">No missions ${fieldAgentFilter ? `for ${esc(fieldAgentFilter)}` : ""} right now. 🎉</div>`;
+    return;
+  }
+  mount.innerHTML = list.map((t) => `
+    <div class="card card-pad">
+      <div class="title-row" style="justify-content:space-between;"><span class="t">${esc(t.title)}</span>${stagePill(t.stage)}</div>
+      ${t.description ? `<div class="desc">${esc(t.description)}</div>` : ""}
+      <div class="meta">${taskMeta(t)}</div>
+      <div class="meta">Departure: ${fmtDateTime(t.scheduledAt)}${!fieldAgentFilter && t.assignedToId ? ` · ${esc(employeeName(t.assignedToId))}` : ""}</div>
+      ${t.instructions ? `<div class="info-box">📋 ${esc(t.instructions)}</div>` : ""}
+      ${t.blockedReason ? `<div class="danger-box">⚠ ${esc(t.blockedReason)}</div>` : ""}
+      <div class="task-actions" style="margin-top:12px;">
+        ${t.stage === "ASSIGNED" ? `
+          <button class="btn btn-primary" data-act="start" data-id="${t.id}" style="flex:1;justify-content:center;">▶ Start mission</button>
+          <button class="btn btn-danger-ghost" data-act="block" data-id="${t.id}">Blocked</button>
+        ` : ""}
+        ${t.stage === "IN_PROGRESS" ? `
+          <button class="btn btn-success" data-act="complete" data-id="${t.id}" style="flex:1;justify-content:center;">✓ Mark completed</button>
+          <button class="btn btn-danger-ghost" data-act="block" data-id="${t.id}">Blocked</button>
+        ` : ""}
+        ${t.stage === "BLOCKED" ? `<button class="btn btn-primary" data-act="resume" data-id="${t.id}" style="flex:1;justify-content:center;">↻ Resume mission</button>` : ""}
+      </div>
+    </div>
+  `).join("");
+  mount.querySelectorAll("[data-act=start]").forEach((b) => b.addEventListener("click", () => updateTaskStage(Number(b.getAttribute("data-id")), "IN_PROGRESS")));
+  mount.querySelectorAll("[data-act=complete]").forEach((b) => b.addEventListener("click", () => updateTaskStage(Number(b.getAttribute("data-id")), "COMPLETED")));
+  mount.querySelectorAll("[data-act=resume]").forEach((b) => b.addEventListener("click", () => updateTaskStage(Number(b.getAttribute("data-id")), "IN_PROGRESS")));
+  mount.querySelectorAll("[data-act=block]").forEach((b) => b.addEventListener("click", () => openBlockModal(Number(b.getAttribute("data-id")))));
+}
+function openBlockModal(taskId) {
+  const t = DB.deliveryTasks.find((x) => x.id === taskId);
+  if (!t) return;
+  const overlay = document.getElementById("overlay");
+  const body = document.getElementById("modalBody");
+  body.innerHTML = `
+    <div class="kicker">Report a blocker</div>
+    <h2>What's blocking this mission?</h2>
+    <p style="font-size:12px;color:var(--ink-2);margin:4px 0 14px;">${esc(t.title)}</p>
+    <form id="blockForm">
+      <div class="field"><textarea id="blkReason" rows="3" required placeholder="e.g. Office closed, missing document, contact unavailable…"></textarea></div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-ghost" id="blkCancelBtn">Cancel</button>
+        <button type="submit" class="btn btn-danger">Report blocker</button>
+      </div>
+    </form>
+  `;
+  overlay.classList.add("open");
+  document.getElementById("blkCancelBtn").addEventListener("click", closeModal);
+  document.getElementById("blockForm").addEventListener("submit", (e) => {
+    e.preventDefault();
+    const reason = document.getElementById("blkReason").value.trim();
+    if (!reason) return;
+    const ok = updateTaskStage(t.id, "BLOCKED", { blockedReason: reason });
+    if (ok) closeModal();
+  });
+}
+
+/* ================= delivery tracking history ================= */
+let deliveryFilter = "ALL";
+function renderDeliveries() {
+  const mount = document.getElementById("view-deliveries");
+  const tasks = DB.deliveryTasks
+    .filter((t) => t.stage === "COMPLETED" || t.stage === "BLOCKED")
+    .slice()
+    .sort((a, b) => new Date(b.completedAt || b.createdAt) - new Date(a.completedAt || a.createdAt));
+  const completed = tasks.filter((t) => t.stage === "COMPLETED");
+  const blocked = tasks.filter((t) => t.stage === "BLOCKED");
+  const durations = completed.filter((t) => t.startedAt && t.completedAt).map((t) => (new Date(t.completedAt) - new Date(t.startedAt)) / 36e5);
+  const avgHours = durations.length ? durations.reduce((a, b) => a + b, 0) / durations.length : null;
+  const rows = tasks.filter((t) => (deliveryFilter === "ALL" ? true : t.stage === deliveryFilter));
+  mount.innerHTML = `
+    <div class="page-head">
+      <div><span class="eyebrow">Delivery tracking</span><h1>Delivery Tracking</h1><p>History of completed and blocked missions</p></div>
+    </div>
+    <div class="grid kpi-row" style="grid-template-columns:repeat(3,1fr);">
+      ${kpiTile("Completed", completed.length, "", "good")}
+      ${kpiTile("Currently Blocked", blocked.length, "", "crit")}
+      ${kpiTile("Avg. Turnaround", avgHours !== null ? `${avgHours.toFixed(1)} h` : "—", "from start to completion", "accent")}
+    </div>
+    <div class="chip-row">
+      <button class="chip ${deliveryFilter === "ALL" ? "active" : ""}" data-filter="ALL">All</button>
+      <button class="chip ${deliveryFilter === "COMPLETED" ? "active" : ""}" data-filter="COMPLETED">Completed</button>
+      <button class="chip ${deliveryFilter === "BLOCKED" ? "active" : ""}" data-filter="BLOCKED">Blocked</button>
+    </div>
+    <div class="card table-wrap table-wide">
+      <table>
+        <thead><tr><th>Task</th><th>Company / Gate Pass</th><th>Agent</th><th>Date</th><th>Time</th><th>Duration</th><th>Status</th></tr></thead>
+        <tbody>
+          ${rows.map((t) => {
+            const finalAt = t.completedAt || t.createdAt;
+            const gpNum = gatePassNumber(t.gatePassId);
+            return `<tr>
+              <td>${esc(t.title)}</td>
+              <td>${esc(companyName(t.companyId))}${gpNum ? ` · ${esc(gpNum)}` : ""}</td>
+              <td>${esc(employeeName(t.assignedToId) || "—")}</td>
+              <td class="mono-cell">${fmtDate(finalAt)}</td>
+              <td class="mono-cell">${fmtTime(finalAt)}</td>
+              <td>${taskDuration(t.startedAt, t.completedAt)}</td>
+              <td>${stagePill(t.stage)}</td>
+            </tr>`;
+          }).join("") || `<tr class="empty-row"><td colspan="7">No delivery history yet.</td></tr>`}
+        </tbody>
+      </table>
+    </div>
+  `;
+  mount.querySelectorAll("[data-filter]").forEach((b) => b.addEventListener("click", () => { deliveryFilter = b.getAttribute("data-filter"); renderDeliveries(); }));
 }
 
 /* ================= boot ================= */
