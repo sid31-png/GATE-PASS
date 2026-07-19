@@ -474,6 +474,9 @@ const PRO_SERVICE_CATALOG = [
   { group: "Ministerial Relations", services: ["Employment Contract (Ministry of Labour)", "MOFA Legalization", "Contract Attestation (Ministry of Justice)"] },
   { group: "Attestations & Translations", services: ["Certified Arabic Translation", "Degree / Corporate Document Attestation"] }
 ];
+// Gate Pass requests get their own dedicated form/button — excluded here to
+// avoid offering the same thing twice in the generic PRO service dropdown.
+const PRO_SERVICE_CATALOG_NO_GATE_PASS = PRO_SERVICE_CATALOG.filter((g) => g.group !== "Gate Passes");
 
 /* ================= RBAC =================
    Role hierarchy (highest to lowest): CEO > SUPER_ADMIN > OPS_ADMIN > AM_LEAD
@@ -495,13 +498,14 @@ const ROLE_LABEL = {
 };
 // CEO/SUPER_ADMIN bypass this table entirely (see `can` below).
 // dispatch_field_assign = assigning/reassigning a field agent + instructions,
-// and validating (completing) a delivery — exclusive to CEO/SUPER_ADMIN.
+// and validating (completing) a delivery — exclusive to CEO/SUPER_ADMIN/ELENA
+// (AM_LEAD may also open a case and choose the field agent for a delivery).
 // update_field_status = relaying a field agent's own progress (started/
 // blocked/resumed) — also open to Online Operators and Ops Admin.
 const ROLE_PERMISSIONS = {
   CEO: [], SUPER_ADMIN: [],
   OPS_ADMIN: ["view_all_online_queue", "reassign_requests", "import_companies", "update_field_status"],
-  AM_LEAD: ["view_all_am_requests", "create_service_request"],
+  AM_LEAD: ["view_all_am_requests", "create_service_request", "dispatch_field_assign"],
   OPERATOR: ["update_field_status"],
   AM: ["create_service_request"],
   FIELD: [], UNASSIGNED: []
@@ -514,7 +518,7 @@ function can(e, permission) {
 // Page-level access rules for the pre-dashboard route guard (mirrors
 // src/lib/route-access.ts). CEO/SUPER_ADMIN are always implicitly allowed.
 const VIEW_ACCESS_RULES = {
-  dispatch: ["OPS_ADMIN", "OPERATOR"],
+  dispatch: ["OPS_ADMIN", "OPERATOR", "AM_LEAD"],
   "online-queue": ["OPS_ADMIN", "OPERATOR"],
   online: ["OPS_ADMIN", "OPERATOR"],
   "company-import": ["OPS_ADMIN"],
@@ -832,7 +836,6 @@ function companyName(id) { const c = DB.companies.find((x) => x.id === id); retu
 function collectorName(id) { const c = DB.collectors.find((x) => x.id === id); return c ? c.name : null; }
 function employeeName(id) { const e = DB.employees.find((x) => x.id === id); return e ? e.name : null; }
 function gatePassNumber(id) { const g = DB.gatePasses.find((x) => x.id === id); return g ? g.number : null; }
-function managerEmployee() { return DB.employees.find((e) => e.isManager); }
 function assertValidTransition(from, to) {
   if (from === to) return null;
   if (!VALID_TRANSITIONS[from].includes(to)) return `Cannot move a task from ${STAGE_LABEL[from]} to ${STAGE_LABEL[to]}.`;
@@ -2003,13 +2006,23 @@ function renderDispatch() {
   const tasks = DB.deliveryTasks.filter((t) => t.stage !== "COMPLETED");
   const now = new Date();
   const byStage = (s) => tasks.filter((t) => t.stage === s);
-  const manager = managerEmployee();
   const overdue = tasks.filter((t) => isOverdue(t, now)).length;
   const canDispatch = can(currentEmployee(), "dispatch_field_assign");
+
+  const startOfToday = new Date();
+  startOfToday.setHours(0, 0, 0, 0);
+  const completedToday = DB.deliveryTasks.filter(
+    (t) => t.stage === "COMPLETED" && t.completedAt && new Date(t.completedAt) >= startOfToday
+  ).length;
+  const pendingGatePasses = DB.gatePasses.filter((g) => g.status === "PENDING");
+  const pendingServiceRequests = DB.serviceRequests.filter((r) =>
+    ["ASSIGNED_TO_ONLINE", "ONLINE_PROCESSING", "MISSING_INFO_RETURNED_TO_AM"].includes(r.status)
+  );
+
   mount.innerHTML = `
     <div class="page-head">
       <div><span class="eyebrow">Manager supervision</span><h1>Dispatch — Manager Supervision</h1>
-      <p>${canDispatch ? "Assign field agents, set instructions, and validate deliveries." : "🔒 View only — assigning field agents is exclusive to MED-DARWISH and the CEO."}</p></div>
+      <p>${canDispatch ? "Assign field agents, set instructions, and validate deliveries." : "🔒 View only — assigning field agents is exclusive to MED-DARWISH, ELENA, and the CEO."}</p></div>
     </div>
     <div class="hero-band">
       <div class="hero-stats">
@@ -2021,6 +2034,40 @@ function renderDispatch() {
         ${heroStat("Blocked", byStage("BLOCKED").length, "t-crit")}
         ${heroStat("Overdue", overdue, "t-crit")}
       </div>
+    </div>
+
+    <div class="section-title">📅 Today's Tracker</div>
+    <div class="grid kpi-row" style="grid-template-columns:repeat(4,1fr);">
+      ${kpiTile("Completed Today", completedToday, "", "good")}
+      ${kpiTile("Missions In Progress", byStage("IN_PROGRESS").length, "")}
+      ${kpiTile("Blocked", byStage("BLOCKED").length, "", "crit")}
+      ${kpiTile("All Pending (Gate Passes + PRO)", pendingGatePasses.length + pendingServiceRequests.length, "")}
+    </div>
+
+    <div class="section-title">🗂️ All Pending Requests</div>
+    <div class="card table-wrap table-wide">
+      <table>
+        <thead><tr><th>Request</th><th>Type</th><th>Company</th><th>With</th><th>Status</th></tr></thead>
+        <tbody>
+          ${pendingServiceRequests.map((r) => `<tr>
+            <td style="font-weight:600;color:var(--ink);">${esc(r.title)}</td>
+            <td>${esc(r.category === "PRO" ? (r.serviceType || "PRO service") : "Delivery")}</td>
+            <td>${esc(companyName(r.companyId))}</td>
+            <td>${esc(employeeName(r.claimedById) || employeeName(r.createdById))}</td>
+            <td>${requestStatusPill(r.status)}</td>
+          </tr>`).join("")}
+          ${pendingGatePasses.map((g) => `<tr>
+            <td style="font-weight:600;color:var(--ink);">Gate Pass · ${esc(g.number)}</td>
+            <td>${esc(g.location)}</td>
+            <td>${esc(companyName(g.companyId))}</td>
+            <td>${esc(g.submittedBy)}</td>
+            <td><span class="pill pill-warn">Pending</span></td>
+          </tr>`).join("")}
+          ${pendingServiceRequests.length === 0 && pendingGatePasses.length === 0
+            ? `<tr class="empty-row"><td colspan="5">Nothing pending — everything is either dispatched or completed.</td></tr>`
+            : ""}
+        </tbody>
+      </table>
     </div>
 
     <div class="section-title">🟣 Ready for Dispatch — needs assignment</div>
@@ -2144,11 +2191,11 @@ function openAssignModal(taskId) {
     const scheduledAtVal = document.getElementById("asScheduledAt").value;
     const instructions = document.getElementById("asInstructions").value.trim();
     if (!agentId || !scheduledAtVal) { showErr("asErr", "Please choose an agent and a departure date/time."); return; }
-    const manager = managerEmployee();
-    if (!manager) { showErr("asErr", "No manager (MED-DARWISH) found in the employee roster."); return; }
+    const assigner = currentEmployee();
+    if (!assigner) { showErr("asErr", "Could not determine who is making this assignment."); return; }
     const ok = updateTaskStage(t.id, "ASSIGNED", {
       assignedToId: agentId,
-      assignedById: manager.id,
+      assignedById: assigner.id,
       scheduledAt: new Date(scheduledAtVal).toISOString(),
       instructions: instructions || null
     });
@@ -2436,7 +2483,12 @@ function renderAccountManagers() {
     <div class="page-head">
       <div><span class="eyebrow">Account Managers</span><h1>Account Managers</h1>
       <p>${seesAll ? "Global view — all Account Managers' requests" : `${esc(me.name)}'s requests`}</p></div>
-      ${canCreate ? `<button class="btn btn-primary" id="btnNewRequest">+ New request</button>` : ""}
+      ${canCreate ? `
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn-primary" id="btnNewProRequest">+ PRO Service Request</button>
+          <button class="btn btn-ghost" id="btnNewGatePassRequest" style="border:1px solid var(--brand);color:var(--brand);">+ Gate Pass Request</button>
+        </div>
+      ` : ""}
     </div>
     <div class="grid kpi-row" style="grid-template-columns:repeat(4,1fr);">
       ${kpiTile("Assigned to Online", byStatus("ASSIGNED_TO_ONLINE"), "")}
@@ -2465,7 +2517,10 @@ function renderAccountManagers() {
       </table>
     </div>
   `;
-  if (canCreate) document.getElementById("btnNewRequest").addEventListener("click", () => openNewRequestModal());
+  if (canCreate) {
+    document.getElementById("btnNewProRequest").addEventListener("click", () => openNewRequestModal());
+    document.getElementById("btnNewGatePassRequest").addEventListener("click", () => openNewGatePassRequestModal());
+  }
   mount.querySelectorAll("[data-act=resubmit]").forEach((b) => b.addEventListener("click", () => {
     const r = DB.serviceRequests.find((x) => x.id === Number(b.getAttribute("data-id")));
     if (r) updateRequestStatus(r.id, "ASSIGNED_TO_ONLINE", { changedById: r.createdById });
@@ -2481,7 +2536,7 @@ function openNewRequestModal() {
   const body = document.getElementById("modalBody");
   body.innerHTML = `
     <div class="kicker">New record</div>
-    <h2>New service request</h2>
+    <h2>New PRO service request</h2>
     <p style="font-size:12px;color:var(--ink-2);margin:4px 0 14px;">It will be automatically routed to the Account Manager's Online Operations partner.</p>
     <form id="reqForm" style="margin-top:14px;">
       <div class="field"><label>Title</label>
@@ -2503,7 +2558,7 @@ function openNewRequestModal() {
         <label>PRO service type</label>
         <select id="reqServiceType">
           <option value="">— Select a service —</option>
-          ${PRO_SERVICE_CATALOG.map((g) => `<optgroup label="${esc(g.group)}">${g.services.map((s) => `<option value="${esc(s)}">${esc(s)}</option>`).join("")}</optgroup>`).join("")}
+          ${PRO_SERVICE_CATALOG_NO_GATE_PASS.map((g) => `<optgroup label="${esc(g.group)}">${g.services.map((s) => `<option value="${esc(s)}">${esc(s)}</option>`).join("")}</optgroup>`).join("")}
         </select>
       </div>
       <div class="field-row">
@@ -2560,6 +2615,113 @@ function openNewRequestModal() {
     saveState(); closeModal(); renderAll();
   });
 }
+function openNewGatePassRequestModal() {
+  const me = currentEmployee();
+  if (!can(me, "create_service_request")) return;
+  const amEmployees = DB.employees.filter((e) => e.isAM && !e.isAMLead);
+  const role = roleOf(me);
+  const canPickAnyAM = role === "AM_LEAD" || role === "CEO" || role === "SUPER_ADMIN";
+  const overlay = document.getElementById("overlay");
+  const body = document.getElementById("modalBody");
+  body.innerHTML = `
+    <div class="kicker">New record</div>
+    <h2>New Gate Pass request</h2>
+    <p style="font-size:12px;color:var(--ink-2);margin:4px 0 14px;">Site access request — it will be routed to the Online Operations queue.</p>
+    <form id="gpReqForm" style="margin-top:14px;">
+      <div class="field-row">
+        <div class="field"><label>Site / Location</label>
+          <select id="gpLocation" required>
+            <option value="">Select site…</option>
+            ${LOCATIONS.map((l) => `<option value="${esc(l)}">${esc(l)}</option>`).join("")}
+          </select>
+        </div>
+        <div class="field"><label>Requested by</label>
+          ${canPickAnyAM ? `
+            <select id="gpCreatedBy" required>
+              <option value="">Select AM…</option>
+              ${amEmployees.map((e) => `<option value="${e.id}" ${me && me.id === e.id ? "selected" : ""}>${esc(e.name)}</option>`).join("")}
+            </select>
+          ` : `<div class="field-readonly">${esc(me.name)} (you)</div>`}
+        </div>
+      </div>
+      <div class="field-row" style="grid-template-columns:1fr 1fr 1fr;">
+        <div class="field"><label>Gate pass type</label>
+          <select id="gpType" required>
+            <option value="">—</option>
+            ${GATE_PASS_TYPES.map((t) => `<option value="${esc(t)}">${esc(t)}</option>`).join("")}
+          </select>
+        </div>
+        <div class="field"><label>Request type</label>
+          <select id="gpRequestType" required>
+            <option value="">—</option>
+            ${REQUEST_TYPES.map((t) => `<option value="${esc(t)}">${esc(t)}</option>`).join("")}
+          </select>
+        </div>
+        <div class="field"><label>Pass category</label>
+          <select id="gpPassCategory" required>
+            <option value="">—</option>
+            ${PASS_CATEGORIES.map((t) => `<option value="${esc(t)}">${esc(t)}</option>`).join("")}
+          </select>
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>Company</label>
+          <select id="gpCompany"><option value="">—</option>${DB.companies.slice().sort((a, b) => a.name.localeCompare(b.name)).map((c) => `<option value="${c.id}">${esc(c.name)}</option>`).join("")}</select>
+        </div>
+        <div class="field"><label>Client name</label><input type="text" id="gpClient"></div>
+      </div>
+      <div class="field"><label>Description</label><textarea id="gpDesc" rows="2"></textarea></div>
+      <div class="field"><label>Attached documents</label>
+        <input type="text" id="gpAttachments" placeholder="e.g. passport_copy.pdf, authorization_letter.pdf"></div>
+      <p class="err-msg" id="gpErr" style="display:none;"></p>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-ghost" id="gpCancelBtn">Cancel</button>
+        <button type="submit" class="btn btn-primary">Submit request</button>
+      </div>
+    </form>
+  `;
+  overlay.classList.add("open");
+  document.getElementById("gpCancelBtn").addEventListener("click", closeModal);
+  document.getElementById("gpReqForm").addEventListener("submit", (e) => {
+    e.preventDefault();
+    const location = document.getElementById("gpLocation").value;
+    const gatePassType = document.getElementById("gpType").value;
+    const requestType = document.getElementById("gpRequestType").value;
+    const passCategory = document.getElementById("gpPassCategory").value;
+    if (!location || !gatePassType || !requestType || !passCategory) {
+      showErr("gpErr", "Please fill in the site, gate pass type, request type, and pass category.");
+      return;
+    }
+    const createdByVal = canPickAnyAM ? document.getElementById("gpCreatedBy").value : String(me.id);
+    if (!createdByVal) { showErr("gpErr", "Please select which Account Manager is filing this request."); return; }
+    const companyVal = document.getElementById("gpCompany").value;
+    const companyIdNum = companyVal ? Number(companyVal) : null;
+    const serviceType = gatePassType === "Permanent" ? "Permanent Gate Pass" : "Temporary Gate Pass";
+    const title = `${requestType === "Lost Gate Pass" ? "Lost" : "New"} ${serviceType} — ${location}`;
+    const resolution = resolveOnlineOperator(companyIdNum, Number(createdByVal));
+    const id = DB.nextIds.serviceRequest++;
+    const createdAt = new Date().toISOString();
+    DB.serviceRequests.push({
+      id, title, category: "PRO", serviceType,
+      location, gatePassType, requestType, passCategory,
+      companyId: companyIdNum,
+      clientName: document.getElementById("gpClient").value.trim() || null,
+      description: document.getElementById("gpDesc").value.trim() || null,
+      attachments: document.getElementById("gpAttachments").value.trim() || null,
+      status: "ASSIGNED_TO_ONLINE",
+      createdById: Number(createdByVal),
+      claimedById: resolution.operatorId, claimedAt: null, returnComment: null, deliveryTaskId: null,
+      assignmentRuleId: resolution.assignmentRuleId, partnershipId: resolution.partnershipId,
+      flaggedForManager: resolution.flaggedForManager, assignmentNote: resolution.note,
+      createdAt
+    });
+    DB.requestHistory.push({
+      id: DB.nextIds.requestHistory++, requestId: id, fromStatus: null, toStatus: "ASSIGNED_TO_ONLINE",
+      changedById: Number(createdByVal), comment: null, createdAt
+    });
+    saveState(); closeModal(); renderAll();
+  });
+}
 
 /* ================= online queue ================= */
 function renderOnlineQueue() {
@@ -2585,6 +2747,7 @@ function renderOnlineQueue() {
     <div class="page-head">
       <div><span class="eyebrow">Online Operations</span><h1>Online Queue — Account Manager requests</h1>
       <p>${viewAll ? "Full queue — every Online Operator's auto-assigned requests" : `Requests auto-assigned to ${esc(me.name)} via the binome routing`}</p></div>
+      <div id="oqBell"></div>
     </div>
     <div class="grid kpi-row" style="grid-template-columns:repeat(3,1fr);">
       ${kpiTile("To Start", toStart.length, "")}
@@ -2598,6 +2761,53 @@ function renderOnlineQueue() {
   `;
   renderOQIncoming(toStart, viewAll, onlineEmployees);
   renderOQMine(inProgress, viewAll, onlineEmployees);
+  if (me && me.isOnline) {
+    const myNew = requests.filter((r) => r.claimedById === me.id && r.status === "ASSIGNED_TO_ONLINE");
+    renderNotificationBell(me.id, myNew);
+  }
+}
+
+/* ---- notification bell (near-real-time alert center for Online Operators) ----
+   The parent view polls and re-renders on an interval; this just tracks which
+   of the operator's newly-assigned requests have already been seen. */
+let notifBellOpen = false;
+function renderNotificationBell(employeeId, requests) {
+  const mount = document.getElementById("oqBell");
+  if (!mount) return;
+  const storageKey = `gatepass-notif-seen-${employeeId}`;
+  let seenIds = [];
+  try { seenIds = JSON.parse(localStorage.getItem(storageKey) || "[]"); } catch (e) { seenIds = []; }
+  const unseen = requests.filter((r) => !seenIds.includes(r.id));
+
+  mount.innerHTML = `
+    <div style="position:relative;">
+      <button id="notifBellBtn" style="all:unset;cursor:pointer;position:relative;border:1px solid var(--border-strong);border-radius:8px;padding:8px 10px;font-size:15px;">
+        🔔
+        ${unseen.length ? `<span style="position:absolute;top:-6px;right:-6px;background:var(--critical);color:#fff;font-size:10px;font-weight:700;line-height:1;padding:3px 5px;border-radius:100px;">${unseen.length}</span>` : ""}
+      </button>
+      ${notifBellOpen ? `
+        <div style="position:absolute;right:0;top:36px;z-index:20;width:300px;background:var(--surface);border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow);padding:8px;">
+          <div style="font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);padding:4px 6px;">Newly assigned to you</div>
+          ${requests.length === 0 ? `<div style="padding:14px 6px;text-align:center;font-size:12px;color:var(--muted);">Nothing waiting right now.</div>` : ""}
+          <div style="max-height:220px;overflow-y:auto;">
+            ${requests.map((r) => `
+              <div style="padding:8px 6px;border-radius:8px;font-size:12px;">
+                <div style="font-weight:600;color:var(--ink);">${esc(r.title)}</div>
+                <div style="margin-top:2px;color:var(--muted);">${esc(employeeName(r.createdById))}${companyName(r.companyId) !== "—" ? ` · ${esc(companyName(r.companyId))}` : ""} · ${fmtDateTime(r.createdAt)}</div>
+              </div>
+            `).join("")}
+          </div>
+        </div>
+      ` : ""}
+    </div>
+  `;
+  document.getElementById("notifBellBtn").addEventListener("click", () => {
+    notifBellOpen = !notifBellOpen;
+    if (notifBellOpen) {
+      try { localStorage.setItem(storageKey, JSON.stringify(requests.map((r) => r.id))); } catch (e) { /* ignore */ }
+    }
+    renderNotificationBell(employeeId, requests);
+  });
 }
 function requestReassignSelect(r, onlineEmployees) {
   return `
@@ -2850,4 +3060,10 @@ if (currentEmployee()) {
   document.getElementById("loginScreen").classList.add("open");
   renderLoginCard();
 }
+
+// Near-real-time notifications: re-check the Online Queue on an interval so
+// a newly auto-assigned request lights up the bell without a manual refresh.
+setInterval(() => {
+  if (currentView === "online-queue" && currentEmployee()) renderOnlineQueue();
+}, 12000);
 </script>
