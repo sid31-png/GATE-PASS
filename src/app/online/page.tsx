@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { OnlineTeamBoard } from "@/components/online-team-board";
 import { CompanyDTO, DeliveryTaskDTO, EmployeeDTO, GatePassDTO } from "@/lib/types";
+import { PUBLIC_EMPLOYEE_SELECT } from "@/lib/employee-select";
 
 export const dynamic = "force-dynamic";
 
@@ -19,7 +20,7 @@ export default async function OnlinePage() {
       include: includeRelations,
       orderBy: [{ createdAt: "desc" }],
     }),
-    prisma.employee.findMany({ where: { active: true }, orderBy: { name: "asc" } }),
+    prisma.employee.findMany({ where: { active: true }, orderBy: { name: "asc" }, select: PUBLIC_EMPLOYEE_SELECT }),
     prisma.company.findMany({ orderBy: { name: "asc" } }),
     prisma.gatePass.findMany({
       where: { status: "PENDING" },

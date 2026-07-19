@@ -1,55 +1,46 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext } from "react";
+import { useRouter } from "next/navigation";
 import { EmployeeDTO } from "@/lib/types";
 import { Role, roleOf, can, Permission } from "@/lib/rbac";
 
-const STORAGE_KEY = "rch-current-employee-id";
-
 type CurrentUserContextValue = {
-  employees: EmployeeDTO[];
   currentEmployee: EmployeeDTO | null;
-  setCurrentEmployeeId: (id: number | null) => void;
   role: Role;
   can: (permission: Permission) => boolean;
+  logout: () => Promise<void>;
 };
 
 const CurrentUserContext = createContext<CurrentUserContextValue | null>(null);
 
-export function CurrentUserProvider({ employees, children }: { employees: EmployeeDTO[]; children: React.ReactNode }) {
-  const [currentId, setCurrentId] = useState<number | null>(null);
+// The authenticated employee is resolved server-side (see src/lib/session.ts)
+// from the signed session cookie and passed down once from layout.tsx — there
+// is no client-side picker anymore. Logging out clears the cookie and sends
+// the user back to /login.
+export function CurrentUserProvider({
+  employee,
+  children,
+}: {
+  employee: EmployeeDTO | null;
+  children: React.ReactNode;
+}) {
+  const router = useRouter();
+  const role = roleOf(employee ?? undefined);
 
-  useEffect(() => {
-    try {
-      const saved = window.localStorage.getItem(STORAGE_KEY);
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- syncing from localStorage on mount only
-      if (saved) setCurrentId(Number(saved));
-    } catch {
-      /* ignore */
-    }
-  }, []);
-
-  function setCurrentEmployeeId(id: number | null) {
-    setCurrentId(id);
-    try {
-      if (id === null) window.localStorage.removeItem(STORAGE_KEY);
-      else window.localStorage.setItem(STORAGE_KEY, String(id));
-    } catch {
-      /* ignore */
-    }
+  async function logout() {
+    await fetch("/api/auth/logout", { method: "POST" });
+    router.push("/login");
+    router.refresh();
   }
-
-  const currentEmployee = employees.find((e) => e.id === currentId) ?? null;
-  const role = roleOf(currentEmployee ?? undefined);
 
   return (
     <CurrentUserContext.Provider
       value={{
-        employees,
-        currentEmployee,
-        setCurrentEmployeeId,
+        currentEmployee: employee,
         role,
-        can: (permission) => can(currentEmployee ?? undefined, permission),
+        can: (permission) => can(employee ?? undefined, permission),
+        logout,
       }}
     >
       {children}

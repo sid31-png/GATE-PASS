@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { PUBLIC_EMPLOYEE_SELECT } from "@/lib/employee-select";
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
@@ -23,6 +24,7 @@ export async function GET(req: NextRequest) {
   const employees = await prisma.employee.findMany({
     where: roleFilter,
     orderBy: { name: "asc" },
+    select: PUBLIC_EMPLOYEE_SELECT,
   });
   return NextResponse.json(employees);
 }
@@ -45,6 +47,7 @@ export async function POST(req: NextRequest) {
       email: body.email || null,
       active: body.active ?? true,
     },
+    select: PUBLIC_EMPLOYEE_SELECT,
   });
   return NextResponse.json(employee, { status: 201 });
 }

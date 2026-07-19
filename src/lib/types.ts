@@ -74,6 +74,7 @@ export const PASS_CATEGORY_LABEL: Record<string, string> = Object.fromEntries(
 export type EmployeeDTO = {
   id: number;
   name: string;
+  isCEO: boolean;
   isManager: boolean;
   isOpsAdmin: boolean;
   isOnline: boolean;
@@ -118,6 +119,7 @@ export type ServiceRequestDTO = {
   id: number;
   title: string;
   category: RequestCategoryValue;
+  serviceType: string | null;
   description: string | null;
   attachments: string | null;
   clientName: string | null;

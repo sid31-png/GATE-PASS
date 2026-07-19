@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { DispatchBoard } from "@/components/dispatch-board";
 import { DeliveryTaskDTO, EmployeeDTO } from "@/lib/types";
+import { PUBLIC_EMPLOYEE_SELECT } from "@/lib/employee-select";
 
 export const dynamic = "force-dynamic";
 
@@ -19,7 +20,7 @@ export default async function DispatchPage() {
       include: includeRelations,
       orderBy: [{ scheduledAt: "asc" }, { createdAt: "desc" }],
     }),
-    prisma.employee.findMany({ where: { active: true }, orderBy: { name: "asc" } }),
+    prisma.employee.findMany({ where: { active: true }, orderBy: { name: "asc" }, select: PUBLIC_EMPLOYEE_SELECT }),
   ]);
 
   return (

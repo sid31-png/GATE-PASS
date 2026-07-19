@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { AMDashboard } from "@/components/am-dashboard";
 import { CompanyDTO, EmployeeDTO, ServiceRequestDTO } from "@/lib/types";
+import { PUBLIC_EMPLOYEE_SELECT } from "@/lib/employee-select";
 
 export const dynamic = "force-dynamic";
 
@@ -13,7 +14,7 @@ const includeRelations = {
 export default async function AccountManagersPage() {
   const [requests, employees, companies] = await Promise.all([
     prisma.serviceRequest.findMany({ include: includeRelations, orderBy: { createdAt: "desc" } }),
-    prisma.employee.findMany({ where: { active: true }, orderBy: { name: "asc" } }),
+    prisma.employee.findMany({ where: { active: true }, orderBy: { name: "asc" }, select: PUBLIC_EMPLOYEE_SELECT }),
     prisma.company.findMany({ orderBy: { name: "asc" } }),
   ]);
 

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import clsx from "clsx";
 import { useCurrentUser } from "@/lib/current-user";
+import { isRouteAllowed } from "@/lib/route-access";
 
 const NAV_ITEMS = [
   { href: "/", label: "Dashboard" },
@@ -12,9 +13,9 @@ const NAV_ITEMS = [
   { href: "/collectors", label: "Performance" },
   { href: "/companies", label: "Companies" },
   { href: "/analytics", label: "Analytics" },
-  { href: "/account-managers", label: "Account Managers", roles: ["AM", "AM_LEAD", "OPS_ADMIN", "SUPER_ADMIN"] },
-  { href: "/request-queue", label: "Online Queue", roles: ["OPERATOR", "OPS_ADMIN", "SUPER_ADMIN"] },
-  { href: "/company-import", label: "Import Companies", roles: ["OPS_ADMIN", "SUPER_ADMIN"] },
+  { href: "/account-managers", label: "Account Managers" },
+  { href: "/request-queue", label: "Online Queue" },
+  { href: "/company-import", label: "Import Companies" },
   { href: "/dispatch", label: "Dispatch" },
   { href: "/online", label: "Online Team" },
   { href: "/field", label: "Field Team" },
@@ -24,7 +25,7 @@ const NAV_ITEMS = [
 export function MobileNav() {
   const pathname = usePathname();
   const { role } = useCurrentUser();
-  const visibleItems = NAV_ITEMS.filter((item) => !item.roles || item.roles.includes(role));
+  const visibleItems = NAV_ITEMS.filter((item) => isRouteAllowed(item.href, role));
 
   return (
     <div className="mb-4 flex gap-2 overflow-x-auto border-b border-slate-200 pb-3 dark:border-slate-800 lg:hidden">

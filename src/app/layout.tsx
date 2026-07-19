@@ -1,9 +1,8 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { Sidebar } from "@/components/sidebar";
-import { MobileNav } from "@/components/mobile-nav";
+import { AppShell } from "@/components/app-shell";
 import { CurrentUserProvider } from "@/lib/current-user";
-import { prisma } from "@/lib/prisma";
+import { getSessionEmployee } from "@/lib/session";
 import { EmployeeDTO } from "@/lib/types";
 
 export const metadata: Metadata = {
@@ -18,19 +17,13 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const employees = await prisma.employee.findMany({ where: { active: true }, orderBy: { name: "asc" } });
+  const employee = await getSessionEmployee();
 
   return (
     <html lang="en" className="h-full antialiased">
       <body className="min-h-full bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100">
-        <CurrentUserProvider employees={JSON.parse(JSON.stringify(employees)) as EmployeeDTO[]}>
-          <div className="flex min-h-screen">
-            <Sidebar />
-            <main className="flex-1 min-w-0 px-6 py-6 lg:px-10 lg:py-8">
-              <MobileNav />
-              {children}
-            </main>
-          </div>
+        <CurrentUserProvider employee={employee ? (JSON.parse(JSON.stringify(employee)) as EmployeeDTO) : null}>
+          <AppShell>{children}</AppShell>
         </CurrentUserProvider>
       </body>
     </html>

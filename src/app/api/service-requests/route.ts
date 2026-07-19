@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { RequestStatus } from "@/generated/prisma/client";
 import { resolveOnlineOperator } from "@/lib/dispatch";
+import { getSessionEmployee } from "@/lib/session";
+import { can, roleOf } from "@/lib/rbac";
 
 const includeRelations = {
   company: { select: { id: true, name: true } },
@@ -31,6 +33,17 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
+  const actor = await getSessionEmployee();
+  if (!actor) {
+    return NextResponse.json({ error: "Not authenticated." }, { status: 401 });
+  }
+  if (!can(actor, "create_service_request")) {
+    return NextResponse.json(
+      { error: "Your role can't create service requests. Only Account Managers, the AM Lead, and admins can." },
+      { status: 403 }
+    );
+  }
+
   const body = await req.json();
   if (!body.title || typeof body.title !== "string") {
     return NextResponse.json({ error: "Title is required" }, { status: 400 });
@@ -38,27 +51,41 @@ export async function POST(req: NextRequest) {
   if (!body.category || !["PRO", "DELIVERY"].includes(body.category)) {
     return NextResponse.json({ error: "Category must be PRO or DELIVERY" }, { status: 400 });
   }
-  if (!body.createdById) {
-    return NextResponse.json({ error: "createdById (the Account Manager) is required" }, { status: 400 });
+
+  // A plain AM may only file on their own behalf — the client-sent
+  // createdById is ignored for that role and forced to the session's own id.
+  // AM_LEAD/CEO/SUPER_ADMIN may file on behalf of any Account Manager.
+  const role = roleOf(actor);
+  let createdById = actor.id;
+  if (role === "AM_LEAD" || role === "CEO" || role === "SUPER_ADMIN") {
+    if (!body.createdById) {
+      return NextResponse.json({ error: "createdById (the Account Manager) is required" }, { status: 400 });
+    }
+    const target = await prisma.employee.findUnique({ where: { id: Number(body.createdById) } });
+    if (!target?.isAM) {
+      return NextResponse.json({ error: "createdById must be an Account Manager." }, { status: 400 });
+    }
+    createdById = target.id;
   }
 
   // Dynamic dispatch: auto-route to the AM's binome operator (with
   // company-level exceptions like ABB) instead of a free-for-all claim queue.
   const resolution = await resolveOnlineOperator({
     companyId: body.companyId ?? null,
-    amEmployeeId: body.createdById,
+    amEmployeeId: createdById,
   });
 
   const request = await prisma.serviceRequest.create({
     data: {
       title: body.title,
       category: body.category,
+      serviceType: body.serviceType || null,
       companyId: body.companyId ?? null,
       clientName: body.clientName || null,
       description: body.description || null,
       attachments: body.attachments || null,
       status: RequestStatus.ASSIGNED_TO_ONLINE,
-      createdById: body.createdById,
+      createdById,
       claimedById: resolution.operatorId,
       assignmentRuleId: resolution.assignmentRuleId,
       partnershipId: resolution.partnershipId,
@@ -73,7 +100,7 @@ export async function POST(req: NextRequest) {
       requestId: request.id,
       fromStatus: null,
       toStatus: RequestStatus.ASSIGNED_TO_ONLINE,
-      changedById: body.createdById,
+      changedById: createdById,
     },
   });
 

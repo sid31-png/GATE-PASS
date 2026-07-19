@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { DeliveryTaskDTO, EmployeeDTO } from "@/lib/types";
 import { STAGE_LABEL } from "@/lib/delivery";
 import { Badge, Card, SectionHeader } from "@/components/ui";
+import { useCurrentUser } from "@/lib/current-user";
 
 function fmt(d: string | null) {
   if (!d) return "—";
@@ -86,6 +87,9 @@ export function FieldTeamBoard({
   initialTasks: DeliveryTaskDTO[];
   fieldEmployees: EmployeeDTO[];
 }) {
+  const { can } = useCurrentUser();
+  const canValidate = can("dispatch_field_assign"); // "valider les livraisons" — MED-DARWISH/CEO only
+  const canLogProgress = can("update_field_status"); // start/blocked/resume — CEO/SUPER_ADMIN/Online Operators
   const [tasks, setTasks] = useState(initialTasks);
   const [agentName, setAgentName] = useState<string>("");
   const [blocking, setBlocking] = useState<DeliveryTaskDTO | null>(null);
@@ -123,7 +127,14 @@ export function FieldTeamBoard({
 
   return (
     <div className="mx-auto max-w-xl">
-      <SectionHeader title="🚚 Field Missions" subtitle="Today's deliveries & government trips" />
+      <SectionHeader
+        title="🚚 Field Missions"
+        subtitle={
+          canLogProgress
+            ? "Today's deliveries & government trips"
+            : "🔒 View only — status updates are entered by MED-DARWISH or an Online Operator."
+        }
+      />
 
       <Card className="mb-4">
         <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
@@ -171,48 +182,54 @@ export function FieldTeamBoard({
               </div>
             )}
 
-            <div className="mt-3 flex flex-wrap gap-2">
-              {task.stage === "ASSIGNED" && (
-                <>
+            {(canLogProgress || canValidate) && (
+              <div className="mt-3 flex flex-wrap gap-2">
+                {task.stage === "ASSIGNED" && canLogProgress && (
+                  <>
+                    <button
+                      onClick={() => setStage(task.id, "IN_PROGRESS")}
+                      className="flex-1 rounded-lg bg-[#af1882] px-3 py-2 text-sm font-medium text-white hover:bg-[#8f1468]"
+                    >
+                      ▶ Start mission
+                    </button>
+                    <button
+                      onClick={() => setBlocking(task)}
+                      className="rounded-lg border border-red-300 px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50 dark:border-red-500/30 dark:hover:bg-red-500/10"
+                    >
+                      Blocked
+                    </button>
+                  </>
+                )}
+                {task.stage === "IN_PROGRESS" && (
+                  <>
+                    {canValidate && (
+                      <button
+                        onClick={() => setStage(task.id, "COMPLETED")}
+                        className="flex-1 rounded-lg bg-emerald-600 px-3 py-2 text-sm font-medium text-white hover:bg-emerald-700"
+                      >
+                        ✓ Mark completed
+                      </button>
+                    )}
+                    {canLogProgress && (
+                      <button
+                        onClick={() => setBlocking(task)}
+                        className="rounded-lg border border-red-300 px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50 dark:border-red-500/30 dark:hover:bg-red-500/10"
+                      >
+                        Blocked
+                      </button>
+                    )}
+                  </>
+                )}
+                {task.stage === "BLOCKED" && canLogProgress && (
                   <button
                     onClick={() => setStage(task.id, "IN_PROGRESS")}
                     className="flex-1 rounded-lg bg-[#af1882] px-3 py-2 text-sm font-medium text-white hover:bg-[#8f1468]"
                   >
-                    ▶ Start mission
+                    ↻ Resume mission
                   </button>
-                  <button
-                    onClick={() => setBlocking(task)}
-                    className="rounded-lg border border-red-300 px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50 dark:border-red-500/30 dark:hover:bg-red-500/10"
-                  >
-                    Blocked
-                  </button>
-                </>
-              )}
-              {task.stage === "IN_PROGRESS" && (
-                <>
-                  <button
-                    onClick={() => setStage(task.id, "COMPLETED")}
-                    className="flex-1 rounded-lg bg-emerald-600 px-3 py-2 text-sm font-medium text-white hover:bg-emerald-700"
-                  >
-                    ✓ Mark completed
-                  </button>
-                  <button
-                    onClick={() => setBlocking(task)}
-                    className="rounded-lg border border-red-300 px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50 dark:border-red-500/30 dark:hover:bg-red-500/10"
-                  >
-                    Blocked
-                  </button>
-                </>
-              )}
-              {task.stage === "BLOCKED" && (
-                <button
-                  onClick={() => setStage(task.id, "IN_PROGRESS")}
-                  className="flex-1 rounded-lg bg-[#af1882] px-3 py-2 text-sm font-medium text-white hover:bg-[#8f1468]"
-                >
-                  ↻ Resume mission
-                </button>
-              )}
-            </div>
+                )}
+              </div>
+            )}
           </Card>
         ))}
         {sorted.length === 0 && (

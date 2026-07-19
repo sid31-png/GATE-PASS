@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { DeliveryTaskDTO, EmployeeDTO } from "@/lib/types";
 import { STAGE_LABEL } from "@/lib/delivery";
 import { Badge, Card, HeroBand, HeroStat, SectionHeader } from "@/components/ui";
+import { useCurrentUser } from "@/lib/current-user";
 
 function fmt(d: string | null) {
   if (!d) return "—";
@@ -171,6 +172,8 @@ export function DispatchBoard({
   initialTasks: DeliveryTaskDTO[];
   employees: EmployeeDTO[];
 }) {
+  const { can } = useCurrentUser();
+  const canDispatch = can("dispatch_field_assign");
   const [tasks, setTasks] = useState(initialTasks);
   const [assigning, setAssigning] = useState<DeliveryTaskDTO | null>(null);
 
@@ -212,7 +215,11 @@ export function DispatchBoard({
     <div>
       <SectionHeader
         title="📡 Dispatch — Manager Supervision"
-        subtitle={manager ? `Signed in as ${manager.name}` : "MED-DARWISH — real-time operations view"}
+        subtitle={
+          canDispatch
+            ? "Assign field agents, set instructions, and validate deliveries."
+            : "🔒 View only — assigning field agents is exclusive to MED-DARWISH and the CEO."
+        }
       />
 
       <HeroBand>
@@ -243,12 +250,16 @@ export function DispatchBoard({
                 )}
                 <TaskMeta task={task} />
               </div>
-              <button
-                onClick={() => setAssigning(task)}
-                className="shrink-0 rounded-lg bg-[#af1882] px-4 py-2 text-sm font-medium text-white hover:bg-[#8f1468]"
-              >
-                Assign agent
-              </button>
+              {canDispatch ? (
+                <button
+                  onClick={() => setAssigning(task)}
+                  className="shrink-0 rounded-lg bg-[#af1882] px-4 py-2 text-sm font-medium text-white hover:bg-[#8f1468]"
+                >
+                  Assign agent
+                </button>
+              ) : (
+                <Badge>Waiting for dispatch</Badge>
+              )}
             </Card>
           ))}
           {byStage("DISPATCH").length === 0 && (
@@ -282,12 +293,14 @@ export function DispatchBoard({
                   </div>
                 )}
               </div>
-              <button
-                onClick={() => setAssigning(task)}
-                className="shrink-0 rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
-              >
-                Reassign
-              </button>
+              {canDispatch && (
+                <button
+                  onClick={() => setAssigning(task)}
+                  className="shrink-0 rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
+                >
+                  Reassign
+                </button>
+              )}
             </Card>
           ))}
           {byStage("ASSIGNED").length === 0 && byStage("IN_PROGRESS").length === 0 && (
@@ -319,20 +332,22 @@ export function DispatchBoard({
                   </div>
                 )}
               </div>
-              <div className="flex shrink-0 gap-2">
-                <button
-                  onClick={() => setAssigning(task)}
-                  className="rounded-lg bg-[#af1882] px-3 py-1.5 text-xs font-medium text-white hover:bg-[#8f1468]"
-                >
-                  Resolve &amp; reassign
-                </button>
-                <button
-                  onClick={() => sendBackToDispatch(task.id)}
-                  className="rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
-                >
-                  Send back to queue
-                </button>
-              </div>
+              {canDispatch && (
+                <div className="flex shrink-0 gap-2">
+                  <button
+                    onClick={() => setAssigning(task)}
+                    className="rounded-lg bg-[#af1882] px-3 py-1.5 text-xs font-medium text-white hover:bg-[#8f1468]"
+                  >
+                    Resolve &amp; reassign
+                  </button>
+                  <button
+                    onClick={() => sendBackToDispatch(task.id)}
+                    className="rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
+                  >
+                    Send back to queue
+                  </button>
+                </div>
+              )}
             </Card>
           ))}
           {byStage("BLOCKED").length === 0 && (
@@ -379,7 +394,7 @@ export function DispatchBoard({
         </Card>
       </div>
 
-      {assigning && (
+      {assigning && canDispatch && (
         <AssignModal
           task={assigning}
           fieldEmployees={fieldEmployees}

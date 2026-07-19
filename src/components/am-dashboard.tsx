@@ -5,6 +5,8 @@ import { CompanyDTO, EmployeeDTO, ServiceRequestDTO } from "@/lib/types";
 import { STATUS_LABEL } from "@/lib/service-requests";
 import { Badge, Card, KpiCard, SectionHeader } from "@/components/ui";
 import { useCurrentUser } from "@/lib/current-user";
+import { PRO_SERVICE_CATALOG } from "@/lib/pro-services";
+import { roleOf } from "@/lib/rbac";
 
 function fmt(d: string) {
   return new Date(d).toLocaleString(undefined, {
@@ -19,24 +21,30 @@ function fmt(d: string) {
 function NewRequestModal({
   amEmployees,
   companies,
-  defaultCreatedBy,
+  currentEmployee,
   onClose,
   onSaved,
 }: {
   amEmployees: EmployeeDTO[];
   companies: CompanyDTO[];
-  defaultCreatedBy: string;
+  currentEmployee: EmployeeDTO | null;
   onClose: () => void;
   onSaved: () => void;
 }) {
+  // A plain AM can only file for themselves; AM_LEAD/CEO/SUPER_ADMIN may pick
+  // any Account Manager to file on behalf of (server re-checks this too).
+  const role = roleOf(currentEmployee ?? undefined);
+  const canPickAnyAM = role === "AM_LEAD" || role === "CEO" || role === "SUPER_ADMIN";
+
   const [title, setTitle] = useState("");
   const [category, setCategory] = useState<"PRO" | "DELIVERY">("PRO");
+  const [serviceType, setServiceType] = useState("");
   const [companyId, setCompanyId] = useState<number | "">("");
   const [clientName, setClientName] = useState("");
   const [description, setDescription] = useState("");
   const [attachments, setAttachments] = useState("");
   const [createdBy, setCreatedBy] = useState<number | "">(
-    amEmployees.find((e) => e.name === defaultCreatedBy && !e.isAMLead)?.id ?? ""
+    canPickAnyAM ? "" : currentEmployee?.id ?? ""
   );
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -45,7 +53,7 @@ function NewRequestModal({
     e.preventDefault();
     setError(null);
     if (!title.trim()) { setError("A title is required."); return; }
-    if (!createdBy) { setError("Please select which Account Manager is filing this request."); return; }
+    if (canPickAnyAM && !createdBy) { setError("Please select which Account Manager is filing this request."); return; }
     setSaving(true);
     const res = await fetch("/api/service-requests", {
       method: "POST",
@@ -53,11 +61,12 @@ function NewRequestModal({
       body: JSON.stringify({
         title,
         category,
+        serviceType: category === "PRO" ? serviceType || null : null,
         companyId: companyId || null,
         clientName: clientName || null,
         description: description || null,
         attachments: attachments || null,
-        createdById: createdBy,
+        createdById: canPickAnyAM ? createdBy : undefined,
       }),
     });
     setSaving(false);
@@ -106,19 +115,44 @@ function NewRequestModal({
             </div>
             <div>
               <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">Requested by</label>
+              {canPickAnyAM ? (
+                <select
+                  required
+                  className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
+                  value={createdBy}
+                  onChange={(e) => setCreatedBy(e.target.value ? Number(e.target.value) : "")}
+                >
+                  <option value="">Select AM…</option>
+                  {amEmployees.filter((e) => !e.isAMLead).map((e) => (
+                    <option key={e.id} value={e.id}>{e.name}</option>
+                  ))}
+                </select>
+              ) : (
+                <div className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-600 dark:border-slate-700 dark:bg-slate-800/60 dark:text-slate-400">
+                  {currentEmployee?.name ?? "—"} (you)
+                </div>
+              )}
+            </div>
+          </div>
+          {category === "PRO" && (
+            <div>
+              <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">PRO service type</label>
               <select
-                required
                 className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
-                value={createdBy}
-                onChange={(e) => setCreatedBy(e.target.value ? Number(e.target.value) : "")}
+                value={serviceType}
+                onChange={(e) => setServiceType(e.target.value)}
               >
-                <option value="">Select AM…</option>
-                {amEmployees.filter((e) => !e.isAMLead).map((e) => (
-                  <option key={e.id} value={e.id}>{e.name}</option>
+                <option value="">— Select a service —</option>
+                {PRO_SERVICE_CATALOG.map((g) => (
+                  <optgroup key={g.group} label={g.group}>
+                    {g.services.map((s) => (
+                      <option key={s} value={s}>{s}</option>
+                    ))}
+                  </optgroup>
                 ))}
               </select>
             </div>
-          </div>
+          )}
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">Company</label>
@@ -234,9 +268,7 @@ export function AMDashboard({
       <div>
         <SectionHeader title="🧑‍💼 Account Managers" subtitle="Client service requests" />
         <Card className="max-w-md text-sm text-slate-600 dark:text-slate-400">
-          {currentEmployee
-            ? "This account doesn't have Account Manager access. Switch your account in the sidebar if you have the right role."
-            : "Select your account in the sidebar (“Signed in as”) to see your requests."}
+          🔒 This account doesn&apos;t have Account Manager access.
         </Card>
       </div>
     );
@@ -248,12 +280,14 @@ export function AMDashboard({
         title="🧑‍💼 Account Managers"
         subtitle={seesAll ? "Global view — all Account Managers' requests" : `${currentEmployee?.name}'s requests`}
         action={
-          <button
-            onClick={() => setFormOpen(true)}
-            className="rounded-lg bg-[#af1882] px-4 py-2 text-sm font-medium text-white hover:bg-[#8f1468]"
-          >
-            + New request
-          </button>
+          can("create_service_request") ? (
+            <button
+              onClick={() => setFormOpen(true)}
+              className="rounded-lg bg-[#af1882] px-4 py-2 text-sm font-medium text-white hover:bg-[#8f1468]"
+            >
+              + New request
+            </button>
+          ) : undefined
         }
       />
 
@@ -299,6 +333,7 @@ export function AMDashboard({
                 </td>
                 <td className="px-4 py-3 text-slate-600 dark:text-slate-400">
                   {r.category === "PRO" ? "PRO service" : "Delivery"}
+                  {r.serviceType && <div className="text-xs text-slate-400 dark:text-slate-500">{r.serviceType}</div>}
                 </td>
                 <td className="px-4 py-3 text-slate-600 dark:text-slate-400">
                   {r.company?.name ?? "—"}
@@ -334,11 +369,11 @@ export function AMDashboard({
         </table>
       </Card>
 
-      {formOpen && (
+      {formOpen && can("create_service_request") && (
         <NewRequestModal
           amEmployees={amEmployees}
           companies={companies}
-          defaultCreatedBy={currentEmployee?.name ?? ""}
+          currentEmployee={currentEmployee}
           onClose={() => setFormOpen(false)}
           onSaved={async () => {
             setFormOpen(false);

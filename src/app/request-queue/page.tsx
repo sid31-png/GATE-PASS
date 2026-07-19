@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { OnlineQueueBoard } from "@/components/online-queue-board";
 import { EmployeeDTO, ServiceRequestDTO } from "@/lib/types";
+import { PUBLIC_EMPLOYEE_SELECT } from "@/lib/employee-select";
 
 export const dynamic = "force-dynamic";
 
@@ -17,7 +18,11 @@ export default async function OnlineQueuePage() {
       include: includeRelations,
       orderBy: { createdAt: "asc" },
     }),
-    prisma.employee.findMany({ where: { active: true, isOnline: true }, orderBy: { name: "asc" } }),
+    prisma.employee.findMany({
+      where: { active: true, isOnline: true },
+      orderBy: { name: "asc" },
+      select: PUBLIC_EMPLOYEE_SELECT,
+    }),
   ]);
 
   return (

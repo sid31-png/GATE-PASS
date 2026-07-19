@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { PUBLIC_EMPLOYEE_SELECT } from "@/lib/employee-select";
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -13,7 +14,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   if (body.email !== undefined) data.email = body.email || null;
   if (body.active !== undefined) data.active = Boolean(body.active);
 
-  const employee = await prisma.employee.update({ where: { id: Number(id) }, data });
+  const employee = await prisma.employee.update({ where: { id: Number(id) }, data, select: PUBLIC_EMPLOYEE_SELECT });
   return NextResponse.json(employee);
 }
 

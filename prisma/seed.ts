@@ -11,6 +11,7 @@ import {
 } from "../src/generated/prisma/client";
 import seedData from "./data/gatepass_seed.json";
 import companyAllocation from "./data/company_am_allocation.json";
+import { hashPassword } from "../src/lib/auth";
 
 const prisma = new PrismaClient();
 
@@ -52,33 +53,40 @@ const LOCATION_MAP: Record<string, Location> = {
   Offshore: Location.OFFSHORE,
 };
 
-// The real delivery/dispatch/AM team roster.
+// The real delivery/dispatch/AM team roster. `password` is the demo login
+// password for login-capable employees (hashed before insert, never stored
+// in plaintext) — field-only agents have no `password` and therefore no
+// login account, per spec (their missions are entered on their behalf).
+const DEMO_PASSWORD_SUFFIX = "@Rch2026";
 const EMPLOYEES: {
   name: string;
+  isCEO?: boolean;
   isManager?: boolean;
   isOpsAdmin?: boolean;
   isOnline?: boolean;
   isField?: boolean;
   isAM?: boolean;
   isAMLead?: boolean;
+  password?: string;
 }[] = [
-  { name: "MED-DARWISH", isManager: true },
-  { name: "ALAA", isOnline: true, isField: true },
-  { name: "AHMED", isOnline: true, isOpsAdmin: true },
-  { name: "SAMIM", isOnline: true, isField: true },
-  { name: "TAHA", isOnline: true, isField: true },
-  { name: "MUJEEB", isOnline: true, isField: true },
+  { name: "Tayseer", isCEO: true, password: `Tayseer${DEMO_PASSWORD_SUFFIX}` },
+  { name: "MED-DARWISH", isManager: true, password: `MedDarwish${DEMO_PASSWORD_SUFFIX}` },
+  { name: "ALAA", isOnline: true, isField: true, password: `Alaa${DEMO_PASSWORD_SUFFIX}` },
+  { name: "AHMED", isOnline: true, isOpsAdmin: true, password: `Ahmed${DEMO_PASSWORD_SUFFIX}` },
+  { name: "SAMIM", isOnline: true, isField: true, password: `Samim${DEMO_PASSWORD_SUFFIX}` },
+  { name: "TAHA", isOnline: true, isField: true, password: `Taha${DEMO_PASSWORD_SUFFIX}` },
+  { name: "MUJEEB", isOnline: true, isField: true, password: `Mujeeb${DEMO_PASSWORD_SUFFIX}` },
   { name: "SALAH", isField: true },
   { name: "MED-HUSSAIN", isField: true },
   { name: "ABIN", isField: true },
   { name: "AITA", isField: true },
-  { name: "ELENA", isAM: true, isAMLead: true },
-  { name: "Violetta", isAM: true },
-  { name: "Abegail", isAM: true },
-  { name: "Vongai", isAM: true },
-  { name: "Nasma", isAM: true },
-  { name: "Roxana", isAM: true },
-  { name: "Gabriela", isAM: true },
+  { name: "ELENA", isAM: true, isAMLead: true, password: `Elena${DEMO_PASSWORD_SUFFIX}` },
+  { name: "Violetta", isAM: true, password: `Violetta${DEMO_PASSWORD_SUFFIX}` },
+  { name: "Abegail", isAM: true, password: `Abegail${DEMO_PASSWORD_SUFFIX}` },
+  { name: "Vongai", isAM: true, password: `Vongai${DEMO_PASSWORD_SUFFIX}` },
+  { name: "Nasma", isAM: true, password: `Nasma${DEMO_PASSWORD_SUFFIX}` },
+  { name: "Roxana", isAM: true, password: `Roxana${DEMO_PASSWORD_SUFFIX}` },
+  { name: "Gabriela", isAM: true, password: `Gabriela${DEMO_PASSWORD_SUFFIX}` },
 ];
 
 // Default AM <-> Online Operator binomes. A single operator name is a fixed
@@ -164,12 +172,14 @@ async function main() {
     const employee = await prisma.employee.create({
       data: {
         name: e.name,
+        isCEO: e.isCEO ?? false,
         isManager: e.isManager ?? false,
         isOpsAdmin: e.isOpsAdmin ?? false,
         isOnline: e.isOnline ?? false,
         isField: e.isField ?? false,
         isAM: e.isAM ?? false,
         isAMLead: e.isAMLead ?? false,
+        passwordHash: e.password ? hashPassword(e.password) : null,
       },
     });
     employees.set(e.name, employee.id);

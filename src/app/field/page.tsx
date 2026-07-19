@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { FieldTeamBoard } from "@/components/field-team-board";
 import { DeliveryTaskDTO, EmployeeDTO } from "@/lib/types";
+import { PUBLIC_EMPLOYEE_SELECT } from "@/lib/employee-select";
 
 export const dynamic = "force-dynamic";
 
@@ -19,7 +20,11 @@ export default async function FieldPage() {
       include: includeRelations,
       orderBy: [{ scheduledAt: "asc" }],
     }),
-    prisma.employee.findMany({ where: { active: true, isField: true }, orderBy: { name: "asc" } }),
+    prisma.employee.findMany({
+      where: { active: true, isField: true },
+      orderBy: { name: "asc" },
+      select: PUBLIC_EMPLOYEE_SELECT,
+    }),
   ]);
 
   return (

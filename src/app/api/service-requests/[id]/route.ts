@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { RequestStatus, DeliveryStage } from "@/generated/prisma/client";
 import { assertValidTransition } from "@/lib/service-requests";
+import { getSessionEmployee } from "@/lib/session";
+import { can } from "@/lib/rbac";
 
 const includeRelations = {
   company: { select: { id: true, name: true } },
@@ -26,12 +28,23 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   const { id } = await params;
   const body = await req.json();
 
+  const actor = await getSessionEmployee();
+  if (!actor) {
+    return NextResponse.json({ error: "Not authenticated." }, { status: 401 });
+  }
+
   const existing = await prisma.serviceRequest.findUnique({ where: { id: Number(id) } });
   if (!existing) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
   if (body.status === undefined) {
     if (body.claimedById !== undefined) {
-      // Manual reassignment (Ops Admin / Super Admin) — no stage transition.
+      // Manual reassignment (Ops Admin / Super Admin / CEO) — no stage transition.
+      if (!can(actor, "reassign_requests")) {
+        return NextResponse.json(
+          { error: "You don't have permission to reassign this request." },
+          { status: 403 }
+        );
+      }
       const request = await prisma.serviceRequest.update({
         where: { id: Number(id) },
         data: {

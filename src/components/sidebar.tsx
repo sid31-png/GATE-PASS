@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import clsx from "clsx";
 import { useCurrentUser } from "@/lib/current-user";
 import { ROLE_LABEL } from "@/lib/rbac";
+import { isRouteAllowed } from "@/lib/route-access";
 
 const NAV_ITEMS = [
   { href: "/", label: "Dashboard", icon: "\u{1F6C2}" },
@@ -14,9 +15,9 @@ const NAV_ITEMS = [
   { href: "/collectors", label: "Collector Performance", icon: "\u{1F3C6}" },
   { href: "/companies", label: "Companies", icon: "\u{1F3E2}" },
   { href: "/analytics", label: "Analytics", icon: "\u{1F4CA}" },
-  { href: "/account-managers", label: "Account Managers", icon: "\u{1F9D1}‍\u{1F4BC}", roles: ["AM", "AM_LEAD", "OPS_ADMIN", "SUPER_ADMIN"] },
-  { href: "/request-queue", label: "Online Queue", icon: "\u{1F4E5}", roles: ["OPERATOR", "OPS_ADMIN", "SUPER_ADMIN"] },
-  { href: "/company-import", label: "Import Companies", icon: "\u{1F4C5}", roles: ["OPS_ADMIN", "SUPER_ADMIN"] },
+  { href: "/account-managers", label: "Account Managers", icon: "\u{1F9D1}‍\u{1F4BC}" },
+  { href: "/request-queue", label: "Online Queue", icon: "\u{1F4E5}" },
+  { href: "/company-import", label: "Import Companies", icon: "\u{1F4C5}" },
   { href: "/dispatch", label: "Dispatch", icon: "\u{1F4E1}" },
   { href: "/online", label: "Online Team", icon: "\u{1F4BB}" },
   { href: "/field", label: "Field Team", icon: "\u{1F69A}" },
@@ -25,9 +26,9 @@ const NAV_ITEMS = [
 
 export function Sidebar() {
   const pathname = usePathname();
-  const { employees, currentEmployee, setCurrentEmployeeId, role } = useCurrentUser();
+  const { currentEmployee, role, logout } = useCurrentUser();
 
-  const visibleItems = NAV_ITEMS.filter((item) => !item.roles || item.roles.includes(role));
+  const visibleItems = NAV_ITEMS.filter((item) => isRouteAllowed(item.href, role));
 
   return (
     <aside className="hidden w-64 shrink-0 border-r border-slate-100 bg-white lg:flex lg:flex-col">
@@ -39,19 +40,16 @@ export function Sidebar() {
         <label className="mb-1 block text-[10px] font-semibold uppercase tracking-wide text-slate-400">
           Signed in as
         </label>
-        <select
-          className="w-full rounded-lg border border-slate-200 bg-slate-50 px-2 py-1.5 text-xs font-medium text-slate-700"
-          value={currentEmployee?.id ?? ""}
-          onChange={(e) => setCurrentEmployeeId(e.target.value ? Number(e.target.value) : null)}
-        >
-          <option value="">Select your account…</option>
-          {employees.map((e) => (
-            <option key={e.id} value={e.id}>
-              {e.name}
-            </option>
-          ))}
-        </select>
-        <div className="mt-1.5 text-[10.5px] font-semibold text-[#af1882]">{ROLE_LABEL[role]}</div>
+        <div className="truncate text-sm font-semibold text-slate-800">{currentEmployee?.name ?? "—"}</div>
+        <div className="mt-1 flex items-center justify-between">
+          <span className="text-[10.5px] font-semibold text-[#af1882]">{ROLE_LABEL[role]}</span>
+          <button
+            onClick={() => logout()}
+            className="text-[10.5px] font-semibold text-slate-400 hover:text-slate-700"
+          >
+            Log out
+          </button>
+        </div>
       </div>
       <nav className="flex-1 space-y-1 px-3 py-3">
         {visibleItems.map((item) => {

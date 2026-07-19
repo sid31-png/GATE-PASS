@@ -94,22 +94,31 @@ model Company {
 
 // The full staff roster. Booleans (rather than a single role enum) because
 // several people are mixed profiles (e.g. Online + Field, or AM + AM lead).
-// RBAC role is derived from these (see src/lib/rbac.ts):
-//   isManager  — Dispatch/field manager (MED-DARWISH) -> SUPER_ADMIN (full access)
-//   isOpsAdmin — Operations admin (AHMED) -> OPS_ADMIN (supervises online queue, can reassign)
-//   isOnline   — Online Operations (delivery prep) -> OPERATOR (sees only own auto-assigned tasks)
-//   isField    — Field/government-trips agent
-//   isAM       — Account Manager, initiates client service requests
+// RBAC role is derived from these (see src/lib/rbac.ts), highest first:
+//   isCEO      — Mr. Tayseer -> CEO (absolute full access, no exceptions)
+//   isManager  — Dispatch/field manager (MED-DARWISH) -> SUPER_ADMIN (full access,
+//                plus the ONLY role besides CEO that can assign field dispatch)
+//   isOpsAdmin — Operations admin (AHMED) -> OPS_ADMIN (broad access, excluding
+//                field-dispatch-assign and creating AM requests)
 //   isAMLead   — supervises all AM requests (ELENA); implies isAM -> AM_LEAD
+//   isOnline   — Online Operations (delivery prep) -> OPERATOR (own auto-assigned
+//                tasks only; may also update field mission status if needed)
+//   isAM       — Account Manager, the only role (with AM_LEAD/CEO/SUPER_ADMIN)
+//                that may create a new service request -> AM
+//   isField    — Field/government-trips agent. Field staff have NO login account
+//                (passwordHash stays null); their missions are entered on their
+//                behalf by MED-DARWISH/CEO or an Online Operator.
 model Employee {
   id               Int                    @id @default(autoincrement())
   name             String                 @unique
+  isCEO            Boolean                @default(false)
   isManager        Boolean                @default(false)
   isOpsAdmin       Boolean                @default(false)
   isOnline         Boolean                @default(false)
   isField          Boolean                @default(false)
   isAM             Boolean                @default(false)
   isAMLead         Boolean                @default(false)
+  passwordHash     String?
   phone            String?
   email            String?
   active           Boolean                @default(true)
@@ -202,6 +211,7 @@ model ServiceRequest {
   id                Int                    @id @default(autoincrement())
   title             String
   category          RequestCategory
+  serviceType       String?
   companyId         Int?
   company           Company?               @relation(fields: [companyId], references: [id])
   clientName        String?
