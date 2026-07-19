@@ -71,15 +71,19 @@ export type Permission =
   // Relaying a field agent's own-reported progress (mission started / blocked
   // / resumed) — not the exclusive assign-or-validate actions above. Allowed
   // for Online Operators too ("ou les opérateurs en ligne si nécessaire").
-  | "update_field_status";
+  | "update_field_status"
+  // Gate Pass + PRO services statistics dashboard (the root "/" page's
+  // charts/KPIs). Only the admin tier sees it — a plain AM's or Operator's
+  // own "/" is their AM/Online Queue work instead (see app/page.tsx).
+  | "view_dashboard_stats";
 
 // CEO and SUPER_ADMIN bypass this table entirely (see `can` below) — this
 // map only needs to describe the narrower roles.
 const PERMISSIONS: Record<Role, Permission[]> = {
   CEO: [],
   SUPER_ADMIN: [],
-  OPS_ADMIN: ["view_all_online_queue", "reassign_requests", "import_companies", "configure_dispatch", "update_field_status"],
-  AM_LEAD: ["view_all_am_requests", "create_service_request", "dispatch_field_assign"],
+  OPS_ADMIN: ["view_all_online_queue", "reassign_requests", "import_companies", "configure_dispatch", "update_field_status", "view_dashboard_stats"],
+  AM_LEAD: ["view_all_am_requests", "create_service_request", "dispatch_field_assign", "view_dashboard_stats"],
   OPERATOR: ["update_field_status"],
   AM: ["create_service_request"],
   FIELD: [],

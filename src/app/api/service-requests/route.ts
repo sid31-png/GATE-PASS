@@ -4,6 +4,7 @@ import { RequestStatus } from "@/generated/prisma/client";
 import { resolveOnlineOperator } from "@/lib/dispatch";
 import { getSessionEmployee } from "@/lib/session";
 import { can, roleOf } from "@/lib/rbac";
+import { canCreateGatePassRequest, GATE_PASS_ELIGIBLE_COMPANIES, GATE_PASS_FAMILY_SERVICE_TYPES } from "@/lib/gate-pass-requests";
 
 const includeRelations = {
   company: { select: { id: true, name: true } },
@@ -66,6 +67,27 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "createdById must be an Account Manager." }, { status: 400 });
     }
     createdById = target.id;
+  }
+
+  // Gate Pass / DVC / Offshore Medical Card requests are restricted to the
+  // 4 eligible companies and to a named-user whitelist (not the whole AM
+  // role) — enforced server-side regardless of what the client sends.
+  if (body.serviceType && GATE_PASS_FAMILY_SERVICE_TYPES.includes(body.serviceType)) {
+    if (!canCreateGatePassRequest(actor)) {
+      return NextResponse.json(
+        { error: "Your account isn't eligible to file Gate Pass / DVC / Offshore Medical Card requests." },
+        { status: 403 }
+      );
+    }
+    if (body.companyId) {
+      const company = await prisma.company.findUnique({ where: { id: Number(body.companyId) } });
+      if (!company || !GATE_PASS_ELIGIBLE_COMPANIES.includes(company.name)) {
+        return NextResponse.json(
+          { error: "Gate Pass requests are only available for EY Consulting, Tenaris Global, Tenaris Investment, and Welltec." },
+          { status: 400 }
+        );
+      }
+    }
   }
 
   // Dynamic dispatch: auto-route to the AM's binome operator (with

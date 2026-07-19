@@ -9,10 +9,14 @@ export const ROUTE_ACCESS_RULES: { prefix: string; roles: Role[] }[] = [
   // dispatching screen. Plain Account Managers (e.g. Violetta) are still
   // blocked outright, per spec.
   { prefix: "/dispatch", roles: ["CEO", "SUPER_ADMIN", "OPS_ADMIN", "OPERATOR", "AM_LEAD"] },
-  { prefix: "/request-queue", roles: ["CEO", "SUPER_ADMIN", "OPS_ADMIN", "OPERATOR"] },
+  // Merged into the Operator's own "/" Dashboard — the dedicated page stays
+  // reachable for the admin tier only.
+  { prefix: "/request-queue", roles: ["CEO", "SUPER_ADMIN", "OPS_ADMIN"] },
   { prefix: "/online", roles: ["CEO", "SUPER_ADMIN", "OPS_ADMIN", "OPERATOR"] },
   { prefix: "/company-import", roles: ["CEO", "SUPER_ADMIN", "OPS_ADMIN"] },
-  { prefix: "/account-managers", roles: ["CEO", "SUPER_ADMIN", "OPS_ADMIN", "AM_LEAD", "AM"] },
+  // Merged into the plain AM's own "/" Dashboard — the dedicated page stays
+  // reachable for the admin tier only.
+  { prefix: "/account-managers", roles: ["CEO", "SUPER_ADMIN", "OPS_ADMIN", "AM_LEAD"] },
 ];
 
 export function isRouteAllowed(pathname: string, role: Role): boolean {

@@ -12,6 +12,7 @@ import {
   REQUEST_TYPES,
 } from "@/lib/types";
 import { PRO_SERVICE_CATALOG_NO_GATE_PASS } from "@/lib/pro-services";
+import { GATE_PASS_ELIGIBLE_COMPANIES, GATE_PASS_REQUEST_KINDS, GatePassRequestKind } from "@/lib/gate-pass-requests";
 import { roleOf } from "@/lib/rbac";
 
 type GatePassLocationValue = GatePassDTO["location"];
@@ -238,7 +239,9 @@ export function NewGatePassRequestModal({
 }) {
   const role = roleOf(currentEmployee ?? undefined);
   const canPickAnyAM = role === "AM_LEAD" || role === "CEO" || role === "SUPER_ADMIN";
+  const eligibleCompanies = companies.filter((c) => GATE_PASS_ELIGIBLE_COMPANIES.includes(c.name));
 
+  const [kind, setKind] = useState<GatePassRequestKind>("GATE_PASS");
   const [location, setLocation] = useState<GatePassLocationValue | "">("");
   const [gatePassType, setGatePassType] = useState<GatePassTypeValue | "">("");
   const [requestType, setRequestType] = useState<RequestTypeValue | "">("");
@@ -254,14 +257,24 @@ export function NewGatePassRequestModal({
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
-    if (!location || !gatePassType || !requestType || !passCategory) {
+    if (kind === "GATE_PASS" && (!location || !gatePassType || !requestType || !passCategory)) {
       setError("Please fill in the site, gate pass type, request type, and pass category.");
       return;
     }
+    if (!companyId) { setError("Please select the company (only the 4 Gate Pass accounts are eligible)."); return; }
     if (canPickAnyAM && !createdBy) { setError("Please select which Account Manager is filing this request."); return; }
     setSaving(true);
-    const serviceType = gatePassType === "PERMANENT" ? "Permanent Gate Pass" : "Temporary Gate Pass";
-    const title = `${requestType === "LOST" ? "Lost" : "New"} ${serviceType} — ${LOCATION_LABEL[location]}`;
+    const companyLabel = eligibleCompanies.find((c) => c.id === companyId)?.name ?? "—";
+    const serviceType =
+      kind === "GATE_PASS"
+        ? gatePassType === "PERMANENT" ? "Permanent Gate Pass" : "Temporary Gate Pass"
+        : kind === "DVC"
+          ? "DVC (Declaration Valid Contract)"
+          : "Offshore Medical Card";
+    const title =
+      kind === "GATE_PASS"
+        ? `${requestType === "LOST" ? "Lost" : "New"} ${serviceType} — ${location ? LOCATION_LABEL[location] : companyLabel}`
+        : `${serviceType} — ${companyLabel}`;
     const res = await fetch("/api/service-requests", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -269,10 +282,10 @@ export function NewGatePassRequestModal({
         title,
         category: "PRO",
         serviceType,
-        location,
-        gatePassType,
-        requestType,
-        passCategory,
+        location: kind === "GATE_PASS" ? location : null,
+        gatePassType: kind === "GATE_PASS" ? gatePassType : null,
+        requestType: kind === "GATE_PASS" ? requestType : null,
+        passCategory: kind === "GATE_PASS" ? passCategory : null,
         companyId: companyId || null,
         clientName: clientName || null,
         description: description || null,
@@ -294,7 +307,8 @@ export function NewGatePassRequestModal({
       <div className="w-full max-w-md rounded-xl bg-white p-6 shadow-xl dark:bg-slate-900">
         <h2 className="mb-1 text-lg font-semibold text-slate-900 dark:text-slate-100">New Gate Pass request</h2>
         <p className="mb-4 text-xs text-slate-500 dark:text-slate-400">
-          Site access request — it will be routed to the Online Operations queue.
+          Site access request — it will be routed to the Online Operations queue. Only EY Consulting, Tenaris
+          Global, Tenaris Investment, and Welltec are eligible for this request family.
         </p>
         {error && (
           <div className="mb-3 rounded-lg bg-red-50 px-3 py-2 text-xs text-red-700 dark:bg-red-500/10 dark:text-red-400">
@@ -302,18 +316,30 @@ export function NewGatePassRequestModal({
           </div>
         )}
         <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">Request type</label>
+            <select
+              className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
+              value={kind}
+              onChange={(e) => setKind(e.target.value as GatePassRequestKind)}
+            >
+              {GATE_PASS_REQUEST_KINDS.map((k) => (
+                <option key={k.value} value={k.value}>{k.label}</option>
+              ))}
+            </select>
+          </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">Site / Location</label>
+              <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">Company</label>
               <select
                 required
                 className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
-                value={location}
-                onChange={(e) => setLocation(e.target.value as GatePassLocationValue)}
+                value={companyId}
+                onChange={(e) => setCompanyId(e.target.value ? Number(e.target.value) : "")}
               >
-                <option value="">Select site…</option>
-                {LOCATIONS.map((l) => (
-                  <option key={l.value} value={l.value}>{l.label}</option>
+                <option value="">Select company…</option>
+                {eligibleCompanies.map((c) => (
+                  <option key={c.id} value={c.id}>{c.name}</option>
                 ))}
               </select>
             </div>
@@ -338,72 +364,73 @@ export function NewGatePassRequestModal({
               )}
             </div>
           </div>
-          <div className="grid grid-cols-3 gap-3">
-            <div>
-              <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">Gate pass type</label>
-              <select
-                required
-                className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
-                value={gatePassType}
-                onChange={(e) => setGatePassType(e.target.value as GatePassTypeValue)}
-              >
-                <option value="">—</option>
-                {GATE_PASS_TYPES.map((t) => (
-                  <option key={t.value} value={t.value}>{t.label}</option>
-                ))}
-              </select>
+          {kind === "GATE_PASS" && (
+            <div className="grid grid-cols-3 gap-3">
+              <div className="col-span-3 sm:col-span-1">
+                <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">Site / Location</label>
+                <select
+                  required
+                  className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
+                  value={location}
+                  onChange={(e) => setLocation(e.target.value as GatePassLocationValue)}
+                >
+                  <option value="">Select site…</option>
+                  {LOCATIONS.map((l) => (
+                    <option key={l.value} value={l.value}>{l.label}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">Gate pass type</label>
+                <select
+                  required
+                  className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
+                  value={gatePassType}
+                  onChange={(e) => setGatePassType(e.target.value as GatePassTypeValue)}
+                >
+                  <option value="">—</option>
+                  {GATE_PASS_TYPES.map((t) => (
+                    <option key={t.value} value={t.value}>{t.label}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">Request type</label>
+                <select
+                  required
+                  className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
+                  value={requestType}
+                  onChange={(e) => setRequestType(e.target.value as RequestTypeValue)}
+                >
+                  <option value="">—</option>
+                  {REQUEST_TYPES.map((t) => (
+                    <option key={t.value} value={t.value}>{t.label}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">Pass category</label>
+                <select
+                  required
+                  className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
+                  value={passCategory}
+                  onChange={(e) => setPassCategory(e.target.value as PassCategoryValue)}
+                >
+                  <option value="">—</option>
+                  {PASS_CATEGORIES.map((t) => (
+                    <option key={t.value} value={t.value}>{t.label}</option>
+                  ))}
+                </select>
+              </div>
             </div>
-            <div>
-              <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">Request type</label>
-              <select
-                required
-                className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
-                value={requestType}
-                onChange={(e) => setRequestType(e.target.value as RequestTypeValue)}
-              >
-                <option value="">—</option>
-                {REQUEST_TYPES.map((t) => (
-                  <option key={t.value} value={t.value}>{t.label}</option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">Pass category</label>
-              <select
-                required
-                className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
-                value={passCategory}
-                onChange={(e) => setPassCategory(e.target.value as PassCategoryValue)}
-              >
-                <option value="">—</option>
-                {PASS_CATEGORIES.map((t) => (
-                  <option key={t.value} value={t.value}>{t.label}</option>
-                ))}
-              </select>
-            </div>
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">Company</label>
-              <select
-                className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
-                value={companyId}
-                onChange={(e) => setCompanyId(e.target.value ? Number(e.target.value) : "")}
-              >
-                <option value="">—</option>
-                {companies.map((c) => (
-                  <option key={c.id} value={c.id}>{c.name}</option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">Client name</label>
-              <input
-                className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
-                value={clientName}
-                onChange={(e) => setClientName(e.target.value)}
-              />
-            </div>
+          )}
+          <div>
+            <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">Client name</label>
+            <input
+              className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
+              value={clientName}
+              onChange={(e) => setClientName(e.target.value)}
+            />
           </div>
           <div>
             <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">Description</label>

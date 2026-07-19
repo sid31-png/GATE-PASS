@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { CompanyDTO, EmployeeDTO } from "@/lib/types";
 import { NewGatePassRequestModal, NewRequestModal } from "@/components/service-request-modals";
+import { canCreateGatePassRequest } from "@/lib/gate-pass-requests";
 
 // The same two request-creation buttons shown on the Account Managers page,
 // reusable anywhere an AM/AM Lead/admin should be able to start a request
@@ -20,6 +21,7 @@ export function AMQuickActions({
 }) {
   const [proFormOpen, setProFormOpen] = useState(false);
   const [gatePassFormOpen, setGatePassFormOpen] = useState(false);
+  const showGatePassButton = canCreateGatePassRequest(currentEmployee);
 
   return (
     <>
@@ -30,12 +32,14 @@ export function AMQuickActions({
         >
           + PRO Service Request
         </button>
-        <button
-          onClick={() => setGatePassFormOpen(true)}
-          className="rounded-lg border border-[#af1882] px-4 py-2 text-sm font-medium text-[#af1882] hover:bg-[#af1882]/5"
-        >
-          + Gate Pass Request
-        </button>
+        {showGatePassButton && (
+          <button
+            onClick={() => setGatePassFormOpen(true)}
+            className="rounded-lg border border-[#af1882] px-4 py-2 text-sm font-medium text-[#af1882] hover:bg-[#af1882]/5"
+          >
+            + Gate Pass Request
+          </button>
+        )}
       </div>
       {proFormOpen && (
         <NewRequestModal
@@ -49,7 +53,7 @@ export function AMQuickActions({
           }}
         />
       )}
-      {gatePassFormOpen && (
+      {gatePassFormOpen && showGatePassButton && (
         <NewGatePassRequestModal
           amEmployees={amEmployees}
           companies={companies}
