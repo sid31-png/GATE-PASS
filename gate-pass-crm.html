@@ -262,6 +262,16 @@
   .table-wrap { overflow-x: auto; }
   table { width: 100%; border-collapse: collapse; font-size: 13px; }
   .table-wide table { min-width: 640px; }
+  /* Gate Pass Tracker: 12 columns need to fit one screen without horizontal
+     scroll on a normal desktop (~1280px+) — smaller font + tighter padding
+     instead of a forced min-width. */
+  .tracker-table table { font-size: 11.5px; table-layout: fixed; }
+  .tracker-table thead th { padding: 8px 8px; white-space: normal; }
+  .tracker-table tbody td { padding: 8px 8px; }
+  .tracker-table .type-cell { font-size: 11px; line-height: 1.4; color: var(--ink-2); }
+  .tracker-table .remarks-cell {
+    max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--ink-2); cursor: help;
+  }
   thead th {
     text-align: left; font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em;
     color: var(--muted); padding: 10px 14px; border-bottom: 1px solid var(--border); white-space: nowrap;
@@ -299,6 +309,25 @@
   .info-box { background: var(--surface-2); border-radius: 8px; padding: 8px 11px; font-size: 12px; color: var(--ink-2); margin-top: 8px; }
   .danger-box { background: var(--critical-bg); border-radius: 8px; padding: 8px 11px; font-size: 12px; color: var(--critical); margin-top: 8px; }
   .empty-card { text-align: center; padding: 26px; color: var(--muted); font-size: 13px; }
+  /* ---------- attachment drag-and-drop picker ---------- */
+  .dropzone {
+    border: 1.5px dashed var(--border-strong); border-radius: 10px; padding: 14px; text-align: center;
+    background: var(--surface-2); transition: border-color .12s, background-color .12s;
+  }
+  .dropzone.dz-drag { border-color: var(--brand); background: var(--brand-soft); }
+  .dz-hint { font-size: 12.5px; color: var(--ink-2); }
+  .dz-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; justify-content: center; }
+  .dz-chip {
+    display: inline-flex; align-items: center; gap: 6px; font-size: 11.5px; font-weight: 500; color: var(--ink);
+    background: var(--surface); border: 1px solid var(--border-strong); border-radius: 100px; padding: 4px 6px 4px 10px;
+  }
+  .dz-chip-remove {
+    all: unset; cursor: pointer; font-size: 13px; line-height: 1; color: var(--muted); padding: 0 4px;
+  }
+  .dz-chip-remove:hover { color: var(--critical); }
+  /* ---------- dashboard: Gate Pass / PRO Services side-by-side ---------- */
+  .dashboard-split { display: grid; grid-template-columns: 1fr; gap: 24px; }
+  @media (min-width: 1100px) { .dashboard-split { grid-template-columns: 1fr 1fr; align-items: start; } }
   /* ---------- unified kanban board ---------- */
   .kanban-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; align-items: start; }
   @media (max-width: 900px) { .kanban-grid { grid-template-columns: 1fr; } }
@@ -432,7 +461,7 @@
 "use strict";
 
 /* ================= embedded seed data ================= */
-const SEED_GATE_PASSES = [{"number":"GP-2026-001","company":"EY Consulting","location":"Doha Towers","gatePassType":"Permanent","requestType":"New Gate Pass","passCategory":"Supplementary","submittedBy":"Ahmed Al-Sayed","submissionAt":"2026-01-05T12:10:00","collectedBy":"Fatima Al-Zahra","collectionAt":"2026-01-05T17:05:00","status":"Collected","remarks":null},{"number":"GP-2026-002","company":"Welltec","location":"Ras Laffan","gatePassType":"Permanent","requestType":"Lost Gate Pass","passCategory":"Main","submittedBy":"Jesper Holm","submissionAt":"2026-01-12T08:25:00","collectedBy":null,"collectionAt":null,"status":"Cancelled","remarks":"Reported lost \u2014 police report attached"},{"number":"GP-2026-003","company":"Tenaris Global","location":"Offshore","gatePassType":"Permanent","requestType":"New Gate Pass","passCategory":"Main","submittedBy":"Marco Ferraro","submissionAt":"2026-01-19T08:30:00","collectedBy":"Ahmed Al-Rashid","collectionAt":"2026-01-19T13:35:00","status":"Collected","remarks":null},{"number":"GP-2026-004","company":"Tenaris Investment","location":"Mesaieed","gatePassType":"Permanent","requestType":"New Gate Pass","passCategory":"Main","submittedBy":"Elena Rossi","submissionAt":"2026-01-26T07:45:00","collectedBy":"Ahmed Al-Rashid","collectionAt":"2026-01-26T09:05:00","status":"Collected","remarks":null},{"number":"GP-2026-005","company":"EY Consulting","location":"Offshore","gatePassType":"Permanent","requestType":"New Gate Pass","passCategory":"Main","submittedBy":"Ahmed Al-Sayed","submissionAt":"2026-02-02T07:45:00","collectedBy":"Youssef Hassan","collectionAt":"2026-02-03T12:45:00","status":"Collected","remarks":null},{"number":"GP-2026-006","company":"Welltec","location":"Mesaieed","gatePassType":"Permanent","requestType":"New Gate Pass","passCategory":"Main","submittedBy":"Jesper Holm","submissionAt":"2026-02-09T15:10:00","collectedBy":"Ahmed Al-Rashid","collectionAt":"2026-02-12T09:50:00","status":"Collected","remarks":"Urgent"},{"number":"GP-2026-007","company":"Tenaris Global","location":"Dukhan","gatePassType":"Temporary","requestType":"New Gate Pass","passCategory":"Main","submittedBy":"Marco Ferraro","submissionAt":"2026-02-16T11:40:00","collectedBy":"Karim Nasser","collectionAt":"2026-02-17T14:05:00","status":"Collected","remarks":null},{"number":"GP-2026-008","company":"Tenaris Investment","location":"Doha Towers","gatePassType":"Permanent","requestType":"New Gate Pass","passCategory":"Main","submittedBy":"Elena Rossi","submissionAt":"2026-02-23T10:25:00","collectedBy":"Fatima Al-Zahra","collectionAt":"2026-02-26T14:35:00","status":"Collected","remarks":"Urgent"},{"number":"GP-2026-009","company":"EY Consulting","location":"Dukhan","gatePassType":"Temporary","requestType":"New Gate Pass","passCategory":"Main","submittedBy":"Ahmed Al-Sayed","submissionAt":"2026-03-02T10:35:00","collectedBy":"Ahmed Al-Rashid","collectionAt":"2026-03-02T17:25:00","status":"Collected","remarks":"Urgent"},{"number":"GP-2026-010","company":"Welltec","location":"Doha Towers","gatePassType":"Permanent","requestType":"New Gate Pass","passCategory":"Main","submittedBy":"Jesper Holm","submissionAt":"2026-03-10T14:25:00","collectedBy":"Fatima Al-Zahra","collectionAt":"2026-03-12T15:00:00","status":"Collected","remarks":null},{"number":"GP-2026-011","company":"Tenaris Global","location":"Ras Laffan","gatePassType":"Permanent","requestType":"New Gate Pass","passCategory":"Supplementary","submittedBy":"Marco Ferraro","submissionAt":"2026-03-17T10:05:00","collectedBy":"Karim Nasser","collectionAt":"2026-03-17T16:00:00","status":"Collected","remarks":"Urgent"},{"number":"GP-2026-012","company":"Tenaris Investment","location":"Offshore","gatePassType":"Permanent","requestType":"New Gate Pass","passCategory":"Main","submittedBy":"Elena Rossi","submissionAt":"2026-03-24T14:20:00","collectedBy":"Ahmed Al-Rashid","collectionAt":"2026-03-25T11:40:00","status":"Collected","remarks":"Public holiday in between"},{"number":"GP-2026-013","company":"EY Consulting","location":"Ras Laffan","gatePassType":"Permanent","requestType":"New Gate Pass","passCategory":"Main","submittedBy":"Ahmed Al-Sayed","submissionAt":"2026-03-31T09:25:00","collectedBy":"Youssef Hassan","collectionAt":"2026-03-31T12:40:00","status":"Collected","remarks":"Public holiday in between"},{"number":"GP-2026-014","company":"Welltec","location":"Offshore","gatePassType":"Permanent","requestType":"Lost Gate Pass","passCategory":"Main","submittedBy":"Jesper Holm","submissionAt":"2026-04-07T08:40:00","collectedBy":"Youssef Hassan","collectionAt":"2026-04-08T10:15:00","status":"Collected","remarks":"Lost during site transfer"},{"number":"GP-2026-015","company":"Tenaris Global","location":"Mesaieed","gatePassType":"Permanent","requestType":"New Gate Pass","passCategory":"Main","submittedBy":"Marco Ferraro","submissionAt":"2026-04-14T12:45:00","collectedBy":null,"collectionAt":null,"status":"Cancelled","remarks":"Cancelled \u2014 duplicate request"},{"number":"GP-2026-016","company":"Tenaris Investment","location":"Dukhan","gatePassType":"Permanent","requestType":"New Gate Pass","passCategory":"Main","submittedBy":"Elena Rossi","submissionAt":"2026-04-21T08:20:00","collectedBy":"Youssef Hassan","collectionAt":"2026-04-21T17:25:00","status":"Collected","remarks":null},{"number":"GP-2026-017","company":"EY Consulting","location":"Mesaieed","gatePassType":"Permanent","requestType":"New Gate Pass","passCategory":"Main","submittedBy":"Ahmed Al-Sayed","submissionAt":"2026-04-28T11:50:00","collectedBy":"Ahmed Al-Rashid","collectionAt":"2026-04-29T14:20:00","status":"Collected","remarks":null},{"number":"GP-2026-018","company":"Welltec","location":"Dukhan","gatePassType":"Permanent","requestType":"Lost Gate Pass","passCategory":"Main","submittedBy":"Jesper Holm","submissionAt":"2026-05-06T13:50:00","collectedBy":"Karim Nasser","collectionAt":"2026-05-06T17:25:00","status":"Collected","remarks":"Lost during site transfer"},{"number":"GP-2026-019","company":"Tenaris Global","location":"Doha Towers","gatePassType":"Permanent","requestType":"New Gate Pass","passCategory":"Main","submittedBy":"Marco Ferraro","submissionAt":"2026-05-13T08:35:00","collectedBy":"Ahmed Al-Rashid","collectionAt":"2026-05-13T13:35:00","status":"Collected","remarks":null},{"number":"GP-2026-020","company":"Tenaris Investment","location":"Ras Laffan","gatePassType":"Permanent","requestType":"Lost Gate Pass","passCategory":"Main","submittedBy":"Elena Rossi","submissionAt":"2026-05-20T10:30:00","collectedBy":"Karim Nasser","collectionAt":"2026-05-20T16:45:00","status":"Collected","remarks":"Reported lost \u2014 police report attached"},{"number":"GP-2026-021","company":"EY Consulting","location":"Doha Towers","gatePassType":"Permanent","requestType":"Lost Gate Pass","passCategory":"Supplementary","submittedBy":"Ahmed Al-Sayed","submissionAt":"2026-05-27T14:30:00","collectedBy":"Fatima Al-Zahra","collectionAt":"2026-05-30T17:05:00","status":"Collected","remarks":"Replacement issued after verification"},{"number":"GP-2026-022","company":"Welltec","location":"Ras Laffan","gatePassType":"Temporary","requestType":"Lost Gate Pass","passCategory":"Main","submittedBy":"Jesper Holm","submissionAt":"2026-06-03T15:20:00","collectedBy":"Ahmed Al-Rashid","collectionAt":"2026-06-05T14:10:00","status":"Collected","remarks":"Lost during site transfer"},{"number":"GP-2026-023","company":"Tenaris Global","location":"Offshore","gatePassType":"Permanent","requestType":"New Gate Pass","passCategory":"Main","submittedBy":"Marco Ferraro","submissionAt":"2026-06-10T13:15:00","collectedBy":"Karim Nasser","collectionAt":"2026-06-10T17:30:00","status":"Collected","remarks":null},{"number":"GP-2026-024","company":"Tenaris Investment","location":"Mesaieed","gatePassType":"Permanent","requestType":"New Gate Pass","passCategory":"Main","submittedBy":"Elena Rossi","submissionAt":"2026-06-17T10:00:00","collectedBy":null,"collectionAt":null,"status":"Cancelled","remarks":"Incomplete documents"},{"number":"GP-2026-025","company":"EY Consulting","location":"Offshore","gatePassType":"Permanent","requestType":"New Gate Pass","passCategory":"Main","submittedBy":"Ahmed Al-Sayed","submissionAt":"2026-06-24T07:10:00","collectedBy":"Ahmed Al-Rashid","collectionAt":"2026-06-25T09:10:00","status":"Collected","remarks":null},{"number":"GP-2026-026","company":"Welltec","location":"Ras Laffan","gatePassType":"Temporary","requestType":"New Gate Pass","passCategory":"Main","submittedBy":"Jesper Holm","submissionAt":"2026-06-26T13:20:00","collectedBy":null,"collectionAt":null,"status":"Pending","remarks":null},{"number":"GP-2026-027","company":"EY Consulting","location":"Mesaieed","gatePassType":"Permanent","requestType":"Lost Gate Pass","passCategory":"Main","submittedBy":"Ahmed Al-Sayed","submissionAt":"2026-06-29T08:50:00","collectedBy":null,"collectionAt":null,"status":"Pending","remarks":"Awaiting police report"},{"number":"GP-2026-028","company":"Welltec","location":"Mesaieed","gatePassType":"Temporary","requestType":"Lost Gate Pass","passCategory":"Main","submittedBy":"Jesper Holm","submissionAt":"2026-07-02T09:55:00","collectedBy":"Youssef Hassan","collectionAt":"2026-07-03T14:50:00","status":"Collected","remarks":"Reported lost \u2014 police report attached"},{"number":"GP-2026-029","company":"Welltec","location":"Dukhan","gatePassType":"Temporary","requestType":"New Gate Pass","passCategory":"Main","submittedBy":"Jesper Holm","submissionAt":"2026-07-02T14:30:00","collectedBy":null,"collectionAt":null,"status":"Pending","remarks":"Follow-up sent"},{"number":"GP-2026-030","company":"Tenaris Investment","location":"Doha Towers","gatePassType":"Temporary","requestType":"New Gate Pass","passCategory":"Supplementary","submittedBy":"Elena Rossi","submissionAt":"2026-07-04T09:00:00","collectedBy":null,"collectionAt":null,"status":"Pending","remarks":null},{"number":"GP-2026-031","company":"Tenaris Global","location":"Offshore","gatePassType":"Permanent","requestType":"New Gate Pass","passCategory":"Main","submittedBy":"Marco Ferraro","submissionAt":"2026-07-06T10:30:00","collectedBy":null,"collectionAt":null,"status":"Pending","remarks":null},{"number":"GP-2026-032","company":"EY Consulting","location":"Ras Laffan","gatePassType":"Permanent","requestType":"New Gate Pass","passCategory":"Supplementary","submittedBy":"Ahmed Al-Sayed","submissionAt":"2026-07-07T07:50:00","collectedBy":null,"collectionAt":null,"status":"Pending","remarks":null}];
+const SEED_GATE_PASSES = [{"number":"GP-2026-001","company":"EY Consulting","location":"Doha Towers","gatePassType":"Permanent","requestType":"New Gate Pass","passCategory":"Supplementary","submittedBy":"Ahmed Al-Sayed","submissionAt":"2026-01-05T12:10:00","collectedBy":"MED-HUSSAIN","collectionAt":"2026-01-05T17:05:00","status":"Collected","remarks":null},{"number":"GP-2026-002","company":"Welltec","location":"Ras Laffan","gatePassType":"Permanent","requestType":"Lost Gate Pass","passCategory":"Main","submittedBy":"Jesper Holm","submissionAt":"2026-01-12T08:25:00","collectedBy":null,"collectionAt":null,"status":"Cancelled","remarks":"Reported lost \u2014 police report attached"},{"number":"GP-2026-003","company":"Tenaris Global","location":"Offshore","gatePassType":"Permanent","requestType":"New Gate Pass","passCategory":"Main","submittedBy":"Marco Ferraro","submissionAt":"2026-01-19T08:30:00","collectedBy":"SALAH","collectionAt":"2026-01-19T13:35:00","status":"Collected","remarks":null},{"number":"GP-2026-004","company":"Tenaris Investment","location":"Mesaieed","gatePassType":"Permanent","requestType":"New Gate Pass","passCategory":"Main","submittedBy":"Elena Rossi","submissionAt":"2026-01-26T07:45:00","collectedBy":"SALAH","collectionAt":"2026-01-26T09:05:00","status":"Collected","remarks":null},{"number":"GP-2026-005","company":"EY Consulting","location":"Offshore","gatePassType":"Permanent","requestType":"New Gate Pass","passCategory":"Main","submittedBy":"Ahmed Al-Sayed","submissionAt":"2026-02-02T07:45:00","collectedBy":"AITA","collectionAt":"2026-02-03T12:45:00","status":"Collected","remarks":null},{"number":"GP-2026-006","company":"Welltec","location":"Mesaieed","gatePassType":"Permanent","requestType":"New Gate Pass","passCategory":"Main","submittedBy":"Jesper Holm","submissionAt":"2026-02-09T15:10:00","collectedBy":"SALAH","collectionAt":"2026-02-12T09:50:00","status":"Collected","remarks":"Urgent"},{"number":"GP-2026-007","company":"Tenaris Global","location":"Dukhan","gatePassType":"Temporary","requestType":"New Gate Pass","passCategory":"Main","submittedBy":"Marco Ferraro","submissionAt":"2026-02-16T11:40:00","collectedBy":"ABIN","collectionAt":"2026-02-17T14:05:00","status":"Collected","remarks":null},{"number":"GP-2026-008","company":"Tenaris Investment","location":"Doha Towers","gatePassType":"Permanent","requestType":"New Gate Pass","passCategory":"Main","submittedBy":"Elena Rossi","submissionAt":"2026-02-23T10:25:00","collectedBy":"MED-HUSSAIN","collectionAt":"2026-02-26T14:35:00","status":"Collected","remarks":"Urgent"},{"number":"GP-2026-009","company":"EY Consulting","location":"Dukhan","gatePassType":"Temporary","requestType":"New Gate Pass","passCategory":"Main","submittedBy":"Ahmed Al-Sayed","submissionAt":"2026-03-02T10:35:00","collectedBy":"SALAH","collectionAt":"2026-03-02T17:25:00","status":"Collected","remarks":"Urgent"},{"number":"GP-2026-010","company":"Welltec","location":"Doha Towers","gatePassType":"Permanent","requestType":"New Gate Pass","passCategory":"Main","submittedBy":"Jesper Holm","submissionAt":"2026-03-10T14:25:00","collectedBy":"MED-HUSSAIN","collectionAt":"2026-03-12T15:00:00","status":"Collected","remarks":null},{"number":"GP-2026-011","company":"Tenaris Global","location":"Ras Laffan","gatePassType":"Permanent","requestType":"New Gate Pass","passCategory":"Supplementary","submittedBy":"Marco Ferraro","submissionAt":"2026-03-17T10:05:00","collectedBy":"ABIN","collectionAt":"2026-03-17T16:00:00","status":"Collected","remarks":"Urgent"},{"number":"GP-2026-012","company":"Tenaris Investment","location":"Offshore","gatePassType":"Permanent","requestType":"New Gate Pass","passCategory":"Main","submittedBy":"Elena Rossi","submissionAt":"2026-03-24T14:20:00","collectedBy":"SALAH","collectionAt":"2026-03-25T11:40:00","status":"Collected","remarks":"Public holiday in between"},{"number":"GP-2026-013","company":"EY Consulting","location":"Ras Laffan","gatePassType":"Permanent","requestType":"New Gate Pass","passCategory":"Main","submittedBy":"Ahmed Al-Sayed","submissionAt":"2026-03-31T09:25:00","collectedBy":"AITA","collectionAt":"2026-03-31T12:40:00","status":"Collected","remarks":"Public holiday in between"},{"number":"GP-2026-014","company":"Welltec","location":"Offshore","gatePassType":"Permanent","requestType":"Lost Gate Pass","passCategory":"Main","submittedBy":"Jesper Holm","submissionAt":"2026-04-07T08:40:00","collectedBy":"AITA","collectionAt":"2026-04-08T10:15:00","status":"Collected","remarks":"Lost during site transfer"},{"number":"GP-2026-015","company":"Tenaris Global","location":"Mesaieed","gatePassType":"Permanent","requestType":"New Gate Pass","passCategory":"Main","submittedBy":"Marco Ferraro","submissionAt":"2026-04-14T12:45:00","collectedBy":null,"collectionAt":null,"status":"Cancelled","remarks":"Cancelled \u2014 duplicate request"},{"number":"GP-2026-016","company":"Tenaris Investment","location":"Dukhan","gatePassType":"Permanent","requestType":"New Gate Pass","passCategory":"Main","submittedBy":"Elena Rossi","submissionAt":"2026-04-21T08:20:00","collectedBy":"AITA","collectionAt":"2026-04-21T17:25:00","status":"Collected","remarks":null},{"number":"GP-2026-017","company":"EY Consulting","location":"Mesaieed","gatePassType":"Permanent","requestType":"New Gate Pass","passCategory":"Main","submittedBy":"Ahmed Al-Sayed","submissionAt":"2026-04-28T11:50:00","collectedBy":"SALAH","collectionAt":"2026-04-29T14:20:00","status":"Collected","remarks":null},{"number":"GP-2026-018","company":"Welltec","location":"Dukhan","gatePassType":"Permanent","requestType":"Lost Gate Pass","passCategory":"Main","submittedBy":"Jesper Holm","submissionAt":"2026-05-06T13:50:00","collectedBy":"ABIN","collectionAt":"2026-05-06T17:25:00","status":"Collected","remarks":"Lost during site transfer"},{"number":"GP-2026-019","company":"Tenaris Global","location":"Doha Towers","gatePassType":"Permanent","requestType":"New Gate Pass","passCategory":"Main","submittedBy":"Marco Ferraro","submissionAt":"2026-05-13T08:35:00","collectedBy":"SALAH","collectionAt":"2026-05-13T13:35:00","status":"Collected","remarks":null},{"number":"GP-2026-020","company":"Tenaris Investment","location":"Ras Laffan","gatePassType":"Permanent","requestType":"Lost Gate Pass","passCategory":"Main","submittedBy":"Elena Rossi","submissionAt":"2026-05-20T10:30:00","collectedBy":"ABIN","collectionAt":"2026-05-20T16:45:00","status":"Collected","remarks":"Reported lost \u2014 police report attached"},{"number":"GP-2026-021","company":"EY Consulting","location":"Doha Towers","gatePassType":"Permanent","requestType":"Lost Gate Pass","passCategory":"Supplementary","submittedBy":"Ahmed Al-Sayed","submissionAt":"2026-05-27T14:30:00","collectedBy":"MED-HUSSAIN","collectionAt":"2026-05-30T17:05:00","status":"Collected","remarks":"Replacement issued after verification"},{"number":"GP-2026-022","company":"Welltec","location":"Ras Laffan","gatePassType":"Temporary","requestType":"Lost Gate Pass","passCategory":"Main","submittedBy":"Jesper Holm","submissionAt":"2026-06-03T15:20:00","collectedBy":"SALAH","collectionAt":"2026-06-05T14:10:00","status":"Collected","remarks":"Lost during site transfer"},{"number":"GP-2026-023","company":"Tenaris Global","location":"Offshore","gatePassType":"Permanent","requestType":"New Gate Pass","passCategory":"Main","submittedBy":"Marco Ferraro","submissionAt":"2026-06-10T13:15:00","collectedBy":"ABIN","collectionAt":"2026-06-10T17:30:00","status":"Collected","remarks":null},{"number":"GP-2026-024","company":"Tenaris Investment","location":"Mesaieed","gatePassType":"Permanent","requestType":"New Gate Pass","passCategory":"Main","submittedBy":"Elena Rossi","submissionAt":"2026-06-17T10:00:00","collectedBy":null,"collectionAt":null,"status":"Cancelled","remarks":"Incomplete documents"},{"number":"GP-2026-025","company":"EY Consulting","location":"Offshore","gatePassType":"Permanent","requestType":"New Gate Pass","passCategory":"Main","submittedBy":"Ahmed Al-Sayed","submissionAt":"2026-06-24T07:10:00","collectedBy":"SALAH","collectionAt":"2026-06-25T09:10:00","status":"Collected","remarks":null},{"number":"GP-2026-026","company":"Welltec","location":"Ras Laffan","gatePassType":"Temporary","requestType":"New Gate Pass","passCategory":"Main","submittedBy":"Jesper Holm","submissionAt":"2026-06-26T13:20:00","collectedBy":null,"collectionAt":null,"status":"Pending","remarks":null},{"number":"GP-2026-027","company":"EY Consulting","location":"Mesaieed","gatePassType":"Permanent","requestType":"Lost Gate Pass","passCategory":"Main","submittedBy":"Ahmed Al-Sayed","submissionAt":"2026-06-29T08:50:00","collectedBy":null,"collectionAt":null,"status":"Pending","remarks":"Awaiting police report"},{"number":"GP-2026-028","company":"Welltec","location":"Mesaieed","gatePassType":"Temporary","requestType":"Lost Gate Pass","passCategory":"Main","submittedBy":"Jesper Holm","submissionAt":"2026-07-02T09:55:00","collectedBy":"AITA","collectionAt":"2026-07-03T14:50:00","status":"Collected","remarks":"Reported lost \u2014 police report attached"},{"number":"GP-2026-029","company":"Welltec","location":"Dukhan","gatePassType":"Temporary","requestType":"New Gate Pass","passCategory":"Main","submittedBy":"Jesper Holm","submissionAt":"2026-07-02T14:30:00","collectedBy":null,"collectionAt":null,"status":"Pending","remarks":"Follow-up sent"},{"number":"GP-2026-030","company":"Tenaris Investment","location":"Doha Towers","gatePassType":"Temporary","requestType":"New Gate Pass","passCategory":"Supplementary","submittedBy":"Elena Rossi","submissionAt":"2026-07-04T09:00:00","collectedBy":null,"collectionAt":null,"status":"Pending","remarks":null},{"number":"GP-2026-031","company":"Tenaris Global","location":"Offshore","gatePassType":"Permanent","requestType":"New Gate Pass","passCategory":"Main","submittedBy":"Marco Ferraro","submissionAt":"2026-07-06T10:30:00","collectedBy":null,"collectionAt":null,"status":"Pending","remarks":null},{"number":"GP-2026-032","company":"EY Consulting","location":"Ras Laffan","gatePassType":"Permanent","requestType":"New Gate Pass","passCategory":"Supplementary","submittedBy":"Ahmed Al-Sayed","submissionAt":"2026-07-07T07:50:00","collectedBy":null,"collectionAt":null,"status":"Pending","remarks":null}];
 
 const COMPANY_SECTORS = {
   "EY Consulting": "Professional Services",
@@ -536,9 +565,11 @@ const ROLE_LABEL = {
 const ROLE_PERMISSIONS = {
   CEO: [], SUPER_ADMIN: [],
   OPS_ADMIN: ["view_all_online_queue", "reassign_requests", "import_companies", "update_field_status", "view_dashboard_stats"],
-  AM_LEAD: ["view_all_am_requests", "create_service_request", "dispatch_field_assign", "view_dashboard_stats"],
+  // view_companies: Companies is reserved for the AM tier (+ Darwish/CEO who
+  // bypass via `can`) — deliberately excluding OPS_ADMIN (Ahmed) and OPERATOR.
+  AM_LEAD: ["view_all_am_requests", "create_service_request", "dispatch_field_assign", "view_dashboard_stats", "view_companies"],
   OPERATOR: ["update_field_status"],
-  AM: ["create_service_request"],
+  AM: ["create_service_request", "view_companies"],
   FIELD: [], UNASSIGNED: []
 };
 function can(e, permission) {
@@ -555,11 +586,17 @@ function can(e, permission) {
 // "kanban" view (see renderKanban) — same role set as the old /dispatch,
 // the broadest of the four. Plain AMs lose read access (they never acted
 // on this board anyway; their own work lives on the Account Managers page).
+// Analytics: same tier as view_dashboard_stats (Elena/Darwish/Ahmed/CEO).
+// Companies: AM tier only (Violetta..Gabriela + Elena) + Darwish/CEO —
+// explicitly excludes OPS_ADMIN/OPERATOR, the one place Ahmed has less
+// access than a plain AM.
 const VIEW_ACCESS_RULES = {
   kanban: ["OPS_ADMIN", "OPERATOR", "AM_LEAD"],
   online: ["OPS_ADMIN", "OPERATOR"],
   "company-import": ["OPS_ADMIN"],
-  "account-managers": ["OPS_ADMIN", "AM_LEAD"]
+  "account-managers": ["OPS_ADMIN", "AM_LEAD"],
+  analytics: ["OPS_ADMIN", "AM_LEAD"],
+  companies: ["AM", "AM_LEAD"]
 };
 function isViewAllowed(id, role) {
   if (role === "CEO" || role === "SUPER_ADMIN") return true;
@@ -669,7 +706,7 @@ function buildInitialState() {
     if (!companyId.has(r.company)) {
       const id = companies.length + 1;
       companyId.set(r.company, id);
-      companies.push({ id, name: r.company, sector: COMPANY_SECTORS[r.company] || null, contact: null, phone: null, email: null, notes: null });
+      companies.push({ id, name: r.company, sector: COMPANY_SECTORS[r.company] || null, contact: null, phone: null, email: null, notes: null, billingType: id % 3 === 0 ? "MONTHLY_RETAINER" : "PER_SERVICE" });
     }
     if (r.collectedBy && !collectorId.has(r.collectedBy)) {
       const id = collectors.length + 1;
@@ -725,7 +762,7 @@ function buildInitialState() {
         c.accountManagerId = amId;
       } else {
         const id = companies.length + 1;
-        companies.push({ id, name: companyName, sector: null, contact: null, phone: null, email: null, notes: null, accountManagerId: amId });
+        companies.push({ id, name: companyName, sector: null, contact: null, phone: null, email: null, notes: null, accountManagerId: amId, billingType: id % 3 === 0 ? "MONTHLY_RETAINER" : "PER_SERVICE" });
         companyId.set(companyName, id);
         companyByUpper.set(key, id);
       }
@@ -1366,17 +1403,36 @@ function renderHBars(mount, rows) {
 
 /* ================= views ================= */
 const NAV_ITEMS = [
-  { id: "dashboard", label: "Dashboard", n: "01" },
-  { id: "tracker", label: "Gate Pass Tracker", n: "02" },
-  { id: "collectors", label: "Collector Performance", n: "03" },
-  { id: "companies", label: "Companies", n: "04" },
-  { id: "analytics", label: "Analytics", n: "05" },
-  { id: "account-managers", label: "Account Managers", n: "06" },
-  { id: "company-import", label: "Import Companies", n: "07" },
-  { id: "kanban", label: "Kanban", n: "08" },
-  { id: "online", label: "Online Team", n: "09" },
-  { id: "field", label: "Field Team", n: "10" }
+  { id: "dashboard", label: "Dashboard" },
+  { id: "tracker", label: "Gate Pass Tracker" },
+  { id: "collectors", label: "Collector Performance" },
+  { id: "companies", label: "Companies" },
+  { id: "analytics", label: "Analytics" },
+  { id: "account-managers", label: "Account Managers" },
+  { id: "company-import", label: "Import Companies" },
+  { id: "kanban", label: "Suivi des Dossiers" },
+  { id: "online", label: "Online Team" },
+  { id: "field", label: "Field Team" }
 ];
+// Nav order is role-aware: each role sees the items most relevant to their
+// job first, rather than one fixed global order. Anything visible but not
+// listed for a role falls back to the end, in its natural NAV_ITEMS order.
+const NAV_ORDER_BY_ROLE = {
+  CEO: ["dashboard", "kanban", "analytics", "account-managers", "companies", "tracker", "collectors", "online", "field", "company-import"],
+  SUPER_ADMIN: ["dashboard", "kanban", "analytics", "account-managers", "companies", "tracker", "collectors", "online", "field", "company-import"],
+  OPS_ADMIN: ["dashboard", "kanban", "analytics", "company-import", "online", "tracker", "collectors", "field"],
+  AM_LEAD: ["dashboard", "account-managers", "companies", "analytics", "kanban", "tracker", "collectors", "field"],
+  AM: ["dashboard", "companies", "tracker", "collectors"],
+  OPERATOR: ["dashboard", "kanban", "online", "tracker", "collectors", "field"]
+};
+function orderNavItems(items, role) {
+  const order = NAV_ORDER_BY_ROLE[role];
+  if (!order) return items;
+  return items.slice().sort((a, b) => {
+    const ia = order.indexOf(a.id), ib = order.indexOf(b.id);
+    return (ia === -1 ? order.length : ia) - (ib === -1 ? order.length : ib);
+  });
+}
 let currentView = "dashboard";
 
 /* ================= pre-dashboard login (client-side only) =================
@@ -1465,9 +1521,9 @@ function logout() {
 
 function setupNav() {
   const role = currentRole();
-  const visibleItems = NAV_ITEMS.filter((it) => isViewAllowed(it.id, role));
+  const visibleItems = orderNavItems(NAV_ITEMS.filter((it) => isViewAllowed(it.id, role)), role);
   const nav = document.getElementById("nav");
-  nav.innerHTML = visibleItems.map((it) => `<button data-view="${it.id}"><span class="n">${it.n}</span>${esc(it.label)}</button>`).join("");
+  nav.innerHTML = visibleItems.map((it, i) => `<button data-view="${it.id}"><span class="n">${String(i + 1).padStart(2, "0")}</span>${esc(it.label)}</button>`).join("");
   const mnav = document.getElementById("mobileNav");
   mnav.innerHTML = visibleItems.map((it) => `<button data-view="${it.id}">${esc(it.label)}</button>`).join("");
   document.querySelectorAll("[data-view]").forEach((btn) => {
@@ -1558,65 +1614,70 @@ function renderDashboard() {
       <p>Gate Pass &amp; PRO Services overview · updates automatically</p></div>
       <div id="dashActions" style="display:flex;align-items:center;gap:8px;"></div>
     </div>
-    <h2 style="font-size:15px;font-weight:700;margin:6px 0 10px;">🛂 Gate Pass Overview</h2>
-    <div class="hero-band">
-      <div class="hero-stats">
-        ${heroStat("Total submitted", k.total)}
-        ${heroStat("Collected", k.collected, "t-good")}
-        ${heroStat("Pending", k.pending, "t-warn")}
-        ${heroStat("Cancelled", k.cancelled, "t-crit")}
-        ${heroStat("Collection rate", (k.collectionRate * 100).toFixed(0) + "%", "t-brand")}
-        ${heroStat("Avg. processing time", k.avgHours ? formatDuration(k.avgHours) : "—", "t-brand")}
+    <div class="dashboard-split">
+      <div class="dashboard-col">
+        <h2 style="font-size:15px;font-weight:700;margin:6px 0 10px;">🛂 Gate Pass Overview</h2>
+        <div class="hero-band">
+          <div class="hero-stats">
+            ${heroStat("Total submitted", k.total)}
+            ${heroStat("Collected", k.collected, "t-good")}
+            ${heroStat("Pending", k.pending, "t-warn")}
+            ${heroStat("Cancelled", k.cancelled, "t-crit")}
+            ${heroStat("Collection rate", (k.collectionRate * 100).toFixed(0) + "%", "t-brand")}
+            ${heroStat("Avg. processing time", k.avgHours ? formatDuration(k.avgHours) : "—", "t-brand")}
+          </div>
+        </div>
+        <div class="grid kpi-row">
+          ${kpiTile("Fastest", k.fastestHours !== null ? formatDuration(k.fastestHours) : "—", "", "good")}
+          ${kpiTile("Longest", k.longestHours !== null ? formatDuration(k.longestHours) : "—", "", "crit")}
+          ${kpiTile("Today", k.today, "")}
+          ${kpiTile("This week", k.week, "")}
+          ${kpiTile("This month", k.month, "")}
+          ${kpiTile("This year", k.year, "")}
+        </div>
+        <div class="grid charts-2" style="margin-top:4px;">
+          <div class="card card-pad"><div class="card-title">Submitted vs Collected</div><div id="chart-compare"></div></div>
+          <div class="card card-pad"><div class="card-title">Status breakdown</div><div id="chart-donut"></div></div>
+        </div>
+        <div class="card card-pad" style="margin-top:14px;"><div class="card-title">Daily trend (14 days)</div><div id="chart-daily"></div></div>
+        <div class="grid charts-2" style="margin-top:14px;">
+          <div class="card card-pad"><div class="card-title">Weekly trend (8 weeks)</div><div id="chart-weekly"></div></div>
+          <div class="card card-pad"><div class="card-title">Monthly trend</div><div id="chart-monthly"></div></div>
+        </div>
+        <div class="card card-pad" style="margin-top:14px;"><div class="card-title">Collector performance</div><div id="chart-collectors"></div></div>
       </div>
-    </div>
-    <div class="grid kpi-row">
-      ${kpiTile("Fastest", k.fastestHours !== null ? formatDuration(k.fastestHours) : "—", "", "good")}
-      ${kpiTile("Longest", k.longestHours !== null ? formatDuration(k.longestHours) : "—", "", "crit")}
-      ${kpiTile("Today", k.today, "")}
-      ${kpiTile("This week", k.week, "")}
-      ${kpiTile("This month", k.month, "")}
-      ${kpiTile("This year", k.year, "")}
-    </div>
-    <div class="grid charts-2" style="margin-top:4px;">
-      <div class="card card-pad"><div class="card-title">Submitted vs Collected</div><div id="chart-compare"></div></div>
-      <div class="card card-pad"><div class="card-title">Status breakdown</div><div id="chart-donut"></div></div>
-    </div>
-    <div class="card card-pad" style="margin-top:14px;"><div class="card-title">Daily trend (14 days)</div><div id="chart-daily"></div></div>
-    <div class="grid charts-2" style="margin-top:14px;">
-      <div class="card card-pad"><div class="card-title">Weekly trend (8 weeks)</div><div id="chart-weekly"></div></div>
-      <div class="card card-pad"><div class="card-title">Monthly trend</div><div id="chart-monthly"></div></div>
-    </div>
-    <div class="card card-pad" style="margin-top:14px;"><div class="card-title">Collector performance</div><div id="chart-collectors"></div></div>
-
-    <h2 style="font-size:15px;font-weight:700;margin:32px 0 10px;">📋 PRO Services Overview</h2>
-    <div class="hero-band">
-      <div class="hero-stats">
-        ${heroStat("Total requests", proStats.total)}
-        ${heroStat("Assigned to Online", proStats.assignedToOnline)}
-        ${heroStat("Online Processing", proStats.onlineProcessing, "t-warn")}
-        ${heroStat("Pending Dispatch", proStats.pendingDispatch, "t-good")}
-        ${heroStat("Missing Info", proStats.missingInfo, "t-crit")}
+      <div class="dashboard-col">
+        <h2 style="font-size:15px;font-weight:700;margin:6px 0 10px;">📋 PRO Services Overview</h2>
+        <div class="hero-band">
+          <div class="hero-stats">
+            ${heroStat("Total requests", proStats.total)}
+            ${heroStat("Assigned to Online", proStats.assignedToOnline)}
+            ${heroStat("Online Processing", proStats.onlineProcessing, "t-warn")}
+            ${heroStat("Pending Dispatch", proStats.pendingDispatch, "t-good")}
+            ${heroStat("Missing Info", proStats.missingInfo, "t-crit")}
+          </div>
+        </div>
+        <div class="grid kpi-row" style="grid-template-columns:repeat(4,1fr);">
+          ${kpiTile("Gate Pass Family", proStats.gatePassFamily, "")}
+          ${kpiTile("PRO Category", proStats.proCategory, "")}
+          ${kpiTile("Delivery Category", proStats.deliveryCategory, "")}
+          ${kpiTile("Flagged for Manager", proStats.flagged, "", "crit")}
+        </div>
+        <div class="card table-wrap table-wide" style="margin-top:14px;">
+          <table>
+            <thead><tr><th>Request</th><th>Type</th><th>Company</th><th>Requested by</th><th>Status</th></tr></thead>
+            <tbody>
+              ${recentRequests.map((r) => `<tr>
+                <td style="font-weight:600;color:var(--ink);">${esc(r.title)}</td>
+                <td>${esc(r.serviceType || (r.category === "PRO" ? "PRO service" : "Delivery"))}</td>
+                <td>${esc(companyName(r.companyId))}</td>
+                <td>${esc(employeeName(r.createdById) || "—")}</td>
+                <td>${requestStatusPill(r.status)}</td>
+              </tr>`).join("") || `<tr class="empty-row"><td colspan="5">No requests yet.</td></tr>`}
+            </tbody>
+          </table>
+        </div>
       </div>
-    </div>
-    <div class="grid kpi-row" style="grid-template-columns:repeat(4,1fr);">
-      ${kpiTile("Gate Pass Family", proStats.gatePassFamily, "")}
-      ${kpiTile("PRO Category", proStats.proCategory, "")}
-      ${kpiTile("Delivery Category", proStats.deliveryCategory, "")}
-      ${kpiTile("Flagged for Manager", proStats.flagged, "", "crit")}
-    </div>
-    <div class="card table-wrap table-wide" style="margin-top:14px;">
-      <table>
-        <thead><tr><th>Request</th><th>Type</th><th>Company</th><th>Requested by</th><th>Status</th></tr></thead>
-        <tbody>
-          ${recentRequests.map((r) => `<tr>
-            <td style="font-weight:600;color:var(--ink);">${esc(r.title)}</td>
-            <td>${esc(r.serviceType || (r.category === "PRO" ? "PRO service" : "Delivery"))}</td>
-            <td>${esc(companyName(r.companyId))}</td>
-            <td>${esc(employeeName(r.createdById) || "—")}</td>
-            <td>${requestStatusPill(r.status)}</td>
-          </tr>`).join("") || `<tr class="empty-row"><td colspan="5">No requests yet.</td></tr>`}
-        </tbody>
-      </table>
     </div>
   `;
   renderCompareBars(document.getElementById("chart-compare"), [
@@ -1682,9 +1743,9 @@ function renderTracker() {
       <select id="fLocation"><option value="">All locations</option>${LOCATIONS.map((l) => `<option value="${esc(l)}">${esc(l)}</option>`).join("")}</select>
       <select id="fCollector"><option value="">All collectors</option>${DB.collectors.map((c) => `<option value="${c.id}">${esc(c.name)}</option>`).join("")}</select>
     </div>
-    <div class="card table-wrap table-wide">
+    <div class="card table-wrap tracker-table">
       <table>
-        <thead><tr><th>Gate Pass #</th><th>Company</th><th>Location</th><th>Gate Pass Type</th><th>Request</th><th>Category</th><th>Submission</th><th>Collector</th><th>Collection</th><th>Status</th><th>Delay</th><th class="num">Processing</th><th>Remarks</th><th></th></tr></thead>
+        <thead><tr><th>Gate Pass #</th><th>Company</th><th>Location</th><th>Type</th><th>Submitted</th><th>Collector</th><th>Collected</th><th>Status</th><th>Delay</th><th class="num">Time</th><th>Remarks</th><th></th></tr></thead>
         <tbody id="trackerBody"></tbody>
       </table>
     </div>
@@ -1723,23 +1784,21 @@ function renderTrackerBody() {
   const p = document.querySelector("#view-tracker .page-head p");
   if (p) p.textContent = `${rows.length} of ${DB.gatePasses.length} gate passes`;
   const body = document.getElementById("trackerBody");
-  if (!rows.length) { body.innerHTML = `<tr class="empty-row"><td colspan="14">No gate passes match these filters.</td></tr>`; return; }
+  if (!rows.length) { body.innerHTML = `<tr class="empty-row"><td colspan="12">No gate passes match these filters.</td></tr>`; return; }
   body.innerHTML = rows.map((g) => {
     const hours = processingHours(g);
     return `<tr>
       <td class="mono-cell">${esc(g.number)}</td>
       <td>${esc(companyName(g.companyId))}</td>
       <td>${esc(g.location)}</td>
-      <td>${esc(g.gatePassType)}</td>
-      <td>${esc(g.requestType)}</td>
-      <td>${esc(g.passCategory)}</td>
+      <td class="type-cell">${esc(g.gatePassType)} · ${esc(g.requestType)}<br>${esc(g.passCategory)}</td>
       <td class="mono-cell">${fmtDateTime(g.submissionAt)}</td>
       <td>${esc(collectorName(g.collectorId) || "—")}</td>
       <td class="mono-cell">${fmtDateTime(g.collectionAt)}</td>
       <td>${pillFor(g.status)}</td>
       <td>${pillFor(delayCategory(g))}</td>
       <td class="num">${hours !== null ? formatDuration(hours) : "—"}</td>
-      <td style="max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--ink-2);">${esc(g.remarks || "")}</td>
+      <td class="remarks-cell" title="${esc(g.remarks || "")}">${esc(g.remarks || "")}</td>
       <td><div class="actions-cell">
         <button class="btn-link link-edit" data-act="edit" data-id="${g.id}">Edit</button>
         ${g.status === "PENDING" ? `<button class="btn-link link-warn" data-act="cancel" data-id="${g.id}">Cancel</button>` : ""}
@@ -1845,7 +1904,7 @@ function openGatePassModal(id) {
       if (existing) companyId = existing.id;
       else {
         companyId = DB.nextIds.company++;
-        DB.companies.push({ id: companyId, name: newCompany, sector: null, contact: null, phone: null, email: null, notes: null });
+        DB.companies.push({ id: companyId, name: newCompany, sector: null, contact: null, phone: null, email: null, notes: null, billingType: "PER_SERVICE" });
       }
     }
     if (!companyId) { showErr("gpErr", "Select or type a company."); return; }
@@ -1871,28 +1930,119 @@ function openGatePassModal(id) {
   });
 }
 function showErr(id, msg) { const el = document.getElementById(id); el.textContent = msg; el.style.display = "block"; }
+/* ---- attachment drag-and-drop picker (UX only — no file storage) ----
+   Reused by every "Attached documents" field. Files are shown as removable
+   chips; a hidden input keeps the same comma-joined-filenames string the
+   backend/localStorage already expected from the old plain text field, so
+   no submit logic needs to change. */
+function attachmentDropzoneHtml(zoneId, hiddenInputId) {
+  return `
+    <div class="field">
+      <label>Attached documents</label>
+      <div class="dropzone" id="${zoneId}">
+        <input type="file" multiple style="display:none;">
+        <div class="dz-hint">📂 Drag &amp; drop files here, or <button type="button" class="dz-browse btn-link link-edit">browse</button></div>
+        <div class="dz-chips"></div>
+      </div>
+      <input type="hidden" id="${hiddenInputId}">
+    </div>
+  `;
+}
+function initAttachmentDropzone(zoneId, hiddenInputId) {
+  const zone = document.getElementById(zoneId);
+  const hidden = document.getElementById(hiddenInputId);
+  const fileInput = zone.querySelector("input[type=file]");
+  let files = [];
+  function sync() {
+    hidden.value = files.map((f) => f.name).join(", ");
+    const chips = zone.querySelector(".dz-chips");
+    chips.innerHTML = files.length
+      ? files.map((f, i) => `<span class="dz-chip">📎 ${esc(f.name)}<button type="button" class="dz-chip-remove" data-idx="${i}">&times;</button></span>`).join("")
+      : "";
+    chips.querySelectorAll(".dz-chip-remove").forEach((b) => b.addEventListener("click", () => {
+      files.splice(Number(b.getAttribute("data-idx")), 1);
+      sync();
+    }));
+  }
+  function addFiles(fileList) {
+    Array.from(fileList).forEach((f) => files.push(f));
+    sync();
+  }
+  zone.addEventListener("dragover", (e) => { e.preventDefault(); zone.classList.add("dz-drag"); });
+  zone.addEventListener("dragleave", () => zone.classList.remove("dz-drag"));
+  zone.addEventListener("drop", (e) => {
+    e.preventDefault();
+    zone.classList.remove("dz-drag");
+    if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length) addFiles(e.dataTransfer.files);
+  });
+  zone.querySelector(".dz-browse").addEventListener("click", () => fileInput.click());
+  fileInput.addEventListener("change", () => {
+    if (fileInput.files.length) addFiles(fileInput.files);
+    fileInput.value = "";
+  });
+  sync();
+}
 function closeModal() { document.getElementById("overlay").classList.remove("open"); document.getElementById("modalBody").innerHTML = ""; }
 document.getElementById("overlay").addEventListener("click", (e) => { if (e.target.id === "overlay") closeModal(); });
 
 
 /* ---- collectors ---- */
+// Collectors and the people who handle Delivery/Outside Work missions are
+// the same real staff (see the seeded field roster) — merge both
+// performance pictures into one row per person instead of two disconnected
+// tables. Joined by name since GatePass.collector and DeliveryTask.assignedTo
+// are two separate legacy tables with no shared id, only a shared name.
+function computeUnifiedFieldPerformance() {
+  const byName = new Map();
+  function ensure(name) {
+    if (!byName.has(name)) byName.set(name, { name, gpTimes: [], dtCompletedTimes: [], dtBlocked: 0, dtActive: 0 });
+    return byName.get(name);
+  }
+  DB.gatePasses.filter((g) => g.status === "COLLECTED" && g.collectorId).forEach((g) => {
+    const name = collectorName(g.collectorId);
+    if (!name) return;
+    ensure(name).gpTimes.push(processingHours(g));
+  });
+  DB.deliveryTasks.filter((t) => t.assignedToId).forEach((t) => {
+    const name = employeeName(t.assignedToId);
+    if (!name) return;
+    const row = ensure(name);
+    if (t.stage === "COMPLETED") { if (t.startedAt && t.completedAt) row.dtCompletedTimes.push((new Date(t.completedAt) - new Date(t.startedAt)) / 36e5); else row.dtCompletedTimes.push(0); }
+    else if (t.stage === "BLOCKED") row.dtBlocked++;
+    else if (t.stage === "ASSIGNED" || t.stage === "IN_PROGRESS") row.dtActive++;
+  });
+  const rows = [...byName.values()].map((r) => ({
+    name: r.name,
+    gpCollected: r.gpTimes.length,
+    gpAvgHours: r.gpTimes.length ? r.gpTimes.reduce((a, b) => a + b, 0) / r.gpTimes.length : null,
+    dtCompleted: r.dtCompletedTimes.length,
+    dtAvgHours: r.dtCompletedTimes.length ? r.dtCompletedTimes.reduce((a, b) => a + b, 0) / r.dtCompletedTimes.length : null,
+    dtBlocked: r.dtBlocked,
+    dtActive: r.dtActive,
+    total: r.gpTimes.length + r.dtCompletedTimes.length
+  }));
+  rows.sort((a, b) => b.total - a.total);
+  return rows.map((r, i) => ({ ...r, rank: i + 1 }));
+}
 function renderCollectors() {
   const mount = document.getElementById("view-collectors");
-  const perf = computeCollectorPerformance(DB.gatePasses);
+  const perf = computeUnifiedFieldPerformance();
   mount.innerHTML = `
     <div class="page-head">
-      <div><span class="eyebrow">Field team</span><h1>Collector Performance</h1><p>How each collector is performing</p></div>
+      <div><span class="eyebrow">Field team</span><h1>Collector Performance</h1><p>Gate Pass collection + delivery/outside work, per person</p></div>
       <button class="btn btn-primary" id="btnNewCollector">+ New Collector</button>
     </div>
     <div class="card table-wrap">
       <table>
-        <thead><tr><th>Collector</th><th class="num">Total collected</th><th class="num">Avg. time</th><th class="num">Fastest</th><th class="num">Longest</th><th class="num">% of collections</th><th class="num">Rank</th></tr></thead>
+        <thead><tr><th>Person</th><th class="num">Gate Passes Collected</th><th class="num">Avg. Collection Time</th><th class="num">Deliveries Completed</th><th class="num">Avg. Delivery Time</th><th class="num">Blocked</th><th class="num">Active Now</th><th class="num">Rank</th></tr></thead>
         <tbody>${perf.length ? perf.map((r) => `
           <tr>
-            <td>${esc(r.name)}</td><td class="num">${r.totalCollected}</td><td class="num">${formatDuration(r.avgHours)}</td>
-            <td class="num">${formatDuration(r.fastestHours)}</td><td class="num">${formatDuration(r.longestHours)}</td>
-            <td class="num">${(r.share * 100).toFixed(0)}%</td><td class="num">${pillFor("Active").replace("Active", "#" + r.rank)}</td>
-          </tr>`).join("") : `<tr class="empty-row"><td colspan="7">No collections recorded yet.</td></tr>`}
+            <td>${esc(r.name)}</td>
+            <td class="num">${r.gpCollected || "—"}</td><td class="num">${r.gpAvgHours !== null ? formatDuration(r.gpAvgHours) : "—"}</td>
+            <td class="num">${r.dtCompleted || "—"}</td><td class="num">${r.dtAvgHours !== null ? formatDuration(r.dtAvgHours) : "—"}</td>
+            <td class="num">${r.dtBlocked || "—"}</td><td class="num">${r.dtActive || "—"}</td>
+            <td class="num">${pillFor("Active").replace("Active", "#" + r.rank)}</td>
+          </tr>`).join("") : `<tr class="empty-row"><td colspan="8">No collections or deliveries recorded yet.</td></tr>`}
         </tbody>
       </table>
     </div>
@@ -1960,32 +2110,75 @@ function openCollectorModal(id) {
 }
 
 /* ---- companies ---- */
+const BILLING_TYPE_LABEL = { MONTHLY_RETAINER: "Monthly Retainer", PER_SERVICE: "Per Service" };
+function billingBadge(type) {
+  const cls = type === "MONTHLY_RETAINER" ? "pill-brand" : "pill-info";
+  return `<span class="pill ${cls}">${esc(BILLING_TYPE_LABEL[type] || "Per Service")}</span>`;
+}
+let companyFilters = { search: "", billingType: "", accountManagerId: "" };
 function renderCompanies() {
   const mount = document.getElementById("view-companies");
+  const amEmployees = DB.employees.filter((e) => e.isAM).sort((a, b) => a.name.localeCompare(b.name));
   mount.innerHTML = `
     <div class="page-head">
       <div><span class="eyebrow">Clients</span><h1>Companies</h1><p>Client companies tracked in the gate pass system</p></div>
       <button class="btn btn-primary" id="btnNewCompany">+ New Company</button>
     </div>
+    <div class="card card-pad toolbar">
+      <input type="text" id="coSearch" placeholder="Search name, sector, contact…" value="${esc(companyFilters.search)}">
+      <select id="coFilterBilling">
+        <option value="">All billing types</option>
+        <option value="MONTHLY_RETAINER">Monthly Retainer</option>
+        <option value="PER_SERVICE">Per Service</option>
+      </select>
+      <select id="coFilterAM">
+        <option value="">All Account Managers</option>
+        ${amEmployees.map((e) => `<option value="${e.id}">${esc(e.name)}</option>`).join("")}
+      </select>
+    </div>
     <div class="card table-wrap">
       <table>
-        <thead><tr><th>Company</th><th>Sector</th><th>Contact</th><th>Phone</th><th>Email</th><th class="num">Gate Passes</th><th></th></tr></thead>
-        <tbody>${DB.companies.slice().sort((a, b) => a.name.localeCompare(b.name)).map((c) => `
-          <tr>
-            <td>${esc(c.name)}</td><td>${esc(c.sector || "—")}</td><td>${esc(c.contact || "—")}</td>
-            <td>${esc(c.phone || "—")}</td><td>${esc(c.email || "—")}</td>
-            <td class="num">${DB.gatePasses.filter((g) => g.companyId === c.id).length}</td>
-            <td><div class="actions-cell">
-              <button class="btn-link link-edit" data-coact="edit" data-id="${c.id}">Edit</button>
-              <button class="btn-link link-danger" data-coact="delete" data-id="${c.id}">Delete</button>
-            </div></td>
-          </tr>`).join("")}
-        </tbody>
+        <thead><tr><th>Company</th><th>Sector</th><th>Account Manager</th><th>Billing</th><th>Contact</th><th>Phone</th><th>Email</th><th></th></tr></thead>
+        <tbody id="companiesBody"></tbody>
       </table>
     </div>
   `;
   document.getElementById("btnNewCompany").addEventListener("click", () => openCompanyModal(null));
-  mount.querySelectorAll("[data-coact]").forEach((btn) => {
+  document.getElementById("coFilterBilling").value = companyFilters.billingType;
+  document.getElementById("coFilterAM").value = companyFilters.accountManagerId;
+  document.getElementById("coSearch").addEventListener("input", (e) => { companyFilters.search = e.target.value; renderCompaniesBody(); });
+  document.getElementById("coFilterBilling").addEventListener("change", (e) => { companyFilters.billingType = e.target.value; renderCompaniesBody(); });
+  document.getElementById("coFilterAM").addEventListener("change", (e) => { companyFilters.accountManagerId = e.target.value; renderCompaniesBody(); });
+  renderCompaniesBody();
+}
+function filteredCompanies() {
+  const f = companyFilters;
+  return DB.companies.slice().sort((a, b) => a.name.localeCompare(b.name)).filter((c) => {
+    if (f.billingType && (c.billingType || "PER_SERVICE") !== f.billingType) return false;
+    if (f.accountManagerId && String(c.accountManagerId || "") !== String(f.accountManagerId)) return false;
+    if (f.search) {
+      const hay = `${c.name} ${c.sector || ""} ${c.contact || ""}`.toLowerCase();
+      if (!hay.includes(f.search.toLowerCase())) return false;
+    }
+    return true;
+  });
+}
+function renderCompaniesBody() {
+  const rows = filteredCompanies();
+  const body = document.getElementById("companiesBody");
+  if (!rows.length) { body.innerHTML = `<tr class="empty-row"><td colspan="8">No companies match these filters.</td></tr>`; return; }
+  body.innerHTML = rows.map((c) => `
+    <tr>
+      <td>${esc(c.name)}</td><td>${esc(c.sector || "—")}</td>
+      <td>${esc(employeeName(c.accountManagerId) || "—")}</td>
+      <td>${billingBadge(c.billingType || "PER_SERVICE")}</td>
+      <td>${esc(c.contact || "—")}</td><td>${esc(c.phone || "—")}</td><td>${esc(c.email || "—")}</td>
+      <td><div class="actions-cell">
+        <button class="btn-link link-edit" data-coact="edit" data-id="${c.id}">Edit</button>
+        <button class="btn-link link-danger" data-coact="delete" data-id="${c.id}">Delete</button>
+      </div></td>
+    </tr>`).join("");
+  body.querySelectorAll("[data-coact]").forEach((btn) => {
     const id = Number(btn.getAttribute("data-id"));
     const act = btn.getAttribute("data-coact");
     btn.addEventListener("click", () => {
@@ -2001,13 +2194,25 @@ function renderCompanies() {
 }
 function openCompanyModal(id) {
   const c = id ? DB.companies.find((x) => x.id === id) : null;
+  const amEmployees = DB.employees.filter((e) => e.isAM).sort((a, b) => a.name.localeCompare(b.name));
   const overlay = document.getElementById("overlay"), body = document.getElementById("modalBody");
   body.innerHTML = `
     <div class="kicker">${c ? "Edit record" : "New record"}</div>
     <h2>${c ? `Edit ${esc(c.name)}` : "New Company"}</h2>
     <form id="coForm" style="margin-top:14px;">
       <div class="field"><label>Company Name</label><input type="text" id="coName" required value="${esc(c ? c.name : "")}"></div>
-      <div class="field"><label>Sector</label><input type="text" id="coSector" value="${esc(c ? c.sector : "")}"></div>
+      <div class="field-row">
+        <div class="field"><label>Sector</label><input type="text" id="coSector" value="${esc(c ? c.sector : "")}"></div>
+        <div class="field"><label>Account Manager</label>
+          <select id="coAM"><option value="">— Unassigned —</option>${amEmployees.map((e) => `<option value="${e.id}" ${c && c.accountManagerId === e.id ? "selected" : ""}>${esc(e.name)}</option>`).join("")}</select>
+        </div>
+      </div>
+      <div class="field"><label>Billing Type</label>
+        <select id="coBilling">
+          <option value="PER_SERVICE" ${(!c || (c.billingType || "PER_SERVICE") === "PER_SERVICE") ? "selected" : ""}>Per Service</option>
+          <option value="MONTHLY_RETAINER" ${c && c.billingType === "MONTHLY_RETAINER" ? "selected" : ""}>Monthly Retainer</option>
+        </select>
+      </div>
       <div class="field"><label>Contact Person</label><input type="text" id="coContact" value="${esc(c ? c.contact : "")}"></div>
       <div class="field-row">
         <div class="field"><label>Phone</label><input type="text" id="coPhone" value="${esc(c ? c.phone : "")}"></div>
@@ -2023,9 +2228,12 @@ function openCompanyModal(id) {
   document.getElementById("coCancelBtn").addEventListener("click", closeModal);
   document.getElementById("coForm").addEventListener("submit", (e) => {
     e.preventDefault();
+    const amVal = document.getElementById("coAM").value;
     const rec = {
       name: document.getElementById("coName").value.trim(),
       sector: document.getElementById("coSector").value.trim() || null,
+      accountManagerId: amVal ? Number(amVal) : null,
+      billingType: document.getElementById("coBilling").value,
       contact: document.getElementById("coContact").value.trim() || null,
       phone: document.getElementById("coPhone").value.trim() || null,
       email: document.getElementById("coEmail").value.trim() || null,
@@ -2351,6 +2559,23 @@ function openBlockModal(taskId) {
 function kanbanCard(opts) {
   return Object.assign({ meta: "", badge: "", primary: null, secondary: null, warn: null, flagged: false, readOnlyBadge: null }, opts);
 }
+// French-only label/CSS-class maps used strictly inside the Kanban's card
+// badges — kept separate from STATUS_LABEL/STAGE_LABEL/pillFor (English),
+// which the Tracker and other pages still use, out of scope here.
+const KANBAN_GATE_PASS_PILL_FR = {
+  PENDING: { cls: "pill-warn", label: "En attente" },
+  COLLECTED: { cls: "pill-good", label: "Collecté" },
+  CANCELLED: { cls: "pill-mute", label: "Annulé" }
+};
+const KANBAN_STATUS_LABEL_FR = {
+  ASSIGNED_TO_ONLINE: "Assignée en ligne", ONLINE_PROCESSING: "En traitement",
+  PENDING_DISPATCH: "Prête pour terrain", MISSING_INFO_RETURNED_TO_AM: "Info manquante (retournée à l'AM)"
+};
+const KANBAN_STAGE_LABEL_FR = {
+  ONLINE: "Préparation", DISPATCH: "Prêt à assigner", ASSIGNED: "Assigné",
+  IN_PROGRESS: "En cours", COMPLETED: "Terminé", BLOCKED: "Bloqué"
+};
+function kanbanPill(cls, label) { return `<span class="pill ${cls}">${esc(label)}</span>`; }
 function buildKanbanCards() {
   const me = currentEmployee();
   const canDispatch = can(me, "dispatch_field_assign");
@@ -2358,16 +2583,17 @@ function buildKanbanCards() {
   const pending = [], inProgress = [], done = [];
 
   DB.gatePasses.forEach((g) => {
+    const gpPill = KANBAN_GATE_PASS_PILL_FR[g.status];
     if (g.status === "PENDING") {
       pending.push(kanbanCard({
-        key: `gp-${g.id}`, badge: pillFor("PENDING"),
-        title: `🛂 ${g.number}`, meta: `${companyName(g.companyId)} · ${g.location} · waiting ${daysWaiting(g).toFixed(1)}d`,
-        primary: { label: "Mark Collected", fn: () => openGatePassModal(g.id) },
-        secondary: { label: "Cancel", fn: () => cancelGatePass(g.id) }
+        key: `gp-${g.id}`, badge: kanbanPill(gpPill.cls, gpPill.label),
+        title: `🛂 ${g.number}`, meta: `${companyName(g.companyId)} · ${g.location} · en attente depuis ${daysWaiting(g).toFixed(1)}j`,
+        primary: { label: "Marquer collecté", fn: () => openGatePassModal(g.id) },
+        secondary: { label: "Annuler", fn: () => cancelGatePass(g.id) }
       }));
     } else {
       done.push(kanbanCard({
-        key: `gp-${g.id}`, badge: pillFor(g.status), title: `🛂 ${g.number}`, meta: companyName(g.companyId),
+        key: `gp-${g.id}`, badge: kanbanPill(gpPill.cls, gpPill.label), title: `🛂 ${g.number}`, meta: companyName(g.companyId),
         sortAt: g.collectionAt || g.submissionAt
       }));
     }
@@ -2381,53 +2607,55 @@ function buildKanbanCards() {
     if (r.status === "ASSIGNED_TO_ONLINE" || r.status === "ONLINE_PROCESSING") {
       if (!viewAllQueue && !(me && r.claimedById === me.id)) return;
     }
+    const srBadge = kanbanPill(STATUS_PILL[r.status], KANBAN_STATUS_LABEL_FR[r.status]);
     if (r.status === "ASSIGNED_TO_ONLINE") {
       pending.push(kanbanCard({
-        key: `sr-${r.id}`, badge: requestStatusPill(r.status), flagged: r.flaggedForManager,
-        title: r.title, meta: `${requestMeta(r)} · requested by ${esc(employeeName(r.createdById))}`,
-        primary: { label: "Start processing", fn: () => updateRequestStatus(r.id, "ONLINE_PROCESSING") }
+        key: `sr-${r.id}`, badge: srBadge, flagged: r.flaggedForManager,
+        title: r.title, meta: `${requestMeta(r)} · demandé par ${esc(employeeName(r.createdById))}`,
+        primary: { label: "Prendre en charge", fn: () => updateRequestStatus(r.id, "ONLINE_PROCESSING") }
       }));
     } else if (r.status === "ONLINE_PROCESSING") {
       inProgress.push(kanbanCard({
-        key: `sr-${r.id}`, badge: requestStatusPill(r.status), flagged: r.flaggedForManager,
+        key: `sr-${r.id}`, badge: srBadge, flagged: r.flaggedForManager,
         title: r.title, meta: requestMeta(r),
         primary: { label: "Prêt pour Dispatch", fn: () => updateRequestStatus(r.id, "PENDING_DISPATCH") },
         secondary: { label: "Retourner à l'AM", fn: () => openReturnRequestModal(r.id) }
       }));
     } else if (r.status === "MISSING_INFO_RETURNED_TO_AM") {
       inProgress.push(kanbanCard({
-        key: `sr-${r.id}`, badge: requestStatusPill(r.status),
+        key: `sr-${r.id}`, badge: srBadge,
         title: r.title, meta: requestMeta(r), warn: r.returnComment ? `⚠ ${r.returnComment}` : null
       }));
     }
-    // PENDING_DISPATCH intentionally excluded — represented by its DeliveryTask below.
+    // PENDING_DISPATCH intentionally excluded — représentée par sa DeliveryTask ci-dessous.
   });
 
   DB.deliveryTasks.forEach((t) => {
+    const dtBadge = kanbanPill(STAGE_PILL[t.stage], KANBAN_STAGE_LABEL_FR[t.stage]);
     if (t.stage === "ONLINE") {
-      pending.push(kanbanCard({ key: `dt-${t.id}`, badge: stagePill(t.stage), title: t.title, meta: taskMeta(t) }));
+      pending.push(kanbanCard({ key: `dt-${t.id}`, badge: dtBadge, title: t.title, meta: taskMeta(t) }));
     } else if (t.stage === "DISPATCH") {
       pending.push(kanbanCard({
-        key: `dt-${t.id}`, badge: stagePill(t.stage), title: t.title, meta: taskMeta(t),
-        primary: canDispatch ? { label: "Assign agent", fn: () => openAssignModal(t.id) } : null,
-        readOnlyBadge: canDispatch ? null : "Waiting for dispatch"
+        key: `dt-${t.id}`, badge: dtBadge, title: t.title, meta: taskMeta(t),
+        primary: canDispatch ? { label: "Assigner un agent", fn: () => openAssignModal(t.id) } : null,
+        readOnlyBadge: canDispatch ? null : "En attente d'assignation"
       }));
     } else if (t.stage === "ASSIGNED" || t.stage === "IN_PROGRESS") {
       inProgress.push(kanbanCard({
-        key: `dt-${t.id}`, badge: stagePill(t.stage), title: t.title,
-        meta: `${taskMeta(t)} · Agent: ${employeeName(t.assignedToId) || "—"} · Departure: ${fmtDateTime(t.scheduledAt)}`,
+        key: `dt-${t.id}`, badge: dtBadge, title: t.title,
+        meta: `${taskMeta(t)} · Agent : ${employeeName(t.assignedToId) || "—"} · Départ : ${fmtDateTime(t.scheduledAt)}`,
         flagged: isOverdue(t),
-        primary: canDispatch ? { label: "Reassign", fn: () => openAssignModal(t.id) } : null
+        primary: canDispatch ? { label: "Réassigner", fn: () => openAssignModal(t.id) } : null
       }));
     } else if (t.stage === "BLOCKED") {
       inProgress.push(kanbanCard({
-        key: `dt-${t.id}`, badge: stagePill(t.stage), title: t.title, meta: taskMeta(t),
+        key: `dt-${t.id}`, badge: dtBadge, title: t.title, meta: taskMeta(t),
         warn: t.blockedReason ? `⚠ ${t.blockedReason}` : null,
-        primary: canDispatch ? { label: "Resolve & reassign", fn: () => openAssignModal(t.id) } : null,
-        secondary: canDispatch ? { label: "Send back to queue", fn: () => updateTaskStage(t.id, "DISPATCH") } : null
+        primary: canDispatch ? { label: "Résoudre et réassigner", fn: () => openAssignModal(t.id) } : null,
+        secondary: canDispatch ? { label: "Renvoyer en file d'attente", fn: () => updateTaskStage(t.id, "DISPATCH") } : null
       }));
     } else if (t.stage === "COMPLETED") {
-      done.push(kanbanCard({ key: `dt-${t.id}`, badge: stagePill(t.stage), title: t.title, meta: taskMeta(t), sortAt: t.completedAt || t.createdAt }));
+      done.push(kanbanCard({ key: `dt-${t.id}`, badge: dtBadge, title: t.title, meta: taskMeta(t), sortAt: t.completedAt || t.createdAt }));
     }
   });
 
@@ -2438,7 +2666,7 @@ function kanbanCardHtml(c) {
   return `
     <div class="card card-pad task-card kanban-card">
       <div>
-        <div class="title-row"><span class="t">${esc(c.title)}</span>${c.badge}${c.flagged ? `<span title="Needs attention">🚩</span>` : ""}</div>
+        <div class="title-row"><span class="t">${esc(c.title)}</span>${c.badge}${c.flagged ? `<span title="Nécessite attention">🚩</span>` : ""}</div>
         ${c.meta ? `<div class="meta">${esc(c.meta)}</div>` : ""}
         ${c.warn ? `<div class="danger-box">${esc(c.warn)}</div>` : ""}
       </div>
@@ -2457,8 +2685,8 @@ function renderKanban() {
 
   mount.innerHTML = `
     <div class="page-head">
-      <div><span class="eyebrow">Operations</span><h1>Kanban — Gate Pass &amp; PRO Services</h1>
-      <p>Every request in one board — Pending, Dispatch, Deliveries and the Online Queue, merged.</p></div>
+      <div><span class="eyebrow">Opérations</span><h1>Suivi des Dossiers</h1>
+      <p>Gate Pass, PRO Services et livraisons terrain — chaque dossier suivi en un seul tableau.</p></div>
     </div>
     <div class="grid kpi-row" style="grid-template-columns:repeat(3,1fr);">
       ${kpiTile("En Attente", pending.length, "", "warn")}
@@ -2599,8 +2827,7 @@ function openNewRequestModal() {
         <div class="field"><label>Client name</label><input type="text" id="reqClient"></div>
       </div>
       <div class="field"><label>Description</label><textarea id="reqDesc" rows="2"></textarea></div>
-      <div class="field"><label>Attached documents</label>
-        <input type="text" id="reqAttachments" placeholder="e.g. passport_copy.pdf, trade_licence.pdf"></div>
+      ${attachmentDropzoneHtml("reqDropzone", "reqAttachments")}
       <p class="err-msg" id="reqErr" style="display:none;"></p>
       <div class="modal-actions">
         <button type="button" class="btn btn-ghost" id="reqCancelBtn">Cancel</button>
@@ -2609,6 +2836,7 @@ function openNewRequestModal() {
     </form>
   `;
   overlay.classList.add("open");
+  initAttachmentDropzone("reqDropzone", "reqAttachments");
   document.getElementById("reqCancelBtn").addEventListener("click", closeModal);
   document.getElementById("reqCategory").addEventListener("change", (e) => {
     document.getElementById("reqServiceTypeField").style.display = e.target.value === "PRO" ? "" : "none";
@@ -2708,8 +2936,7 @@ function openNewGatePassRequestModal() {
         <div class="field"><label>Client name</label><input type="text" id="gpClient"></div>
       </div>
       <div class="field"><label>Description</label><textarea id="gpDesc" rows="2"></textarea></div>
-      <div class="field"><label>Attached documents</label>
-        <input type="text" id="gpAttachments" placeholder="e.g. passport_copy.pdf, authorization_letter.pdf"></div>
+      ${attachmentDropzoneHtml("gpDropzone", "gpAttachments")}
       <p class="err-msg" id="gpErr" style="display:none;"></p>
       <div class="modal-actions">
         <button type="button" class="btn btn-ghost" id="gpCancelBtn">Cancel</button>
@@ -2718,6 +2945,7 @@ function openNewGatePassRequestModal() {
     </form>
   `;
   overlay.classList.add("open");
+  initAttachmentDropzone("gpDropzone", "gpAttachments");
   const kindSelect = document.getElementById("gpKind");
   const locationRow = document.getElementById("gpLocationRow");
   const gatePassFieldsRow = document.getElementById("gpGatePassFieldsRow");
@@ -2902,6 +3130,17 @@ function runCompanyImport(csvText, dryRun) {
       results.push({ amRawName: col.amRawName, matchedEmployee: null, companiesFound: col.companies.length, toCreate: 0, toLink: 0, alreadyLinked: 0 });
       continue;
     }
+    // Flag duplicate company names within the same AM column — a common
+    // copy/paste mistake in the source spreadsheet that would otherwise
+    // silently re-process the same row twice.
+    const seenInColumn = new Map();
+    const duplicateNames = [];
+    for (const name of col.companies) {
+      const key = name.toUpperCase();
+      seenInColumn.set(key, (seenInColumn.get(key) || 0) + 1);
+    }
+    seenInColumn.forEach((count, key) => { if (count > 1) duplicateNames.push(key); });
+
     let toCreate = 0, toLink = 0, alreadyLinked = 0;
     for (const name of col.companies) {
       const key = name.toUpperCase();
@@ -2916,7 +3155,7 @@ function runCompanyImport(csvText, dryRun) {
       } else {
         toCreate++;
         if (!dryRun) {
-          const created = { id: DB.nextIds.company++, name, sector: null, contact: null, phone: null, email: null, notes: null, accountManagerId: employee.id };
+          const created = { id: DB.nextIds.company++, name, sector: null, contact: null, phone: null, email: null, notes: null, accountManagerId: employee.id, billingType: "PER_SERVICE" };
           DB.companies.push(created);
           companyByUpper.set(key, created);
         } else {
@@ -2925,7 +3164,10 @@ function runCompanyImport(csvText, dryRun) {
       }
     }
     totalCreated += toCreate; totalLinked += toLink;
-    results.push({ amRawName: col.amRawName, matchedEmployee: employee.name, companiesFound: col.companies.length, toCreate, toLink, alreadyLinked });
+    results.push({
+      amRawName: col.amRawName, matchedEmployee: employee.name, companiesFound: col.companies.length,
+      toCreate, toLink, alreadyLinked, sampleNames: col.companies.slice(0, 5), duplicateCount: duplicateNames.length
+    });
   }
   if (!dryRun) saveState();
   return { dryRun, totalCompanies: columns.reduce((s, c) => s + c.companies.length, 0), totalCreated, totalLinked, columns: results };
@@ -2934,12 +3176,16 @@ function companyImportSummaryTable(summary) {
   return `
     <div class="card table-wrap">
       <table>
-        <thead><tr><th>Column</th><th>Matched Employee</th><th>Companies</th><th>New</th><th>Re-linked</th><th>Already linked</th></tr></thead>
+        <thead><tr><th>Column</th><th>Matched Employee</th><th>Companies</th><th>New</th><th>Re-linked</th><th>Already linked</th><th>Sample</th></tr></thead>
         <tbody>
           ${summary.columns.map((c) => `<tr style="${!c.matchedEmployee ? "background:var(--critical-bg);" : ""}">
             <td style="font-weight:600;">${esc(c.amRawName)}</td>
             <td>${c.matchedEmployee ? esc(c.matchedEmployee) : `<span style="color:var(--critical);">No matching Account Manager — skipped</span>`}</td>
             <td>${c.companiesFound}</td><td>${c.toCreate}</td><td>${c.toLink}</td><td>${c.alreadyLinked}</td>
+            <td style="max-width:220px;">
+              <span style="color:var(--ink-2);">${c.sampleNames.map((n) => esc(n)).join(", ")}${c.companiesFound > c.sampleNames.length ? ` +${c.companiesFound - c.sampleNames.length} more` : ""}</span>
+              ${c.duplicateCount ? `<div style="margin-top:2px;color:var(--critical);font-size:11px;">⚠ ${c.duplicateCount} duplicate name${c.duplicateCount > 1 ? "s" : ""} in this column</div>` : ""}
+            </td>
           </tr>`).join("")}
         </tbody>
       </table>
@@ -2962,6 +3208,16 @@ function renderCompanyImport() {
     <div class="page-head">
       <div><span class="eyebrow">Import Companies</span><h1>Import Companies</h1>
       <p>Paste or upload the AM allocation as CSV (one Account Manager name per column header, company names down the rows)</p></div>
+    </div>
+    <div class="card card-pad" style="max-width:600px;margin-bottom:16px;">
+      <div style="font-size:12.5px;font-weight:700;color:var(--ink);margin-bottom:8px;">📋 How this works</div>
+      <ol style="margin:0 0 0 18px;padding:0;font-size:12.5px;color:var(--ink-2);line-height:1.7;">
+        <li>Your file needs <strong>one column per Account Manager</strong> — the column header must be their name (e.g. <code>Violetta</code>, <code>Abegail</code>).</li>
+        <li>List each Account Manager's <strong>company names</strong> in the rows below their column header, one per row.</li>
+        <li>Upload the <code>.csv</code> file, or paste the same content as text.</li>
+        <li>Click <strong>Preview</strong> first — nothing is saved yet. Review the summary: which columns matched a real Account Manager, how many companies are new vs. already linked, and a sample of the names found.</li>
+        <li>Only once the preview looks right, click <strong>Apply Import</strong> to save it.</li>
+      </ol>
     </div>
     <div class="card card-pad" style="max-width:600px;margin-bottom:20px;">
       <div class="field"><label>CSV file</label><input type="file" id="ciFile" accept=".csv,.txt"></div>
