@@ -272,7 +272,7 @@
      scroll on a normal desktop (~1280px+) — smaller font + tighter padding
      instead of a forced min-width. */
   .tracker-table table { font-size: 11.5px; table-layout: fixed; }
-  .tracker-table thead th { padding: 8px 8px; white-space: normal; }
+  .tracker-table thead th { padding: 8px 6px; white-space: normal; font-size: 9.5px; letter-spacing: 0.02em; overflow-wrap: break-word; }
   .tracker-table tbody td { padding: 8px 8px; }
   .tracker-table .type-cell { font-size: 11px; line-height: 1.4; color: var(--ink-2); }
   .tracker-table .remarks-cell {
@@ -363,6 +363,11 @@
   .toolbar select { min-width: 150px; }
 
   .actions-cell { display: flex; gap: 12px; justify-content: flex-end; white-space: nowrap; }
+  /* Tracker's Actions column is deliberately narrow (see .tracker-table's
+     colgroup) — flex-end + overflow bleeds backwards into the previous cell,
+     so this column packs from the start instead; overflow spills off-screen
+     to the right rather than visually merging with the Remarks cell. */
+  .tracker-table .actions-cell { justify-content: flex-start; gap: 8px; }
 
   /* ---------- charts (svg) ---------- */
   .chart-legend { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 8px; font-size: 11.5px; color: var(--ink-2); }
@@ -505,6 +510,7 @@ const TRANSLATIONS = {
   "common.signedInAs": { en: "Signed in as", ar: "مسجّل الدخول باسم" },
   "common.logout": { en: "Log out", ar: "تسجيل الخروج" },
   "common.resetSampleData": { en: "Reset sample data", ar: "إعادة تعيين البيانات التجريبية" },
+  "common.accessRestricted": { en: "Access restricted — your profile doesn't have permission to view this page.", ar: "الوصول مقيّد — لا يملك ملفك الشخصي صلاحية عرض هذه الصفحة." },
   "common.cancel": { en: "Cancel", ar: "إلغاء" },
   "common.save": { en: "Save", ar: "حفظ" },
   "common.edit": { en: "Edit", ar: "تعديل" },
@@ -780,6 +786,26 @@ function canCreateGatePassRequest(e) {
   if (role === "CEO" || role === "SUPER_ADMIN" || role === "OPS_ADMIN" || role === "AM_LEAD") return true;
   return GATE_PASS_CREATOR_AM_NAMES.includes(e.name);
 }
+// Gate Pass Tracker: restricted to a fixed named whitelist (not a role tier) —
+// Darwish (SUPER_ADMIN) and CEO already bypass everything via the blanket
+// check in isViewAllowed, so only the remaining 4 named individuals are listed.
+const TRACKER_ALLOWED_NAMES = ["Violetta", "Abegail", "ELENA", "AHMED", "SAMIM"];
+function canViewTracker(e) {
+  if (!e) return false;
+  const role = roleOf(e);
+  if (role === "CEO" || role === "SUPER_ADMIN") return true;
+  return TRACKER_ALLOWED_NAMES.includes(e.name);
+}
+// Strict cross-company visibility inside the Tracker only: Violetta's sole
+// company is EY Consulting, exclusively worked by her operator partner AHMED;
+// Abegail's 3 companies are exclusively worked by her operator partner SAMIM.
+// Elena/Darwish/CEO have no entry here => unscoped (full visibility).
+const TRACKER_COMPANY_SCOPE = {
+  "Violetta": ["EY Consulting"],
+  "AHMED": ["EY Consulting"],
+  "Abegail": ["Tenaris Global", "Tenaris Investment", "Welltec"],
+  "SAMIM": ["Tenaris Global", "Tenaris Investment", "Welltec"]
+};
 const GATE_PASS_REQUEST_KINDS = [
   { value: "GATE_PASS", label: "Gate Pass" },
   { value: "DVC", label: "DVC (Declaration Valid Contract) — tracking only" },
@@ -850,8 +876,9 @@ const VIEW_ACCESS_RULES = {
   analytics: ["OPS_ADMIN", "AM_LEAD"],
   companies: ["AM", "AM_LEAD"]
 };
-function isViewAllowed(id, role) {
+function isViewAllowed(id, role, employee) {
   if (role === "CEO" || role === "SUPER_ADMIN") return true;
+  if (id === "tracker") return canViewTracker(employee);
   const rule = VIEW_ACCESS_RULES[id];
   if (!rule) return true;
   return rule.includes(role);
@@ -942,7 +969,7 @@ const SEED_SERVICE_REQUESTS = [
 ];
 
 /* ================= company -> AM allocation (imported from the real Excel sheet) ================= */
-const COMPANY_AM_ALLOCATION = {"Violetta": ["ABB AG", "ABB LLC", "ABB LLC BRANCH", "ACROGYM SPORT CENTER", "AL QUWA FOR COMMERCIAL BROKERAGE", "ASIAN PAINTS DOHA TRADING", "AUTOHAUS", "BEIJING PAN CHINA - liquidating", "BSU WEB DEVELOPMENT liquidating", "CREATIVE COMMUNICATION - RCHBS", "DALKIA U S CHILLERS SERVICES", "DJERROUFI MANAGEMENT CONSULTING", "DUNYO HARDWARES", "DYNAMIC INNOVATION SOFTWARE", "EY CONSULTING", "GHAIA SOFTWARE AND AI SOLUTIONS", "GULF COAST DRILLING AND GEOSOLUTIONS", "HITACHI ENERGY", "JANO SPARE PARTS", "JULI SLING - liquidating", "LIBRA TRADING", "LOGICOM FOR TRADING AND DISTRIBUTION", "MARA GALLERY", "PEREGRINE TRADING SOLUTIONS", "PROPERTY FINDER", "QATAR ALGERIAN INVESTMENT COMPANY", "QATAR OXYGEN", "QATSOL CONSULTING", "RAPISCAN SYSTEMS", "SOCIAL PLAY", "SPEAK EASY MANAGEMENT FOR CONSULTING", "Sulhafa Snacks for Trading of Diverse Food Products", "WANDERBEE TOYS"], "Abegail": ["AL HAMAD TRADING", "AL HAMAD TRADING AUTOMOTIVE", "SILVER GATE", "APTECH", "JADARA", "LG ELECTRONICS", "LIMITLESS MINDS DEEP TECHNOLOGY", "MASTERMINDS ADMINISTRATION", "PANOUTRON TRADING", "THE PEARL GATES", "VANESSA SHAH MAISON", "WELLTEC", "AQUALIA", "CHOCOLA CAFÉ", "TENARIS", "HIMA", "SEAQUEST - RCHBS", "INTEGRA Q", "NEWMATIC INTERNATIONAL", "NEXUS FOOD TRADING", "BLUEMINA LTD", "MADANAT MEDIA PRODUCTION", "DREAM MACHINE", "YOUR OWN FURNITURE", "FGREALTY"], "Vongai": ["ACTIVE EVENTS", "AL SAKA", "ALTASHERAH", "AMAL CONSULTING", "APEXUS METABUID", "BE LINKED", "BEEHIVE CONTRACTING COMPANY", "BESTE AND MORE", "CARTEL PRO", "CAVETTO TRADING AND CONTRACTING", "CRAFTS JOINERY TRADING", "DISHA BRANCH", "DISHA MAIN", "ELITE BUILDERS", "UGUR GURBUZ FOOD AND TRADING- will transfer to 100%", "FARINA RESTAURANT", "GLOBELINK (WINLANKA INTERNATIONAL)", "ITVAR REPRESENTATION SERVICES", "M SQUARE", "MAGNUM", "MANAGEMENT INFO", "MAPLES", "ULTRA SPORTS", "MEDAX", "NASA FOOD SERVICE", "PLATINUM HOUSE", "PROSYNC MANAGEMENT CONSULTING", "ROKAZ", "SAIF QATAR", "SATGURU TRAVEL AND TOURS", "SHEEN SERVICES", "SMART FAMILY FOOD", "SOTERIA liquidating", "STPEC", "TECHNICAL SOLUTIONS FOR TRADING AND CONTRACTING", "WORLD GATE BEAUTY", "BEYOND REAL ESTATE BROKERAGE"], "Nasma": ["BLOSSOME FOR MASSAGE AND NAILS", "FIT EXPRESS ONE GYM", "IN SHAPE", "INFRASTRUCTURE", "INTERWAY", "METES TRADING AND CONTRACTING", "MODO LUCE", "PERFECT PRINTING", "PLUTO DIGITAL", "PRESTIGE", "TABKHETNA", "THINK RED", "TIMELINE", "VTS CLIMA", "ZAHARA", "DIGGRI", "KMS DOCUMENTATION SERVICES", "NYRIX ENERGY TRADING AND SERVICES", "HERMANOS", "TCO DOHA JEWELRY", "BBG TRADING", "ARIMAX GLOBAL M.E. W.L.L", "PRO EVENT MANAGEMENT AND AV RENTAL", "CANDELA HOSPITALITY", "JUST WOOD CARPENTRY", "OLDTIMER - RCHBS", "CHINA HYWAY", "NEUXNET"], "Roxana": ["AEON", "AL BAZAR", "GBO 1- AL WASATH AL QADRA OILS", "LUXURY SQUARED", "ALLIED", "ANGIE FOR FOOD TRADING", "ARAB BUILDINGS", "AUCKLAND CONSTRUCTION", "BEE ARCHITECT", "BLANC STUDIOS", "CANDELA ENTERTAINMENT FOR MUSIC", "CAR WORKSHOP GROUP", "CONSTRUCTION ART", "CRAFTS INDUSTRIES", "DENIZLI GENTS SALON", "DENIZLI GENTS SALON- Branch", "ETERNITY ELECTROMECHANICAL", "TIMBER CRAFTS JOINERY", "REYNOLD TRADING & CONTRACTING", "SARAY INTERIOR", "SEVEN SCANE", "STEEL CRAFTS", "LEAN FOR CONSTRUCTION", "SIRENE EVENT MANAGEMENT"], "ELENA": ["KMD - AGS RELOCATIONS", "KMD - CONCEPT CAFÉ - LIQUIDATING", "KMD - KAAR TECH", "KMD - OP3 DESIGN", "KMD - ROYA", "KMD - SYSTEMAIR", "KMD Consulting", "KMD Corporate Solutions", "DHIAFATINA", "EMILIA CONSULTANCY", "EMILIA REAL ESTATE", "EVENTS AND ENTERTAINMENT", "HIKVISION INTERNATIONAL", "MOUAWAD DOHA", "ZAINAB IMPERIAL TRADING AND CONTRACTING", "ANTON OILFIELD SERVICES", "SULAVA AI", "VACHI WAREHOUSING & STORAGE MANAGEMENT & OPERATION", "SARIA'S JEWELERY", "REGAL ENERGY - liquidating", "GOV CAMPUS", "JUST WOOD CARPENTRY", "YOUSEF FOR QUALITY", "CHAUMET TRADING DOHA"], "Gabriela": ["RCH", "RCHBS", "RCH AUDIT", "PRIME VALUE", "FIT LIFE", "MDP PROPERTIES", "APEX CONSTRUCTION", "HELIUS", "GBO 2", "ACH", "KAIZEN PAINTS", "TDEC", "AL BARAKA"]};
+const COMPANY_AM_ALLOCATION = {"Violetta": ["ABB AG", "ABB LLC", "ABB LLC BRANCH", "ACROGYM SPORT CENTER", "AL QUWA FOR COMMERCIAL BROKERAGE", "ASIAN PAINTS DOHA TRADING", "AUTOHAUS", "BEIJING PAN CHINA - liquidating", "BSU WEB DEVELOPMENT liquidating", "CREATIVE COMMUNICATION - RCHBS", "DALKIA U S CHILLERS SERVICES", "DJERROUFI MANAGEMENT CONSULTING", "DUNYO HARDWARES", "DYNAMIC INNOVATION SOFTWARE", "EY CONSULTING", "GHAIA SOFTWARE AND AI SOLUTIONS", "GULF COAST DRILLING AND GEOSOLUTIONS", "HITACHI ENERGY", "JANO SPARE PARTS", "JULI SLING - liquidating", "LIBRA TRADING", "LOGICOM FOR TRADING AND DISTRIBUTION", "MARA GALLERY", "PEREGRINE TRADING SOLUTIONS", "PROPERTY FINDER", "QATAR ALGERIAN INVESTMENT COMPANY", "QATAR OXYGEN", "QATSOL CONSULTING", "RAPISCAN SYSTEMS", "SOCIAL PLAY", "SPEAK EASY MANAGEMENT FOR CONSULTING", "Sulhafa Snacks for Trading of Diverse Food Products", "WANDERBEE TOYS"], "Abegail": ["AL HAMAD TRADING", "AL HAMAD TRADING AUTOMOTIVE", "SILVER GATE", "APTECH", "JADARA", "LG ELECTRONICS", "LIMITLESS MINDS DEEP TECHNOLOGY", "MASTERMINDS ADMINISTRATION", "PANOUTRON TRADING", "THE PEARL GATES", "VANESSA SHAH MAISON", "WELLTEC", "AQUALIA", "CHOCOLA CAFÉ", "TENARIS GLOBAL", "TENARIS INVESTMENT", "HIMA", "SEAQUEST - RCHBS", "INTEGRA Q", "NEWMATIC INTERNATIONAL", "NEXUS FOOD TRADING", "BLUEMINA LTD", "MADANAT MEDIA PRODUCTION", "DREAM MACHINE", "YOUR OWN FURNITURE", "FGREALTY"], "Vongai": ["ACTIVE EVENTS", "AL SAKA", "ALTASHERAH", "AMAL CONSULTING", "APEXUS METABUID", "BE LINKED", "BEEHIVE CONTRACTING COMPANY", "BESTE AND MORE", "CARTEL PRO", "CAVETTO TRADING AND CONTRACTING", "CRAFTS JOINERY TRADING", "DISHA BRANCH", "DISHA MAIN", "ELITE BUILDERS", "UGUR GURBUZ FOOD AND TRADING- will transfer to 100%", "FARINA RESTAURANT", "GLOBELINK (WINLANKA INTERNATIONAL)", "ITVAR REPRESENTATION SERVICES", "M SQUARE", "MAGNUM", "MANAGEMENT INFO", "MAPLES", "ULTRA SPORTS", "MEDAX", "NASA FOOD SERVICE", "PLATINUM HOUSE", "PROSYNC MANAGEMENT CONSULTING", "ROKAZ", "SAIF QATAR", "SATGURU TRAVEL AND TOURS", "SHEEN SERVICES", "SMART FAMILY FOOD", "SOTERIA liquidating", "STPEC", "TECHNICAL SOLUTIONS FOR TRADING AND CONTRACTING", "WORLD GATE BEAUTY", "BEYOND REAL ESTATE BROKERAGE"], "Nasma": ["BLOSSOME FOR MASSAGE AND NAILS", "FIT EXPRESS ONE GYM", "IN SHAPE", "INFRASTRUCTURE", "INTERWAY", "METES TRADING AND CONTRACTING", "MODO LUCE", "PERFECT PRINTING", "PLUTO DIGITAL", "PRESTIGE", "TABKHETNA", "THINK RED", "TIMELINE", "VTS CLIMA", "ZAHARA", "DIGGRI", "KMS DOCUMENTATION SERVICES", "NYRIX ENERGY TRADING AND SERVICES", "HERMANOS", "TCO DOHA JEWELRY", "BBG TRADING", "ARIMAX GLOBAL M.E. W.L.L", "PRO EVENT MANAGEMENT AND AV RENTAL", "CANDELA HOSPITALITY", "JUST WOOD CARPENTRY", "OLDTIMER - RCHBS", "CHINA HYWAY", "NEUXNET"], "Roxana": ["AEON", "AL BAZAR", "GBO 1- AL WASATH AL QADRA OILS", "LUXURY SQUARED", "ALLIED", "ANGIE FOR FOOD TRADING", "ARAB BUILDINGS", "AUCKLAND CONSTRUCTION", "BEE ARCHITECT", "BLANC STUDIOS", "CANDELA ENTERTAINMENT FOR MUSIC", "CAR WORKSHOP GROUP", "CONSTRUCTION ART", "CRAFTS INDUSTRIES", "DENIZLI GENTS SALON", "DENIZLI GENTS SALON- Branch", "ETERNITY ELECTROMECHANICAL", "TIMBER CRAFTS JOINERY", "REYNOLD TRADING & CONTRACTING", "SARAY INTERIOR", "SEVEN SCANE", "STEEL CRAFTS", "LEAN FOR CONSTRUCTION", "SIRENE EVENT MANAGEMENT"], "ELENA": ["KMD - AGS RELOCATIONS", "KMD - CONCEPT CAFÉ - LIQUIDATING", "KMD - KAAR TECH", "KMD - OP3 DESIGN", "KMD - ROYA", "KMD - SYSTEMAIR", "KMD Consulting", "KMD Corporate Solutions", "DHIAFATINA", "EMILIA CONSULTANCY", "EMILIA REAL ESTATE", "EVENTS AND ENTERTAINMENT", "HIKVISION INTERNATIONAL", "MOUAWAD DOHA", "ZAINAB IMPERIAL TRADING AND CONTRACTING", "ANTON OILFIELD SERVICES", "SULAVA AI", "VACHI WAREHOUSING & STORAGE MANAGEMENT & OPERATION", "SARIA'S JEWELERY", "REGAL ENERGY - liquidating", "GOV CAMPUS", "JUST WOOD CARPENTRY", "YOUSEF FOR QUALITY", "CHAUMET TRADING DOHA"], "Gabriela": ["RCH", "RCHBS", "RCH AUDIT", "PRIME VALUE", "FIT LIFE", "MDP PROPERTIES", "APEX CONSTRUCTION", "HELIUS", "GBO 2", "ACH", "KAIZEN PAINTS", "TDEC", "AL BARAKA"]};
 
 /* ================= state ================= */
 let DB = null; // { companies:[], collectors:[], gatePasses:[], nextIds:{} }
@@ -1775,7 +1802,7 @@ function enterApp() {
   document.getElementById("loginScreen").classList.remove("open");
   document.getElementById("appRoot").classList.add("authed");
   setupNav();
-  if (!isViewAllowed(currentView, currentRole())) currentView = "dashboard";
+  if (!isViewAllowed(currentView, currentRole(), currentEmployee())) currentView = "dashboard";
   switchView(currentView);
 }
 function logout() {
@@ -1788,7 +1815,7 @@ function logout() {
 
 function setupNav() {
   const role = currentRole();
-  const visibleItems = orderNavItems(NAV_ITEMS.filter((it) => isViewAllowed(it.id, role)), role);
+  const visibleItems = orderNavItems(NAV_ITEMS.filter((it) => isViewAllowed(it.id, role, currentEmployee())), role);
   const nav = document.getElementById("nav");
   nav.innerHTML = visibleItems.map((it, i) => `<button data-view="${it.id}"><span class="n">${String(i + 1).padStart(2, "0")}</span>${esc(t(it.labelKey))}</button>`).join("");
   const mnav = document.getElementById("mobileNav");
@@ -1813,9 +1840,9 @@ function setupNav() {
 function switchView(id) {
   const role = currentRole();
   const banner = document.getElementById("accessDeniedBanner");
-  if (!isViewAllowed(id, role)) {
+  if (!isViewAllowed(id, role, currentEmployee())) {
     banner.style.display = "block";
-    banner.textContent = `🔒 Access restricted — your role doesn't have permission to view "${id}".`;
+    banner.textContent = `🔒 ${t("common.accessRestricted")}`;
     id = "dashboard";
   } else {
     banner.style.display = "none";
@@ -1999,9 +2026,12 @@ let trackerFilters = { search: "", status: "", companyId: "", collectorId: "", l
 function renderTracker() {
   const mount = document.getElementById("view-tracker");
   const rows = filteredGatePasses();
+  const scope = TRACKER_COMPANY_SCOPE[currentEmployee() && currentEmployee().name];
+  const totalInScope = scope ? DB.gatePasses.filter((g) => scope.includes(companyName(g.companyId))).length : DB.gatePasses.length;
+  const companyOptions = DB.companies.filter((c) => !scope || scope.includes(c.name));
   mount.innerHTML = `
     <div class="page-head">
-      <div><span class="eyebrow">${esc(t("tracker.title"))}</span><h1>${esc(t("tracker.title"))}</h1><p>${rows.length} / ${DB.gatePasses.length}</p></div>
+      <div><span class="eyebrow">${esc(t("tracker.title"))}</span><h1>${esc(t("tracker.title"))}</h1><p>${rows.length} / ${totalInScope}</p></div>
       <button class="btn btn-primary" id="btnNewGp">${esc(t("tracker.newGatePass"))}</button>
     </div>
     <div class="card card-pad toolbar">
@@ -2010,12 +2040,17 @@ function renderTracker() {
         <option value="">${esc(t("tracker.allStatuses"))}</option>
         <option value="PENDING">${esc(t("status.gpPending"))}</option><option value="COLLECTED">${esc(t("status.gpCollected"))}</option><option value="CANCELLED">${esc(t("status.gpCancelled"))}</option>
       </select>
-      <select id="fCompany"><option value="">${esc(t("tracker.allCompanies"))}</option>${DB.companies.map((c) => `<option value="${c.id}">${esc(c.name)}</option>`).join("")}</select>
+      <select id="fCompany"><option value="">${esc(t("tracker.allCompanies"))}</option>${companyOptions.map((c) => `<option value="${c.id}">${esc(c.name)}</option>`).join("")}</select>
       <select id="fLocation"><option value="">${esc(t("tracker.allLocations"))}</option>${LOCATIONS.map((l) => `<option value="${esc(l)}">${esc(l)}</option>`).join("")}</select>
       <select id="fCollector"><option value="">${esc(t("tracker.allCollectors"))}</option>${DB.collectors.map((c) => `<option value="${c.id}">${esc(c.name)}</option>`).join("")}</select>
     </div>
     <div class="card table-wrap tracker-table">
       <table>
+        <colgroup>
+          <col style="width:8%"><col style="width:8%"><col style="width:7%"><col style="width:8%">
+          <col style="width:9%"><col style="width:8%"><col style="width:8%"><col style="width:7%">
+          <col style="width:11%"><col style="width:6%"><col style="width:7%"><col style="width:13%">
+        </colgroup>
         <thead><tr><th>${esc(t("tracker.colNumber"))}</th><th>${esc(t("common.company"))}</th><th>${esc(t("tracker.colLocation"))}</th><th>${esc(t("tracker.colType"))}</th><th>${esc(t("tracker.colSubmitted"))}</th><th>${esc(t("tracker.colCollector"))}</th><th>${esc(t("tracker.colCollected"))}</th><th>${esc(t("common.status"))}</th><th>${esc(t("tracker.colDelay"))}</th><th class="num">${esc(t("tracker.colTime"))}</th><th>${esc(t("tracker.colRemarks"))}</th><th></th></tr></thead>
         <tbody id="trackerBody"></tbody>
       </table>
@@ -2035,10 +2070,12 @@ function renderTracker() {
 }
 function filteredGatePasses() {
   const f = trackerFilters;
+  const scope = TRACKER_COMPANY_SCOPE[currentEmployee() && currentEmployee().name];
   return DB.gatePasses
     .slice()
     .sort((a, b) => new Date(b.submissionAt) - new Date(a.submissionAt))
     .filter((g) => {
+      if (scope && !scope.includes(companyName(g.companyId))) return false;
       if (f.status && g.status !== f.status) return false;
       if (f.companyId && String(g.companyId) !== String(f.companyId)) return false;
       if (f.collectorId && String(g.collectorId || "") !== String(f.collectorId)) return false;
@@ -2052,8 +2089,10 @@ function filteredGatePasses() {
 }
 function renderTrackerBody() {
   const rows = filteredGatePasses();
+  const scope = TRACKER_COMPANY_SCOPE[currentEmployee() && currentEmployee().name];
+  const totalInScope = scope ? DB.gatePasses.filter((g) => scope.includes(companyName(g.companyId))).length : DB.gatePasses.length;
   const p = document.querySelector("#view-tracker .page-head p");
-  if (p) p.textContent = `${rows.length} / ${DB.gatePasses.length}`;
+  if (p) p.textContent = `${rows.length} / ${totalInScope}`;
   const body = document.getElementById("trackerBody");
   if (!rows.length) { body.innerHTML = `<tr class="empty-row"><td colspan="12">${esc(t("tracker.noMatch"))}</td></tr>`; return; }
   body.innerHTML = rows.map((g) => {
@@ -3089,12 +3128,23 @@ function renderAccountManagers() {
     if (r) updateRequestStatus(r.id, "ASSIGNED_TO_ONLINE", { changedById: r.createdById });
   }));
 }
+// AM-scoped company visibility: an Account Manager filing a request may only
+// pick from companies actually linked to them (Company.accountManagerId) —
+// except ELENA (AM_LEAD), who oversees every AM and must see all companies.
+function companiesForAM(amId) {
+  const am = amId ? DB.employees.find((e) => e.id === amId) : null;
+  const list = (am && am.name === "ELENA") || !amId
+    ? DB.companies.slice()
+    : DB.companies.filter((c) => c.accountManagerId === amId);
+  return list.sort((a, b) => a.name.localeCompare(b.name));
+}
 function openNewRequestModal() {
   const me = currentEmployee();
   if (!can(me, "create_service_request")) return;
   const amEmployees = DB.employees.filter((e) => e.isAM && !e.isAMLead);
   const role = roleOf(me);
   const canPickAnyAM = role === "AM_LEAD" || role === "CEO" || role === "SUPER_ADMIN";
+  const initialAmId = canPickAnyAM ? (me && me.isAM ? me.id : null) : me.id;
   const overlay = document.getElementById("overlay");
   const body = document.getElementById("modalBody");
   body.innerHTML = `
@@ -3126,7 +3176,7 @@ function openNewRequestModal() {
       </div>
       <div class="field-row">
         <div class="field"><label>Company</label>
-          <select id="reqCompany"><option value="">—</option>${DB.companies.slice().sort((a, b) => a.name.localeCompare(b.name)).map((c) => `<option value="${c.id}">${esc(c.name)}</option>`).join("")}</select>
+          <select id="reqCompany"><option value="">—</option>${companiesForAM(initialAmId).map((c) => `<option value="${c.id}">${esc(c.name)}</option>`).join("")}</select>
         </div>
         <div class="field"><label>Client name</label><input type="text" id="reqClient"></div>
       </div>
@@ -3145,6 +3195,13 @@ function openNewRequestModal() {
   document.getElementById("reqCategory").addEventListener("change", (e) => {
     document.getElementById("reqServiceTypeField").style.display = e.target.value === "PRO" ? "" : "none";
   });
+  if (canPickAnyAM) {
+    document.getElementById("reqCreatedBy").addEventListener("change", (e) => {
+      const amId = e.target.value ? Number(e.target.value) : null;
+      const companySelect = document.getElementById("reqCompany");
+      companySelect.innerHTML = `<option value="">—</option>${companiesForAM(amId).map((c) => `<option value="${c.id}">${esc(c.name)}</option>`).join("")}`;
+    });
+  }
   document.getElementById("reqForm").addEventListener("submit", (e) => {
     e.preventDefault();
     const title = document.getElementById("reqTitle").value.trim();
