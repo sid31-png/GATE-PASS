@@ -1,10 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { EmployeeDTO, ServiceRequestDTO } from "@/lib/types";
 import { STATUS_LABEL } from "@/lib/service-requests";
 import { Badge, Card, KpiCard, SectionHeader } from "@/components/ui";
 import { useCurrentUser } from "@/lib/current-user";
+import { NotificationBell } from "@/components/notification-bell";
+
+const POLL_INTERVAL_MS = 12_000;
 
 function fmt(d: string) {
   return new Date(d).toLocaleString(undefined, {
@@ -178,6 +181,13 @@ export function OnlineQueueBoard({
     setRequests(await res.json());
   }
 
+  // Near-real-time notifications: poll for newly auto-assigned requests
+  // instead of requiring a manual page refresh.
+  useEffect(() => {
+    const id = setInterval(refresh, POLL_INTERVAL_MS);
+    return () => clearInterval(id);
+  }, []);
+
   async function start(r: ServiceRequestDTO) {
     await fetch(`/api/service-requests/${r.id}`, {
       method: "PATCH",
@@ -216,6 +226,13 @@ export function OnlineQueueBoard({
   const toStart = visible.filter((r) => r.status === "ASSIGNED_TO_ONLINE");
   const inProgress = visible.filter((r) => r.status === "ONLINE_PROCESSING");
 
+  // Notifications are always scoped to the signed-in operator's own newly
+  // auto-assigned requests, even for a CEO/Super Admin/Ops Admin viewing the
+  // full queue — a manager's bell shouldn't fire for someone else's tasks.
+  const myNewRequests = requests.filter(
+    (r) => currentEmployee && r.claimedBy?.id === currentEmployee.id && r.status === "ASSIGNED_TO_ONLINE"
+  );
+
   const kpis = {
     toStart: toStart.length,
     processing: inProgress.length,
@@ -227,7 +244,7 @@ export function OnlineQueueBoard({
       <div>
         <SectionHeader title="📥 Online Queue" subtitle="Take incoming requests, verify documents, then send to Dispatch" />
         <Card className="max-w-md text-sm text-slate-600 dark:text-slate-400">
-          Select your account in the sidebar (“Signed in as”) to see the requests auto-assigned to you.
+          🔒 This account doesn&apos;t have Online Operations access.
         </Card>
       </div>
     );
@@ -242,6 +259,7 @@ export function OnlineQueueBoard({
             ? "Full queue — every Online Operator's auto-assigned requests"
             : `Requests auto-assigned to ${currentEmployee?.name} via the binome routing`
         }
+        action={currentEmployee?.isOnline ? <NotificationBell employeeId={currentEmployee.id} requests={myNewRequests} /> : undefined}
       />
 
       <div className="mb-6 grid grid-cols-3 gap-4">

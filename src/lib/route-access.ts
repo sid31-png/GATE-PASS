@@ -5,9 +5,10 @@ import type { Role } from "@/lib/rbac";
 // paths restrict the whole page to the given roles — CEO and SUPER_ADMIN
 // are always implicitly allowed regardless of what's listed.
 export const ROUTE_ACCESS_RULES: { prefix: string; roles: Role[] }[] = [
-  // Terrain dispatch board: MED-DARWISH's exclusive dispatching screen.
-  // Account Managers (e.g. Violetta) must be blocked outright, per spec.
-  { prefix: "/dispatch", roles: ["CEO", "SUPER_ADMIN", "OPS_ADMIN", "OPERATOR"] },
+  // Terrain dispatch board: MED-DARWISH's (and now ELENA's, as AM_LEAD)
+  // dispatching screen. Plain Account Managers (e.g. Violetta) are still
+  // blocked outright, per spec.
+  { prefix: "/dispatch", roles: ["CEO", "SUPER_ADMIN", "OPS_ADMIN", "OPERATOR", "AM_LEAD"] },
   { prefix: "/request-queue", roles: ["CEO", "SUPER_ADMIN", "OPS_ADMIN", "OPERATOR"] },
   { prefix: "/online", roles: ["CEO", "SUPER_ADMIN", "OPS_ADMIN", "OPERATOR"] },
   { prefix: "/company-import", roles: ["CEO", "SUPER_ADMIN", "OPS_ADMIN"] },

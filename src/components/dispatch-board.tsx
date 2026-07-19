@@ -1,9 +1,10 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { DeliveryTaskDTO, EmployeeDTO } from "@/lib/types";
+import { DeliveryTaskDTO, EmployeeDTO, GatePassDTO, LOCATION_LABEL, ServiceRequestDTO } from "@/lib/types";
 import { STAGE_LABEL } from "@/lib/delivery";
-import { Badge, Card, HeroBand, HeroStat, SectionHeader } from "@/components/ui";
+import { STATUS_LABEL } from "@/lib/service-requests";
+import { Badge, Card, HeroBand, HeroStat, KpiCard, SectionHeader } from "@/components/ui";
 import { useCurrentUser } from "@/lib/current-user";
 
 function fmt(d: string | null) {
@@ -36,13 +37,13 @@ function TaskMeta({ task }: { task: DeliveryTaskDTO }) {
 function AssignModal({
   task,
   fieldEmployees,
-  managerId,
+  assignerId,
   onClose,
   onSaved,
 }: {
   task: DeliveryTaskDTO;
   fieldEmployees: EmployeeDTO[];
-  managerId: number | undefined;
+  assignerId: number | undefined;
   onClose: () => void;
   onSaved: () => void;
 }) {
@@ -61,8 +62,8 @@ function AssignModal({
       setError("Please choose an agent and a departure date/time.");
       return;
     }
-    if (!managerId) {
-      setError("No manager (MED-DARWISH) found in the employee roster.");
+    if (!assignerId) {
+      setError("Could not determine who is making this assignment.");
       return;
     }
     setSaving(true);
@@ -72,7 +73,7 @@ function AssignModal({
       body: JSON.stringify({
         stage: "ASSIGNED",
         assignedToId,
-        assignedById: managerId,
+        assignedById: assignerId,
         scheduledAt: new Date(scheduledAt).toISOString(),
         instructions: instructions || null,
       }),
@@ -168,16 +169,21 @@ function AssignModal({
 export function DispatchBoard({
   initialTasks,
   employees,
+  pendingGatePasses,
+  pendingServiceRequests,
+  completedTodayCount,
 }: {
   initialTasks: DeliveryTaskDTO[];
   employees: EmployeeDTO[];
+  pendingGatePasses: GatePassDTO[];
+  pendingServiceRequests: ServiceRequestDTO[];
+  completedTodayCount: number;
 }) {
-  const { can } = useCurrentUser();
+  const { can, currentEmployee } = useCurrentUser();
   const canDispatch = can("dispatch_field_assign");
   const [tasks, setTasks] = useState(initialTasks);
   const [assigning, setAssigning] = useState<DeliveryTaskDTO | null>(null);
 
-  const manager = employees.find((e) => e.isManager);
   const fieldEmployees = employees.filter((e) => e.isField);
 
   async function refresh() {
@@ -218,7 +224,7 @@ export function DispatchBoard({
         subtitle={
           canDispatch
             ? "Assign field agents, set instructions, and validate deliveries."
-            : "🔒 View only — assigning field agents is exclusive to MED-DARWISH and the CEO."
+            : "🔒 View only — assigning field agents is exclusive to MED-DARWISH, ELENA, and the CEO."
         }
       />
 
@@ -231,6 +237,78 @@ export function DispatchBoard({
         <HeroStat label="Blocked" value={String(kpis.blocked)} tone="crit" />
         <HeroStat label="Overdue" value={String(kpis.overdue)} tone="crit" />
       </HeroBand>
+
+      {/* Today's Tracker — the daily operational pulse */}
+      <div className="mb-6">
+        <h2 className="mb-3 text-sm font-semibold text-slate-700 dark:text-slate-300">📅 Today&apos;s Tracker</h2>
+        <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+          <KpiCard label="Completed Today" value={String(completedTodayCount)} accent="green" />
+          <KpiCard label="Missions In Progress" value={String(kpis.inProgress)} accent="blue" />
+          <KpiCard label="Blocked" value={String(kpis.blocked)} accent="red" />
+          <KpiCard
+            label="All Pending (Gate Passes + PRO)"
+            value={String(pendingGatePasses.length + pendingServiceRequests.length)}
+            accent="brand"
+          />
+        </div>
+      </div>
+
+      {/* All Pending Requests — no silos: every Gate Pass and PRO/Delivery
+          request still waiting on someone, before it ever reaches this
+          dispatch board's own DeliveryTask stages below. */}
+      <div className="mb-6">
+        <h2 className="mb-3 text-sm font-semibold text-slate-700 dark:text-slate-300">
+          🗂️ All Pending Requests
+        </h2>
+        <Card className="overflow-x-auto p-0">
+          <table className="w-full min-w-[720px] text-left text-sm">
+            <thead className="border-b border-slate-200 bg-slate-50 text-xs uppercase tracking-wide text-slate-500 dark:border-slate-800 dark:bg-slate-800/60 dark:text-slate-400">
+              <tr>
+                <th className="px-4 py-3">Request</th>
+                <th className="px-4 py-3">Type</th>
+                <th className="px-4 py-3">Company</th>
+                <th className="px-4 py-3">With</th>
+                <th className="px-4 py-3">Status</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+              {pendingServiceRequests.map((r) => (
+                <tr key={`sr-${r.id}`} className="hover:bg-slate-50 dark:hover:bg-slate-800/40">
+                  <td className="px-4 py-3 font-medium text-slate-900 dark:text-slate-100">{r.title}</td>
+                  <td className="px-4 py-3 text-slate-600 dark:text-slate-400">
+                    {r.category === "PRO" ? r.serviceType ?? "PRO service" : "Delivery"}
+                  </td>
+                  <td className="px-4 py-3 text-slate-600 dark:text-slate-400">{r.company?.name ?? "—"}</td>
+                  <td className="px-4 py-3 text-slate-600 dark:text-slate-400">
+                    {r.claimedBy?.name ?? r.createdBy.name}
+                  </td>
+                  <td className="px-4 py-3">
+                    <Badge>{STATUS_LABEL[r.status]}</Badge>
+                  </td>
+                </tr>
+              ))}
+              {pendingGatePasses.map((g) => (
+                <tr key={`gp-${g.id}`} className="hover:bg-slate-50 dark:hover:bg-slate-800/40">
+                  <td className="px-4 py-3 font-medium text-slate-900 dark:text-slate-100">Gate Pass · {g.number}</td>
+                  <td className="px-4 py-3 text-slate-600 dark:text-slate-400">{LOCATION_LABEL[g.location]}</td>
+                  <td className="px-4 py-3 text-slate-600 dark:text-slate-400">{g.company?.name ?? "—"}</td>
+                  <td className="px-4 py-3 text-slate-600 dark:text-slate-400">{g.submittedBy}</td>
+                  <td className="px-4 py-3">
+                    <Badge>Pending</Badge>
+                  </td>
+                </tr>
+              ))}
+              {pendingServiceRequests.length === 0 && pendingGatePasses.length === 0 && (
+                <tr>
+                  <td colSpan={5} className="px-4 py-8 text-center text-slate-400 dark:text-slate-500">
+                    Nothing pending — everything is either dispatched or completed.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </Card>
+      </div>
 
       {/* Ready for Dispatch — the quick-assign queue */}
       <div className="mb-6">
@@ -398,7 +476,7 @@ export function DispatchBoard({
         <AssignModal
           task={assigning}
           fieldEmployees={fieldEmployees}
-          managerId={manager?.id}
+          assignerId={currentEmployee?.id}
           onClose={() => setAssigning(null)}
           onSaved={async () => {
             setAssigning(null);

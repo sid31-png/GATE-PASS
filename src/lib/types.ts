@@ -120,6 +120,10 @@ export type ServiceRequestDTO = {
   title: string;
   category: RequestCategoryValue;
   serviceType: string | null;
+  location: GatePassDTO["location"] | null;
+  gatePassType: GatePassDTO["gatePassType"] | null;
+  requestType: GatePassDTO["requestType"] | null;
+  passCategory: GatePassDTO["passCategory"] | null;
   description: string | null;
   attachments: string | null;
   clientName: string | null;

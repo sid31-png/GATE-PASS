@@ -46,3 +46,10 @@ export const PRO_SERVICE_CATALOG: ProServiceGroup[] = [
 ];
 
 export const PRO_SERVICE_TYPES: string[] = PRO_SERVICE_CATALOG.flatMap((g) => g.services);
+
+// Gate Pass requests get their own dedicated form (location, gate pass type,
+// request type, pass category) — excluded here to avoid offering the same
+// thing twice in the generic PRO service dropdown.
+export const PRO_SERVICE_CATALOG_NO_GATE_PASS: ProServiceGroup[] = PRO_SERVICE_CATALOG.filter(
+  (g) => g.group !== "Gate Passes"
+);

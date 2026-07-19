@@ -212,6 +212,13 @@ model ServiceRequest {
   title             String
   category          RequestCategory
   serviceType       String?
+  // Populated only for the dedicated "Gate Pass" request form (site-access
+  // requests submitted by an AM) — reuses the same enums as the standalone
+  // GatePass model instead of duplicating them.
+  location          Location?
+  gatePassType      GatePassType?
+  requestType       RequestType?
+  passCategory      PassCategory?
   companyId         Int?
   company           Company?               @relation(fields: [companyId], references: [id])
   clientName        String?

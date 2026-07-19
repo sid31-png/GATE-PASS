@@ -21,7 +21,10 @@ export type RoleSubject = {
  *                                tasks — but NOT field-dispatch-assign and NOT
  *                                creating AM service requests.
  *   AM_LEAD      (ELENA)       — sees every Account Manager's requests, can
- *                                create a request for any client.
+ *                                create a request for any client, and — like
+ *                                MED-DARWISH — may open a case and choose the
+ *                                field agent for a delivery/mission
+ *                                (dispatch_field_assign).
  *   OPERATOR  (ALAA/SAMIM/TAHA/MUJEEB) — sees only tasks auto-assigned to them,
  *                                may update field mission status if needed.
  *   AM        (Violetta, Abegail, Vongai, Nasma, Roxana, Gabriela) — own
@@ -62,7 +65,8 @@ export type Permission =
   // Dispatch board's exclusive actions per spec: "assigner un agent externe,
   // définir les instructions, valider les livraisons" — assigning/reassigning
   // a field agent + instructions, and marking a mission COMPLETED (validating
-  // the delivery). CEO + SUPER_ADMIN only, explicitly excluding OPS_ADMIN.
+  // the delivery). CEO + SUPER_ADMIN + AM_LEAD (ELENA) only — explicitly
+  // excluding OPS_ADMIN and plain Online Operators/AMs.
   | "dispatch_field_assign"
   // Relaying a field agent's own-reported progress (mission started / blocked
   // / resumed) — not the exclusive assign-or-validate actions above. Allowed
@@ -75,7 +79,7 @@ const PERMISSIONS: Record<Role, Permission[]> = {
   CEO: [],
   SUPER_ADMIN: [],
   OPS_ADMIN: ["view_all_online_queue", "reassign_requests", "import_companies", "configure_dispatch", "update_field_status"],
-  AM_LEAD: ["view_all_am_requests", "create_service_request"],
+  AM_LEAD: ["view_all_am_requests", "create_service_request", "dispatch_field_assign"],
   OPERATOR: ["update_field_status"],
   AM: ["create_service_request"],
   FIELD: [],

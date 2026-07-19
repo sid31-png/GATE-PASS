@@ -68,7 +68,7 @@ export function LoginScreen() {
       className="flex min-h-screen items-center justify-center px-4 py-10"
       style={{ background: "linear-gradient(135deg, #1c2a5e, #293d81)" }}
     >
-      <div className="w-full max-w-2xl">
+      <div className="mx-auto w-full max-w-md">
         <div className="mb-8 flex flex-col items-center text-center">
           <div className="rounded-2xl bg-white p-3 shadow-lg">
             <Image src="/rch-logo.png" alt="RCH" width={130} height={53} priority />
@@ -84,13 +84,13 @@ export function LoginScreen() {
               {profiles !== null && profiles.length === 0 && (
                 <div className="py-10 text-center text-sm text-slate-400">No profiles available.</div>
               )}
-              <div className="space-y-5">
+              <div className="max-h-[60vh] space-y-4 overflow-y-auto pr-1">
                 {grouped.map((g) => (
                   <div key={g.role}>
-                    <div className="mb-2 text-[10.5px] font-semibold uppercase tracking-wide text-slate-400">
+                    <div className="mb-1.5 text-[10.5px] font-semibold uppercase tracking-wide text-slate-400">
                       {g.profiles[0].roleLabel}
                     </div>
-                    <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3">
+                    <div className="divide-y divide-slate-100 overflow-hidden rounded-xl border border-slate-200">
                       {g.profiles.map((p) => (
                         <button
                           key={p.id}
@@ -99,12 +99,13 @@ export function LoginScreen() {
                             setError(null);
                             setPassword("");
                           }}
-                          className="flex flex-col items-center gap-2 rounded-xl border border-slate-200 px-3 py-4 text-center transition-colors hover:border-[#af1882] hover:bg-[#af1882]/5"
+                          className="flex w-full items-center gap-3 px-3.5 py-2.5 text-left transition-colors hover:bg-[#af1882]/5"
                         >
-                          <span className="flex h-11 w-11 items-center justify-center rounded-full bg-[#af1882]/10 text-sm font-bold text-[#af1882]">
+                          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#af1882]/10 text-xs font-bold text-[#af1882]">
                             {initials(p.name)}
                           </span>
                           <span className="text-sm font-medium text-slate-800">{p.name}</span>
+                          <span className="ml-auto text-slate-300">›</span>
                         </button>
                       ))}
                     </div>
