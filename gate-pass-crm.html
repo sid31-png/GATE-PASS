@@ -180,6 +180,12 @@
     text-underline-offset: 2px;
   }
   .sidebar-foot button:hover { color: var(--brand); }
+  .lang-toggle { display: flex; gap: 4px; margin-top: 10px; }
+  .lang-toggle button {
+    all: unset; cursor: pointer; flex: 1; text-align: center; padding: 5px 0; border-radius: 6px;
+    font-size: 11px; font-weight: 700; color: var(--ink-2); background: var(--surface-2); text-decoration: none;
+  }
+  .lang-toggle button.active { background: var(--brand); color: #fff; }
 
   /* ---------- main ---------- */
   .main { flex: 1; min-width: 0; padding: 28px 34px 60px; max-width: 1320px; }
@@ -325,9 +331,12 @@
     all: unset; cursor: pointer; font-size: 13px; line-height: 1; color: var(--muted); padding: 0 4px;
   }
   .dz-chip-remove:hover { color: var(--critical); }
-  /* ---------- dashboard: Gate Pass / PRO Services side-by-side ---------- */
-  .dashboard-split { display: grid; grid-template-columns: 1fr; gap: 24px; }
-  @media (min-width: 1100px) { .dashboard-split { grid-template-columns: 1fr 1fr; align-items: start; } }
+  /* ---------- dashboard / analytics: Gate Pass / PRO Services side-by-side ---------- */
+  .dashboard-split, .analytics-split { display: grid; grid-template-columns: 1fr; gap: 24px; }
+  @media (min-width: 1100px) {
+    .dashboard-split { grid-template-columns: 1fr 1fr; align-items: start; }
+    .analytics-split { grid-template-columns: 1fr 1fr; align-items: start; }
+  }
   /* ---------- unified kanban board ---------- */
   .kanban-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; align-items: start; }
   @media (max-width: 900px) { .kanban-grid { grid-template-columns: 1fr; } }
@@ -407,6 +416,23 @@
   }
 
   .footnote { margin-top: 26px; font-size: 11.5px; color: var(--muted); }
+
+  /* ---------- RTL (Arabic) ---------- */
+  [dir="rtl"] .app { flex-direction: row-reverse; }
+  [dir="rtl"] .sidebar { border-right: none; border-left: 1px solid rgba(24,29,39,.08); }
+  [dir="rtl"] .nav button { border-left: none; border-right: 3px solid transparent; }
+  [dir="rtl"] .nav button.active { border-left-color: transparent; border-right-color: var(--brand); }
+  [dir="rtl"] .page-head { flex-direction: row-reverse; }
+  [dir="rtl"] .hero-stats, [dir="rtl"] .task-actions, [dir="rtl"] .modal-actions,
+  [dir="rtl"] .actions-cell, [dir="rtl"] .toolbar, [dir="rtl"] .field-row, [dir="rtl"] .dz-chips {
+    flex-direction: row-reverse;
+  }
+  [dir="rtl"] table { text-align: right; }
+  [dir="rtl"] td.num, [dir="rtl"] th.num { text-align: left; }
+  [dir="rtl"] .dashboard-split, [dir="rtl"] .analytics-split, [dir="rtl"] .kanban-grid,
+  [dir="rtl"] .grid.charts-2 {
+    direction: rtl;
+  }
 </style>
 
 <div class="login-screen" id="loginScreen">
@@ -424,17 +450,18 @@
       <div class="sub">Gate Pass CRM</div>
     </div>
     <div class="current-user-box">
-      <label>Signed in as</label>
+      <label id="signedInAsLabel"></label>
       <div id="currentUserName" style="font-size:13px;font-weight:700;color:var(--ink);"></div>
       <div style="margin-top:4px;display:flex;align-items:center;justify-content:space-between;gap:8px;">
         <span class="role" id="currentUserRole"></span>
-        <button id="logoutBtn" style="all:unset;cursor:pointer;font-size:10.5px;font-weight:700;color:var(--muted);">Log out</button>
+        <button id="logoutBtn" style="all:unset;cursor:pointer;font-size:10.5px;font-weight:700;color:var(--muted);"></button>
       </div>
     </div>
     <nav class="nav" id="nav"></nav>
     <div class="sidebar-foot">
       RCH Business Solutions
-      <div style="margin-top:8px;"><button id="resetBtn">Reset sample data</button></div>
+      <div class="lang-toggle" id="langToggle"></div>
+      <div style="margin-top:8px;"><button id="resetBtn"></button></div>
     </div>
   </aside>
 
@@ -449,7 +476,6 @@
     <div class="view" id="view-account-managers"></div>
     <div class="view" id="view-company-import"></div>
     <div class="view" id="view-kanban"></div>
-    <div class="view" id="view-online"></div>
     <div class="view" id="view-field"></div>
     <div class="footnote">Static, self-contained build — data lives in this browser's local storage only.</div>
   </main>
@@ -459,6 +485,233 @@
 
 <script>
 "use strict";
+
+/* ================= i18n (English / Arabic only — no French) =================
+   One toggle flips the WHOLE app between the two languages (not inline dual
+   text) so dense screens like the Tracker/Workflow board stay readable.
+   t(key) looks up the current language; missing keys fall back to the key
+   itself so a forgotten translation is at least visible, not blank. */
+const TRANSLATIONS = {
+  "nav.dashboard": { en: "Dashboard", ar: "لوحة التحكم" },
+  "nav.tracker": { en: "Gate Pass Tracker", ar: "متابعة تصاريح الدخول" },
+  "nav.collectors": { en: "Collector Performance", ar: "أداء المُحصّلين" },
+  "nav.companies": { en: "Companies", ar: "الشركات" },
+  "nav.analytics": { en: "Analytics", ar: "التحليلات" },
+  "nav.accountManagers": { en: "Account Managers", ar: "مديرو الحسابات" },
+  "nav.companyImport": { en: "Import Companies", ar: "استيراد الشركات" },
+  "nav.workflow": { en: "Workflow Tracker", ar: "متابعة سير العمل" },
+  "nav.field": { en: "Field Team", ar: "الفريق الميداني" },
+
+  "common.signedInAs": { en: "Signed in as", ar: "مسجّل الدخول باسم" },
+  "common.logout": { en: "Log out", ar: "تسجيل الخروج" },
+  "common.resetSampleData": { en: "Reset sample data", ar: "إعادة تعيين البيانات التجريبية" },
+  "common.cancel": { en: "Cancel", ar: "إلغاء" },
+  "common.save": { en: "Save", ar: "حفظ" },
+  "common.edit": { en: "Edit", ar: "تعديل" },
+  "common.delete": { en: "Delete", ar: "حذف" },
+  "common.submitRequest": { en: "Submit request", ar: "إرسال الطلب" },
+  "common.newRecord": { en: "New record", ar: "سجل جديد" },
+  "common.editRecord": { en: "Edit record", ar: "تعديل السجل" },
+  "common.na": { en: "—", ar: "—" },
+  "common.company": { en: "Company", ar: "الشركة" },
+  "common.status": { en: "Status", ar: "الحالة" },
+  "common.actions": { en: "Actions", ar: "الإجراءات" },
+
+  "dashboard.title": { en: "Dashboard", ar: "لوحة التحكم" },
+  "dashboard.subtitle": { en: "Gate Pass & PRO Services overview · updates automatically", ar: "نظرة عامة على تصاريح الدخول وخدمات PRO · يتم التحديث تلقائيًا" },
+  "dashboard.locked": { en: "This account doesn't have a dashboard view configured.", ar: "لا يوجد عرض للوحة تحكم مهيأ لهذا الحساب." },
+  "dashboard.gatePassOverview": { en: "Gate Pass Overview", ar: "نظرة عامة على تصاريح الدخول" },
+  "dashboard.proOverview": { en: "PRO Services Overview", ar: "نظرة عامة على خدمات PRO" },
+  "kpi.totalSubmitted": { en: "Total submitted", ar: "إجمالي المُقدَّم" },
+  "kpi.collected": { en: "Collected", ar: "تم التحصيل" },
+  "kpi.pending": { en: "Pending", ar: "قيد الانتظار" },
+  "kpi.cancelled": { en: "Cancelled", ar: "ملغى" },
+  "kpi.collectionRate": { en: "Collection rate", ar: "معدل التحصيل" },
+  "kpi.avgProcessing": { en: "Avg. processing time", ar: "متوسط وقت المعالجة" },
+  "kpi.fastest": { en: "Fastest", ar: "الأسرع" },
+  "kpi.longest": { en: "Longest", ar: "الأطول" },
+  "kpi.today": { en: "Today", ar: "اليوم" },
+  "kpi.thisWeek": { en: "This week", ar: "هذا الأسبوع" },
+  "kpi.thisMonth": { en: "This month", ar: "هذا الشهر" },
+  "kpi.thisYear": { en: "This year", ar: "هذا العام" },
+  "kpi.totalRequests": { en: "Total requests", ar: "إجمالي الطلبات" },
+  "kpi.assignedToOnline": { en: "Assigned to Online", ar: "مُسندة إلى الفريق الإلكتروني" },
+  "kpi.onlineProcessing": { en: "Online Processing", ar: "قيد المعالجة الإلكترونية" },
+  "kpi.pendingDispatch": { en: "Pending Dispatch", ar: "بانتظار الإرسال الميداني" },
+  "kpi.missingInfo": { en: "Missing Info", ar: "معلومات ناقصة" },
+  "kpi.gatePassFamily": { en: "Gate Pass Family", ar: "طلبات تصاريح الدخول" },
+  "kpi.proCategory": { en: "PRO Category", ar: "فئة PRO" },
+  "kpi.deliveryCategory": { en: "Delivery Category", ar: "فئة التوصيل" },
+  "kpi.flaggedForManager": { en: "Flagged for Manager", ar: "مُعلَّمة للمدير" },
+  "chart.submittedVsCollected": { en: "Submitted vs Collected", ar: "المُقدَّم مقابل المُحصَّل" },
+  "chart.statusBreakdown": { en: "Status breakdown", ar: "توزيع الحالات" },
+  "chart.dailyTrend": { en: "Daily trend (14 days)", ar: "الاتجاه اليومي (١٤ يومًا)" },
+  "chart.weeklyTrend": { en: "Weekly trend (8 weeks)", ar: "الاتجاه الأسبوعي (٨ أسابيع)" },
+  "chart.monthlyTrend": { en: "Monthly trend", ar: "الاتجاه الشهري" },
+  "chart.collectorPerformance": { en: "Collector performance", ar: "أداء المُحصّلين" },
+  "table.request": { en: "Request", ar: "الطلب" },
+  "table.type": { en: "Type", ar: "النوع" },
+  "table.requestedBy": { en: "Requested by", ar: "مقدَّم من" },
+  "table.noRequestsYet": { en: "No requests yet.", ar: "لا توجد طلبات بعد." },
+
+  "workflow.title": { en: "Workflow Tracker", ar: "متابعة سير العمل" },
+  "workflow.subtitle": { en: "Every Gate Pass, PRO service, and field mission in one board.", ar: "جميع تصاريح الدخول وخدمات PRO والمهام الميدانية في لوحة واحدة." },
+  "workflow.newTask": { en: "+ New order/task", ar: "+ طلب/مهمة جديدة" },
+  "workflow.colPending": { en: "Pending", ar: "قيد الانتظار" },
+  "workflow.colInProgress": { en: "In Progress", ar: "قيد التنفيذ" },
+  "workflow.colDone": { en: "Done", ar: "مكتمل" },
+  "workflow.emptyPending": { en: "Nothing pending.", ar: "لا يوجد شيء قيد الانتظار." },
+  "workflow.emptyInProgress": { en: "Nothing in progress.", ar: "لا يوجد شيء قيد التنفيذ." },
+  "workflow.emptyDone": { en: "Nothing completed recently.", ar: "لا يوجد شيء مكتمل مؤخرًا." },
+  "workflow.markCollected": { en: "Mark Collected", ar: "وضع علامة تم التحصيل" },
+  "workflow.cancel": { en: "Cancel", ar: "إلغاء" },
+  "workflow.startProcessing": { en: "Start processing", ar: "بدء المعالجة" },
+  "workflow.readyForDispatch": { en: "Ready for Dispatch", ar: "جاهز للإرسال الميداني" },
+  "workflow.returnToAM": { en: "Return to AM", ar: "إعادة إلى مدير الحساب" },
+  "workflow.assignAgent": { en: "Assign agent", ar: "تعيين موظف ميداني" },
+  "workflow.waitingForDispatch": { en: "Waiting for dispatch", ar: "بانتظار الإرسال الميداني" },
+  "workflow.reassign": { en: "Reassign", ar: "إعادة التعيين" },
+  "workflow.resolveReassign": { en: "Resolve & reassign", ar: "حل المشكلة وإعادة التعيين" },
+  "workflow.sendBackToQueue": { en: "Send back to queue", ar: "إعادة إلى قائمة الانتظار" },
+  "workflow.sendToDispatch": { en: "Send to Dispatch", ar: "إرسال إلى الفريق الميداني" },
+  "workflow.needsAttention": { en: "Needs attention", ar: "يتطلب الانتباه" },
+  "status.gpPending": { en: "Pending", ar: "قيد الانتظار" },
+  "status.gpCollected": { en: "Collected", ar: "تم التحصيل" },
+  "status.gpCancelled": { en: "Cancelled", ar: "ملغى" },
+  "status.assignedToOnline": { en: "Assigned to Online", ar: "مُسندة إلى الفريق الإلكتروني" },
+  "status.onlineProcessing": { en: "Online Processing", ar: "قيد المعالجة الإلكترونية" },
+  "status.pendingDispatch": { en: "Pending Dispatch", ar: "بانتظار الإرسال الميداني" },
+  "status.missingInfo": { en: "Missing Info (Returned to AM)", ar: "معلومات ناقصة (أُعيدت لمدير الحساب)" },
+  "stage.online": { en: "Online Prep", ar: "تحضير إلكتروني" },
+  "stage.dispatch": { en: "Ready for Dispatch", ar: "جاهز للإرسال الميداني" },
+  "stage.assigned": { en: "Assigned", ar: "مُعيَّن" },
+  "stage.inProgress": { en: "In Progress", ar: "قيد التنفيذ" },
+  "stage.completed": { en: "Completed", ar: "مكتمل" },
+  "stage.blocked": { en: "Blocked", ar: "معطَّل" },
+
+  "companies.title": { en: "Companies", ar: "الشركات" },
+  "companies.subtitle": { en: "Client companies tracked in the gate pass system", ar: "شركات العملاء المتابَعة في نظام تصاريح الدخول" },
+  "companies.newCompany": { en: "+ New Company", ar: "+ شركة جديدة" },
+  "companies.searchPlaceholder": { en: "Search name, sector, contact…", ar: "بحث بالاسم أو القطاع أو جهة الاتصال…" },
+  "companies.allBillingTypes": { en: "All billing types", ar: "جميع أنواع الفوترة" },
+  "companies.allAMs": { en: "All Account Managers", ar: "جميع مديري الحسابات" },
+  "companies.colSector": { en: "Sector", ar: "القطاع" },
+  "companies.colAM": { en: "Account Manager", ar: "مدير الحساب" },
+  "companies.colBilling": { en: "Billing", ar: "الفوترة" },
+  "companies.colContact": { en: "Contact", ar: "جهة الاتصال" },
+  "companies.colPhone": { en: "Phone", ar: "الهاتف" },
+  "companies.colEmail": { en: "Email", ar: "البريد الإلكتروني" },
+  "companies.noMatch": { en: "No companies match these filters.", ar: "لا توجد شركات مطابقة لهذه الفلاتر." },
+  "billing.monthlyRetainer": { en: "Monthly Retainer", ar: "اشتراك شهري" },
+  "billing.perService": { en: "Per Service", ar: "بالخدمة" },
+  "companies.unassigned": { en: "— Unassigned —", ar: "— غير مُعيَّن —" },
+
+  "import.title": { en: "Import Companies", ar: "استيراد الشركات" },
+  "import.subtitle": { en: "Paste or upload the AM allocation as CSV (one Account Manager name per column header, company names down the rows)", ar: "الصق أو ارفع توزيع مديري الحسابات بصيغة CSV (اسم مدير حساب واحد في عنوان كل عمود، وأسماء الشركات في الصفوف)" },
+  "import.howItWorks": { en: "How this works", ar: "كيف يعمل هذا" },
+  "import.step1": { en: "Your file needs one column per Account Manager — the header must be their name.", ar: "يجب أن يحتوي ملفك على عمود واحد لكل مدير حساب — يجب أن يكون العنوان اسمه." },
+  "import.step2": { en: "List each Account Manager's company names in the rows below their column header, one per row.", ar: "أدرج أسماء شركات كل مدير حساب في الصفوف أسفل عنوان عموده، شركة واحدة في كل صف." },
+  "import.step3": { en: "Upload the .csv file, or paste the same content as text.", ar: "ارفع ملف .csv، أو الصق نفس المحتوى كنص." },
+  "import.step4": { en: "Click Preview first — nothing is saved yet. Review the summary and a sample of the names found.", ar: "اضغط على معاينة أولًا — لن يتم حفظ أي شيء بعد. راجع الملخص وعينة من الأسماء الموجودة." },
+  "import.step5": { en: "Only once the preview looks right, click Apply Import to save it.", ar: "فقط عندما تبدو المعاينة صحيحة، اضغط على تطبيق الاستيراد للحفظ." },
+  "import.csvFile": { en: "CSV file", ar: "ملف CSV" },
+  "import.orPaste": { en: "…or paste CSV text", ar: "…أو الصق نص CSV" },
+  "import.preview": { en: "Preview", ar: "معاينة" },
+  "import.apply": { en: "Apply Import", ar: "تطبيق الاستيراد" },
+  "import.provideFileFirst": { en: "Provide a CSV file or paste CSV text first.", ar: "قدّم ملف CSV أو الصق نص CSV أولًا." },
+  "import.colColumn": { en: "Column", ar: "العمود" },
+  "import.colMatched": { en: "Matched Employee", ar: "الموظف المطابق" },
+  "import.colCompanies": { en: "Companies", ar: "الشركات" },
+  "import.colNew": { en: "New", ar: "جديد" },
+  "import.colRelinked": { en: "Re-linked", ar: "أُعيد ربطها" },
+  "import.colAlreadyLinked": { en: "Already linked", ar: "مرتبطة بالفعل" },
+  "import.colSample": { en: "Sample", ar: "عينة" },
+  "import.noMatch": { en: "No matching Account Manager — skipped", ar: "لا يوجد مدير حساب مطابق — تم التخطي" },
+  "import.moreSuffix": { en: "more", ar: "أخرى" },
+  "import.duplicateNames": { en: "duplicate name(s) in this column", ar: "اسم مكرر في هذا العمود" },
+
+  "tracker.title": { en: "Gate Pass Tracker", ar: "متابعة تصاريح الدخول" },
+  "tracker.allStatuses": { en: "All statuses", ar: "جميع الحالات" },
+  "tracker.allCompanies": { en: "All companies", ar: "جميع الشركات" },
+  "tracker.allLocations": { en: "All locations", ar: "جميع المواقع" },
+  "tracker.allCollectors": { en: "All collectors", ar: "جميع المُحصّلين" },
+  "tracker.newGatePass": { en: "+ New Gate Pass", ar: "+ تصريح دخول جديد" },
+  "tracker.colNumber": { en: "Gate Pass #", ar: "رقم التصريح" },
+  "tracker.colLocation": { en: "Location", ar: "الموقع" },
+  "tracker.colType": { en: "Type", ar: "النوع" },
+  "tracker.colSubmitted": { en: "Submitted", ar: "تاريخ التقديم" },
+  "tracker.colCollector": { en: "Collector", ar: "المُحصّل" },
+  "tracker.colCollected": { en: "Collected", ar: "تاريخ التحصيل" },
+  "tracker.colDelay": { en: "Delay", ar: "التأخير" },
+  "tracker.colTime": { en: "Time", ar: "الوقت" },
+  "tracker.colRemarks": { en: "Remarks", ar: "ملاحظات" },
+  "tracker.noMatch": { en: "No gate passes match these filters.", ar: "لا توجد تصاريح دخول مطابقة لهذه الفلاتر." },
+
+  "collectors.title": { en: "Collector Performance", ar: "أداء المُحصّلين" },
+  "collectors.subtitle": { en: "Gate Pass collection + delivery/outside work, per person", ar: "تحصيل تصاريح الدخول والتوصيل/العمل الميداني، لكل شخص" },
+  "collectors.newCollector": { en: "+ New Collector", ar: "+ مُحصّل جديد" },
+  "collectors.manage": { en: "Manage collectors", ar: "إدارة المُحصّلين" },
+  "collectors.colPerson": { en: "Person", ar: "الشخص" },
+  "collectors.colGpCollected": { en: "Gate Passes Collected", ar: "تصاريح تم تحصيلها" },
+  "collectors.colGpAvg": { en: "Avg. Collection Time", ar: "متوسط وقت التحصيل" },
+  "collectors.colDeliveries": { en: "Deliveries Completed", ar: "توصيلات مكتملة" },
+  "collectors.colDeliveryAvg": { en: "Avg. Delivery Time", ar: "متوسط وقت التوصيل" },
+  "collectors.colBlocked": { en: "Blocked", ar: "معطَّلة" },
+  "collectors.colActiveNow": { en: "Active Now", ar: "نشطة الآن" },
+  "collectors.colRank": { en: "Rank", ar: "الترتيب" },
+  "collectors.colName": { en: "Name", ar: "الاسم" },
+  "collectors.colActive": { en: "Active", ar: "نشط" },
+  "collectors.colInactive": { en: "Inactive", ar: "غير نشط" },
+  "collectors.noData": { en: "No collections or deliveries recorded yet.", ar: "لا توجد عمليات تحصيل أو توصيل مسجّلة بعد." },
+
+  "analytics.title": { en: "Analytics", ar: "التحليلات" },
+  "analytics.subtitle": { en: "Cross-tab reports", ar: "تقارير تحليلية متقاطعة" },
+  "analytics.gatePassServices": { en: "Gate Pass Services", ar: "خدمات تصاريح الدخول" },
+  "analytics.proServices": { en: "PRO Services", ar: "خدمات PRO" },
+  "analytics.byCompanyStatus": { en: "Gate passes by company & status", ar: "تصاريح الدخول حسب الشركة والحالة" },
+  "analytics.byCollector": { en: "Gate passes by collector", ar: "تصاريح الدخول حسب المُحصّل" },
+  "analytics.byLocationStatus": { en: "Gate passes by location & status", ar: "تصاريح الدخول حسب الموقع والحالة" },
+  "analytics.proByCompanyStatus": { en: "PRO requests by company & status", ar: "طلبات PRO حسب الشركة والحالة" },
+  "analytics.proByCategory": { en: "PRO requests by category", ar: "طلبات PRO حسب الفئة" },
+  "analytics.proByAM": { en: "PRO requests by Account Manager", ar: "طلبات PRO حسب مدير الحساب" },
+  "analytics.grandTotal": { en: "Grand Total", ar: "الإجمالي الكلي" },
+  "analytics.rowLabels": { en: "Row Labels", ar: "بيانات الصف" },
+  "analytics.countGp": { en: "Count of Gate Pass Number", ar: "عدد أرقام تصاريح الدخول" },
+  "analytics.countRequests": { en: "Count of Requests", ar: "عدد الطلبات" },
+
+  "delay.fast": { en: "Fast (≤24h)", ar: "سريع (≤24 س)" },
+  "delay.normal": { en: "Normal (24-48h)", ar: "عادي (24-48 س)" },
+  "delay.slow": { en: "Slow (>48h)", ar: "بطيء (>48 س)" },
+  "delay.overdue": { en: "Overdue (>48h)", ar: "متأخر (>48 س)" },
+  "delay.waiting": { en: "Waiting", ar: "قيد الانتظار" },
+  "priority.high": { en: "High", ar: "عالية" },
+  "priority.low": { en: "Low", ar: "منخفضة" },
+  "collectors.colGatePasses": { en: "Gate Passes", ar: "تصاريح الدخول" }
+};
+let currentLang = (function () {
+  try { return localStorage.getItem("gatepass-lang") || "en"; } catch (e) { return "en"; }
+})();
+function t(key) {
+  const entry = TRANSLATIONS[key];
+  return (entry && entry[currentLang]) || key;
+}
+function setLang(lang) {
+  currentLang = lang;
+  try { localStorage.setItem("gatepass-lang", lang); } catch (e) { /* ignore */ }
+  document.documentElement.setAttribute("dir", lang === "ar" ? "rtl" : "ltr");
+  document.documentElement.setAttribute("lang", lang);
+  renderLangToggle();
+  if (currentEmployeeId) { setupNav(); renderAll(); }
+}
+function renderLangToggle() {
+  const mount = document.getElementById("langToggle");
+  if (!mount) return;
+  mount.innerHTML = `
+    <button data-lang="en" class="${currentLang === "en" ? "active" : ""}">EN</button>
+    <button data-lang="ar" class="${currentLang === "ar" ? "active" : ""}">AR</button>
+  `;
+  mount.querySelectorAll("[data-lang]").forEach((b) => b.addEventListener("click", () => setLang(b.getAttribute("data-lang"))));
+}
 
 /* ================= embedded seed data ================= */
 const SEED_GATE_PASSES = [{"number":"GP-2026-001","company":"EY Consulting","location":"Doha Towers","gatePassType":"Permanent","requestType":"New Gate Pass","passCategory":"Supplementary","submittedBy":"Ahmed Al-Sayed","submissionAt":"2026-01-05T12:10:00","collectedBy":"MED-HUSSAIN","collectionAt":"2026-01-05T17:05:00","status":"Collected","remarks":null},{"number":"GP-2026-002","company":"Welltec","location":"Ras Laffan","gatePassType":"Permanent","requestType":"Lost Gate Pass","passCategory":"Main","submittedBy":"Jesper Holm","submissionAt":"2026-01-12T08:25:00","collectedBy":null,"collectionAt":null,"status":"Cancelled","remarks":"Reported lost \u2014 police report attached"},{"number":"GP-2026-003","company":"Tenaris Global","location":"Offshore","gatePassType":"Permanent","requestType":"New Gate Pass","passCategory":"Main","submittedBy":"Marco Ferraro","submissionAt":"2026-01-19T08:30:00","collectedBy":"SALAH","collectionAt":"2026-01-19T13:35:00","status":"Collected","remarks":null},{"number":"GP-2026-004","company":"Tenaris Investment","location":"Mesaieed","gatePassType":"Permanent","requestType":"New Gate Pass","passCategory":"Main","submittedBy":"Elena Rossi","submissionAt":"2026-01-26T07:45:00","collectedBy":"SALAH","collectionAt":"2026-01-26T09:05:00","status":"Collected","remarks":null},{"number":"GP-2026-005","company":"EY Consulting","location":"Offshore","gatePassType":"Permanent","requestType":"New Gate Pass","passCategory":"Main","submittedBy":"Ahmed Al-Sayed","submissionAt":"2026-02-02T07:45:00","collectedBy":"AITA","collectionAt":"2026-02-03T12:45:00","status":"Collected","remarks":null},{"number":"GP-2026-006","company":"Welltec","location":"Mesaieed","gatePassType":"Permanent","requestType":"New Gate Pass","passCategory":"Main","submittedBy":"Jesper Holm","submissionAt":"2026-02-09T15:10:00","collectedBy":"SALAH","collectionAt":"2026-02-12T09:50:00","status":"Collected","remarks":"Urgent"},{"number":"GP-2026-007","company":"Tenaris Global","location":"Dukhan","gatePassType":"Temporary","requestType":"New Gate Pass","passCategory":"Main","submittedBy":"Marco Ferraro","submissionAt":"2026-02-16T11:40:00","collectedBy":"ABIN","collectionAt":"2026-02-17T14:05:00","status":"Collected","remarks":null},{"number":"GP-2026-008","company":"Tenaris Investment","location":"Doha Towers","gatePassType":"Permanent","requestType":"New Gate Pass","passCategory":"Main","submittedBy":"Elena Rossi","submissionAt":"2026-02-23T10:25:00","collectedBy":"MED-HUSSAIN","collectionAt":"2026-02-26T14:35:00","status":"Collected","remarks":"Urgent"},{"number":"GP-2026-009","company":"EY Consulting","location":"Dukhan","gatePassType":"Temporary","requestType":"New Gate Pass","passCategory":"Main","submittedBy":"Ahmed Al-Sayed","submissionAt":"2026-03-02T10:35:00","collectedBy":"SALAH","collectionAt":"2026-03-02T17:25:00","status":"Collected","remarks":"Urgent"},{"number":"GP-2026-010","company":"Welltec","location":"Doha Towers","gatePassType":"Permanent","requestType":"New Gate Pass","passCategory":"Main","submittedBy":"Jesper Holm","submissionAt":"2026-03-10T14:25:00","collectedBy":"MED-HUSSAIN","collectionAt":"2026-03-12T15:00:00","status":"Collected","remarks":null},{"number":"GP-2026-011","company":"Tenaris Global","location":"Ras Laffan","gatePassType":"Permanent","requestType":"New Gate Pass","passCategory":"Supplementary","submittedBy":"Marco Ferraro","submissionAt":"2026-03-17T10:05:00","collectedBy":"ABIN","collectionAt":"2026-03-17T16:00:00","status":"Collected","remarks":"Urgent"},{"number":"GP-2026-012","company":"Tenaris Investment","location":"Offshore","gatePassType":"Permanent","requestType":"New Gate Pass","passCategory":"Main","submittedBy":"Elena Rossi","submissionAt":"2026-03-24T14:20:00","collectedBy":"SALAH","collectionAt":"2026-03-25T11:40:00","status":"Collected","remarks":"Public holiday in between"},{"number":"GP-2026-013","company":"EY Consulting","location":"Ras Laffan","gatePassType":"Permanent","requestType":"New Gate Pass","passCategory":"Main","submittedBy":"Ahmed Al-Sayed","submissionAt":"2026-03-31T09:25:00","collectedBy":"AITA","collectionAt":"2026-03-31T12:40:00","status":"Collected","remarks":"Public holiday in between"},{"number":"GP-2026-014","company":"Welltec","location":"Offshore","gatePassType":"Permanent","requestType":"Lost Gate Pass","passCategory":"Main","submittedBy":"Jesper Holm","submissionAt":"2026-04-07T08:40:00","collectedBy":"AITA","collectionAt":"2026-04-08T10:15:00","status":"Collected","remarks":"Lost during site transfer"},{"number":"GP-2026-015","company":"Tenaris Global","location":"Mesaieed","gatePassType":"Permanent","requestType":"New Gate Pass","passCategory":"Main","submittedBy":"Marco Ferraro","submissionAt":"2026-04-14T12:45:00","collectedBy":null,"collectionAt":null,"status":"Cancelled","remarks":"Cancelled \u2014 duplicate request"},{"number":"GP-2026-016","company":"Tenaris Investment","location":"Dukhan","gatePassType":"Permanent","requestType":"New Gate Pass","passCategory":"Main","submittedBy":"Elena Rossi","submissionAt":"2026-04-21T08:20:00","collectedBy":"AITA","collectionAt":"2026-04-21T17:25:00","status":"Collected","remarks":null},{"number":"GP-2026-017","company":"EY Consulting","location":"Mesaieed","gatePassType":"Permanent","requestType":"New Gate Pass","passCategory":"Main","submittedBy":"Ahmed Al-Sayed","submissionAt":"2026-04-28T11:50:00","collectedBy":"SALAH","collectionAt":"2026-04-29T14:20:00","status":"Collected","remarks":null},{"number":"GP-2026-018","company":"Welltec","location":"Dukhan","gatePassType":"Permanent","requestType":"Lost Gate Pass","passCategory":"Main","submittedBy":"Jesper Holm","submissionAt":"2026-05-06T13:50:00","collectedBy":"ABIN","collectionAt":"2026-05-06T17:25:00","status":"Collected","remarks":"Lost during site transfer"},{"number":"GP-2026-019","company":"Tenaris Global","location":"Doha Towers","gatePassType":"Permanent","requestType":"New Gate Pass","passCategory":"Main","submittedBy":"Marco Ferraro","submissionAt":"2026-05-13T08:35:00","collectedBy":"SALAH","collectionAt":"2026-05-13T13:35:00","status":"Collected","remarks":null},{"number":"GP-2026-020","company":"Tenaris Investment","location":"Ras Laffan","gatePassType":"Permanent","requestType":"Lost Gate Pass","passCategory":"Main","submittedBy":"Elena Rossi","submissionAt":"2026-05-20T10:30:00","collectedBy":"ABIN","collectionAt":"2026-05-20T16:45:00","status":"Collected","remarks":"Reported lost \u2014 police report attached"},{"number":"GP-2026-021","company":"EY Consulting","location":"Doha Towers","gatePassType":"Permanent","requestType":"Lost Gate Pass","passCategory":"Supplementary","submittedBy":"Ahmed Al-Sayed","submissionAt":"2026-05-27T14:30:00","collectedBy":"MED-HUSSAIN","collectionAt":"2026-05-30T17:05:00","status":"Collected","remarks":"Replacement issued after verification"},{"number":"GP-2026-022","company":"Welltec","location":"Ras Laffan","gatePassType":"Temporary","requestType":"Lost Gate Pass","passCategory":"Main","submittedBy":"Jesper Holm","submissionAt":"2026-06-03T15:20:00","collectedBy":"SALAH","collectionAt":"2026-06-05T14:10:00","status":"Collected","remarks":"Lost during site transfer"},{"number":"GP-2026-023","company":"Tenaris Global","location":"Offshore","gatePassType":"Permanent","requestType":"New Gate Pass","passCategory":"Main","submittedBy":"Marco Ferraro","submissionAt":"2026-06-10T13:15:00","collectedBy":"ABIN","collectionAt":"2026-06-10T17:30:00","status":"Collected","remarks":null},{"number":"GP-2026-024","company":"Tenaris Investment","location":"Mesaieed","gatePassType":"Permanent","requestType":"New Gate Pass","passCategory":"Main","submittedBy":"Elena Rossi","submissionAt":"2026-06-17T10:00:00","collectedBy":null,"collectionAt":null,"status":"Cancelled","remarks":"Incomplete documents"},{"number":"GP-2026-025","company":"EY Consulting","location":"Offshore","gatePassType":"Permanent","requestType":"New Gate Pass","passCategory":"Main","submittedBy":"Ahmed Al-Sayed","submissionAt":"2026-06-24T07:10:00","collectedBy":"SALAH","collectionAt":"2026-06-25T09:10:00","status":"Collected","remarks":null},{"number":"GP-2026-026","company":"Welltec","location":"Ras Laffan","gatePassType":"Temporary","requestType":"New Gate Pass","passCategory":"Main","submittedBy":"Jesper Holm","submissionAt":"2026-06-26T13:20:00","collectedBy":null,"collectionAt":null,"status":"Pending","remarks":null},{"number":"GP-2026-027","company":"EY Consulting","location":"Mesaieed","gatePassType":"Permanent","requestType":"Lost Gate Pass","passCategory":"Main","submittedBy":"Ahmed Al-Sayed","submissionAt":"2026-06-29T08:50:00","collectedBy":null,"collectionAt":null,"status":"Pending","remarks":"Awaiting police report"},{"number":"GP-2026-028","company":"Welltec","location":"Mesaieed","gatePassType":"Temporary","requestType":"Lost Gate Pass","passCategory":"Main","submittedBy":"Jesper Holm","submissionAt":"2026-07-02T09:55:00","collectedBy":"AITA","collectionAt":"2026-07-03T14:50:00","status":"Collected","remarks":"Reported lost \u2014 police report attached"},{"number":"GP-2026-029","company":"Welltec","location":"Dukhan","gatePassType":"Temporary","requestType":"New Gate Pass","passCategory":"Main","submittedBy":"Jesper Holm","submissionAt":"2026-07-02T14:30:00","collectedBy":null,"collectionAt":null,"status":"Pending","remarks":"Follow-up sent"},{"number":"GP-2026-030","company":"Tenaris Investment","location":"Doha Towers","gatePassType":"Temporary","requestType":"New Gate Pass","passCategory":"Supplementary","submittedBy":"Elena Rossi","submissionAt":"2026-07-04T09:00:00","collectedBy":null,"collectionAt":null,"status":"Pending","remarks":null},{"number":"GP-2026-031","company":"Tenaris Global","location":"Offshore","gatePassType":"Permanent","requestType":"New Gate Pass","passCategory":"Main","submittedBy":"Marco Ferraro","submissionAt":"2026-07-06T10:30:00","collectedBy":null,"collectionAt":null,"status":"Pending","remarks":null},{"number":"GP-2026-032","company":"EY Consulting","location":"Ras Laffan","gatePassType":"Permanent","requestType":"New Gate Pass","passCategory":"Supplementary","submittedBy":"Ahmed Al-Sayed","submissionAt":"2026-07-07T07:50:00","collectedBy":null,"collectionAt":null,"status":"Pending","remarks":null}];
@@ -592,7 +845,6 @@ function can(e, permission) {
 // access than a plain AM.
 const VIEW_ACCESS_RULES = {
   kanban: ["OPS_ADMIN", "OPERATOR", "AM_LEAD"],
-  online: ["OPS_ADMIN", "OPERATOR"],
   "company-import": ["OPS_ADMIN"],
   "account-managers": ["OPS_ADMIN", "AM_LEAD"],
   analytics: ["OPS_ADMIN", "AM_LEAD"],
@@ -706,7 +958,7 @@ function buildInitialState() {
     if (!companyId.has(r.company)) {
       const id = companies.length + 1;
       companyId.set(r.company, id);
-      companies.push({ id, name: r.company, sector: COMPANY_SECTORS[r.company] || null, contact: null, phone: null, email: null, notes: null, billingType: id % 3 === 0 ? "MONTHLY_RETAINER" : "PER_SERVICE" });
+      companies.push({ id, name: r.company, sector: COMPANY_SECTORS[r.company] || null, contact: null, phone: null, email: null, notes: null });
     }
     if (r.collectedBy && !collectorId.has(r.collectedBy)) {
       const id = collectors.length + 1;
@@ -762,12 +1014,19 @@ function buildInitialState() {
         c.accountManagerId = amId;
       } else {
         const id = companies.length + 1;
-        companies.push({ id, name: companyName, sector: null, contact: null, phone: null, email: null, notes: null, accountManagerId: amId, billingType: id % 3 === 0 ? "MONTHLY_RETAINER" : "PER_SERVICE" });
+        companies.push({ id, name: companyName, sector: null, contact: null, phone: null, email: null, notes: null, accountManagerId: amId });
         companyId.set(companyName, id);
         companyByUpper.set(key, id);
       }
     }
   }
+
+  // Exactly 50/50 Monthly Retainer vs Per Service across the FULL final
+  // company list (not per insertion-source), regardless of how many came
+  // from SEED_GATE_PASSES vs. the AM-allocation import.
+  companies.slice().sort((a, b) => a.id - b.id).forEach((c, i) => {
+    c.billingType = i % 2 === 0 ? "MONTHLY_RETAINER" : "PER_SERVICE";
+  });
 
   const partnerships = [];
   for (const p of PARTNERSHIPS_SEED) {
@@ -1003,6 +1262,12 @@ function formatDuration(hours) {
   if (days > 0) return `${days}d ${rem.toFixed(1)}h`;
   return `${hours.toFixed(1)}h`;
 }
+const PILL_TEXT_KEY = {
+  PENDING: "status.gpPending", COLLECTED: "status.gpCollected", CANCELLED: "status.gpCancelled",
+  "Fast (≤24h)": "delay.fast", "Normal (24-48h)": "delay.normal", "Slow (>48h)": "delay.slow",
+  "Overdue (>48h)": "delay.overdue", Waiting: "delay.waiting",
+  High: "priority.high", Low: "priority.low", Active: "collectors.colActive", Inactive: "collectors.colInactive"
+};
 function pillFor(text) {
   const map = {
     PENDING: "pill-warn", COLLECTED: "pill-good", CANCELLED: "pill-mute",
@@ -1011,11 +1276,12 @@ function pillFor(text) {
     High: "pill-crit", Low: "pill-mute", Active: "pill-good", Inactive: "pill-mute"
   };
   const cls = map[text] || "pill-mute";
-  const label = text === "PENDING" ? "Pending" : text === "COLLECTED" ? "Collected" : text === "CANCELLED" ? "Cancelled" : text;
+  const key = PILL_TEXT_KEY[text];
+  const label = key ? t(key) : text;
   return `<span class="pill ${cls}">${esc(label)}</span>`;
 }
-function stagePill(stage) { return `<span class="pill ${STAGE_PILL[stage]}">${esc(STAGE_LABEL[stage])}</span>`; }
-function requestStatusPill(status) { return `<span class="pill ${STATUS_PILL[status]}">${esc(STATUS_LABEL[status])}</span>`; }
+function stagePill(stage) { return `<span class="pill ${STAGE_PILL[stage]}">${esc(t(DELIVERY_STAGE_KEY[stage]))}</span>`; }
+function requestStatusPill(status) { return `<span class="pill ${STATUS_PILL[status]}">${esc(t(SERVICE_REQUEST_STATUS_KEY[status]))}</span>`; }
 function assertValidRequestTransition(from, to) {
   if (from === to) return null;
   if (!VALID_REQUEST_TRANSITIONS[from].includes(to)) return `Cannot move a request from ${STATUS_LABEL[from]} to ${STATUS_LABEL[to]}.`;
@@ -1403,27 +1669,28 @@ function renderHBars(mount, rows) {
 
 /* ================= views ================= */
 const NAV_ITEMS = [
-  { id: "dashboard", label: "Dashboard" },
-  { id: "tracker", label: "Gate Pass Tracker" },
-  { id: "collectors", label: "Collector Performance" },
-  { id: "companies", label: "Companies" },
-  { id: "analytics", label: "Analytics" },
-  { id: "account-managers", label: "Account Managers" },
-  { id: "company-import", label: "Import Companies" },
-  { id: "kanban", label: "Suivi des Dossiers" },
-  { id: "online", label: "Online Team" },
-  { id: "field", label: "Field Team" }
+  { id: "dashboard", labelKey: "nav.dashboard" },
+  { id: "tracker", labelKey: "nav.tracker" },
+  { id: "collectors", labelKey: "nav.collectors" },
+  { id: "companies", labelKey: "nav.companies" },
+  { id: "analytics", labelKey: "nav.analytics" },
+  { id: "account-managers", labelKey: "nav.accountManagers" },
+  { id: "company-import", labelKey: "nav.companyImport" },
+  { id: "kanban", labelKey: "nav.workflow" },
+  { id: "field", labelKey: "nav.field" }
 ];
 // Nav order is role-aware: each role sees the items most relevant to their
 // job first, rather than one fixed global order. Anything visible but not
 // listed for a role falls back to the end, in its natural NAV_ITEMS order.
+// "online" (the old separate Online Team page) is merged into "kanban" (the
+// Workflow Tracker) and no longer exists as its own nav entry.
 const NAV_ORDER_BY_ROLE = {
-  CEO: ["dashboard", "kanban", "analytics", "account-managers", "companies", "tracker", "collectors", "online", "field", "company-import"],
-  SUPER_ADMIN: ["dashboard", "kanban", "analytics", "account-managers", "companies", "tracker", "collectors", "online", "field", "company-import"],
-  OPS_ADMIN: ["dashboard", "kanban", "analytics", "company-import", "online", "tracker", "collectors", "field"],
+  CEO: ["dashboard", "kanban", "analytics", "account-managers", "companies", "tracker", "collectors", "field", "company-import"],
+  SUPER_ADMIN: ["dashboard", "kanban", "analytics", "account-managers", "companies", "tracker", "collectors", "field", "company-import"],
+  OPS_ADMIN: ["dashboard", "kanban", "analytics", "company-import", "tracker", "collectors", "field"],
   AM_LEAD: ["dashboard", "account-managers", "companies", "analytics", "kanban", "tracker", "collectors", "field"],
   AM: ["dashboard", "companies", "tracker", "collectors"],
-  OPERATOR: ["dashboard", "kanban", "online", "tracker", "collectors", "field"]
+  OPERATOR: ["dashboard", "kanban", "tracker", "collectors", "field"]
 };
 function orderNavItems(items, role) {
   const order = NAV_ORDER_BY_ROLE[role];
@@ -1523,20 +1790,25 @@ function setupNav() {
   const role = currentRole();
   const visibleItems = orderNavItems(NAV_ITEMS.filter((it) => isViewAllowed(it.id, role)), role);
   const nav = document.getElementById("nav");
-  nav.innerHTML = visibleItems.map((it, i) => `<button data-view="${it.id}"><span class="n">${String(i + 1).padStart(2, "0")}</span>${esc(it.label)}</button>`).join("");
+  nav.innerHTML = visibleItems.map((it, i) => `<button data-view="${it.id}"><span class="n">${String(i + 1).padStart(2, "0")}</span>${esc(t(it.labelKey))}</button>`).join("");
   const mnav = document.getElementById("mobileNav");
-  mnav.innerHTML = visibleItems.map((it) => `<button data-view="${it.id}">${esc(it.label)}</button>`).join("");
+  mnav.innerHTML = visibleItems.map((it) => `<button data-view="${it.id}">${esc(t(it.labelKey))}</button>`).join("");
   document.querySelectorAll("[data-view]").forEach((btn) => {
     btn.addEventListener("click", () => switchView(btn.getAttribute("data-view")));
   });
   document.querySelectorAll("[data-view]").forEach((b) => b.classList.toggle("active", b.getAttribute("data-view") === currentView));
-  document.getElementById("resetBtn").addEventListener("click", () => {
+  const resetBtn = document.getElementById("resetBtn");
+  resetBtn.textContent = t("common.resetSampleData");
+  resetBtn.onclick = () => {
     if (confirm("Reset all data back to the original 30 seeded gate passes? Local edits will be lost.")) resetState();
-  });
+  };
   const me = currentEmployee();
+  document.getElementById("signedInAsLabel").textContent = t("common.signedInAs");
   document.getElementById("currentUserName").textContent = me ? me.name : "—";
   document.getElementById("currentUserRole").textContent = ROLE_LABEL[role];
+  document.getElementById("logoutBtn").textContent = t("common.logout");
   document.getElementById("logoutBtn").onclick = logout;
+  renderLangToggle();
 }
 function switchView(id) {
   const role = currentRole();
@@ -1564,7 +1836,6 @@ function renderView(id) {
   else if (id === "account-managers") renderAccountManagers();
   else if (id === "company-import") renderCompanyImport();
   else if (id === "kanban") renderKanban();
-  else if (id === "online") renderOnline();
   else if (id === "field") renderField();
 }
 function renderAll() { renderView(currentView); }
@@ -1584,8 +1855,8 @@ function renderDashboard() {
   const mount = document.getElementById("view-dashboard");
   if (!can(me, "view_dashboard_stats")) {
     mount.innerHTML = `
-      <div class="page-head"><div><span class="eyebrow">Overview</span><h1>Dashboard</h1></div></div>
-      <div class="card card-pad" style="max-width:420px;">🔒 This account doesn't have a dashboard view configured.</div>
+      <div class="page-head"><div><span class="eyebrow">${esc(t("dashboard.title"))}</span><h1>${esc(t("dashboard.title"))}</h1></div></div>
+      <div class="card card-pad" style="max-width:420px;">🔒 ${esc(t("dashboard.locked"))}</div>
     `;
     return;
   }
@@ -1610,62 +1881,62 @@ function renderDashboard() {
 
   mount.innerHTML = `
     <div class="page-head">
-      <div><span class="eyebrow">Overview</span><h1>Dashboard</h1>
-      <p>Gate Pass &amp; PRO Services overview · updates automatically</p></div>
+      <div><span class="eyebrow">${esc(t("dashboard.title"))}</span><h1>${esc(t("dashboard.title"))}</h1>
+      <p>${esc(t("dashboard.subtitle"))}</p></div>
       <div id="dashActions" style="display:flex;align-items:center;gap:8px;"></div>
     </div>
     <div class="dashboard-split">
       <div class="dashboard-col">
-        <h2 style="font-size:15px;font-weight:700;margin:6px 0 10px;">🛂 Gate Pass Overview</h2>
+        <h2 style="font-size:15px;font-weight:700;margin:6px 0 10px;">🛂 ${esc(t("dashboard.gatePassOverview"))}</h2>
         <div class="hero-band">
           <div class="hero-stats">
-            ${heroStat("Total submitted", k.total)}
-            ${heroStat("Collected", k.collected, "t-good")}
-            ${heroStat("Pending", k.pending, "t-warn")}
-            ${heroStat("Cancelled", k.cancelled, "t-crit")}
-            ${heroStat("Collection rate", (k.collectionRate * 100).toFixed(0) + "%", "t-brand")}
-            ${heroStat("Avg. processing time", k.avgHours ? formatDuration(k.avgHours) : "—", "t-brand")}
+            ${heroStat(t("kpi.totalSubmitted"), k.total)}
+            ${heroStat(t("kpi.collected"), k.collected, "t-good")}
+            ${heroStat(t("kpi.pending"), k.pending, "t-warn")}
+            ${heroStat(t("kpi.cancelled"), k.cancelled, "t-crit")}
+            ${heroStat(t("kpi.collectionRate"), (k.collectionRate * 100).toFixed(0) + "%", "t-brand")}
+            ${heroStat(t("kpi.avgProcessing"), k.avgHours ? formatDuration(k.avgHours) : "—", "t-brand")}
           </div>
         </div>
         <div class="grid kpi-row">
-          ${kpiTile("Fastest", k.fastestHours !== null ? formatDuration(k.fastestHours) : "—", "", "good")}
-          ${kpiTile("Longest", k.longestHours !== null ? formatDuration(k.longestHours) : "—", "", "crit")}
-          ${kpiTile("Today", k.today, "")}
-          ${kpiTile("This week", k.week, "")}
-          ${kpiTile("This month", k.month, "")}
-          ${kpiTile("This year", k.year, "")}
+          ${kpiTile(t("kpi.fastest"), k.fastestHours !== null ? formatDuration(k.fastestHours) : "—", "", "good")}
+          ${kpiTile(t("kpi.longest"), k.longestHours !== null ? formatDuration(k.longestHours) : "—", "", "crit")}
+          ${kpiTile(t("kpi.today"), k.today, "")}
+          ${kpiTile(t("kpi.thisWeek"), k.week, "")}
+          ${kpiTile(t("kpi.thisMonth"), k.month, "")}
+          ${kpiTile(t("kpi.thisYear"), k.year, "")}
         </div>
         <div class="grid charts-2" style="margin-top:4px;">
-          <div class="card card-pad"><div class="card-title">Submitted vs Collected</div><div id="chart-compare"></div></div>
-          <div class="card card-pad"><div class="card-title">Status breakdown</div><div id="chart-donut"></div></div>
+          <div class="card card-pad"><div class="card-title">${esc(t("chart.submittedVsCollected"))}</div><div id="chart-compare"></div></div>
+          <div class="card card-pad"><div class="card-title">${esc(t("chart.statusBreakdown"))}</div><div id="chart-donut"></div></div>
         </div>
-        <div class="card card-pad" style="margin-top:14px;"><div class="card-title">Daily trend (14 days)</div><div id="chart-daily"></div></div>
+        <div class="card card-pad" style="margin-top:14px;"><div class="card-title">${esc(t("chart.dailyTrend"))}</div><div id="chart-daily"></div></div>
         <div class="grid charts-2" style="margin-top:14px;">
-          <div class="card card-pad"><div class="card-title">Weekly trend (8 weeks)</div><div id="chart-weekly"></div></div>
-          <div class="card card-pad"><div class="card-title">Monthly trend</div><div id="chart-monthly"></div></div>
+          <div class="card card-pad"><div class="card-title">${esc(t("chart.weeklyTrend"))}</div><div id="chart-weekly"></div></div>
+          <div class="card card-pad"><div class="card-title">${esc(t("chart.monthlyTrend"))}</div><div id="chart-monthly"></div></div>
         </div>
-        <div class="card card-pad" style="margin-top:14px;"><div class="card-title">Collector performance</div><div id="chart-collectors"></div></div>
+        <div class="card card-pad" style="margin-top:14px;"><div class="card-title">${esc(t("chart.collectorPerformance"))}</div><div id="chart-collectors"></div></div>
       </div>
       <div class="dashboard-col">
-        <h2 style="font-size:15px;font-weight:700;margin:6px 0 10px;">📋 PRO Services Overview</h2>
+        <h2 style="font-size:15px;font-weight:700;margin:6px 0 10px;">📋 ${esc(t("dashboard.proOverview"))}</h2>
         <div class="hero-band">
           <div class="hero-stats">
-            ${heroStat("Total requests", proStats.total)}
-            ${heroStat("Assigned to Online", proStats.assignedToOnline)}
-            ${heroStat("Online Processing", proStats.onlineProcessing, "t-warn")}
-            ${heroStat("Pending Dispatch", proStats.pendingDispatch, "t-good")}
-            ${heroStat("Missing Info", proStats.missingInfo, "t-crit")}
+            ${heroStat(t("kpi.totalRequests"), proStats.total)}
+            ${heroStat(t("kpi.assignedToOnline"), proStats.assignedToOnline)}
+            ${heroStat(t("kpi.onlineProcessing"), proStats.onlineProcessing, "t-warn")}
+            ${heroStat(t("kpi.pendingDispatch"), proStats.pendingDispatch, "t-good")}
+            ${heroStat(t("kpi.missingInfo"), proStats.missingInfo, "t-crit")}
           </div>
         </div>
         <div class="grid kpi-row" style="grid-template-columns:repeat(4,1fr);">
-          ${kpiTile("Gate Pass Family", proStats.gatePassFamily, "")}
-          ${kpiTile("PRO Category", proStats.proCategory, "")}
-          ${kpiTile("Delivery Category", proStats.deliveryCategory, "")}
-          ${kpiTile("Flagged for Manager", proStats.flagged, "", "crit")}
+          ${kpiTile(t("kpi.gatePassFamily"), proStats.gatePassFamily, "")}
+          ${kpiTile(t("kpi.proCategory"), proStats.proCategory, "")}
+          ${kpiTile(t("kpi.deliveryCategory"), proStats.deliveryCategory, "")}
+          ${kpiTile(t("kpi.flaggedForManager"), proStats.flagged, "", "crit")}
         </div>
         <div class="card table-wrap table-wide" style="margin-top:14px;">
           <table>
-            <thead><tr><th>Request</th><th>Type</th><th>Company</th><th>Requested by</th><th>Status</th></tr></thead>
+            <thead><tr><th>${esc(t("table.request"))}</th><th>${esc(t("table.type"))}</th><th>${esc(t("common.company"))}</th><th>${esc(t("table.requestedBy"))}</th><th>${esc(t("common.status"))}</th></tr></thead>
             <tbody>
               ${recentRequests.map((r) => `<tr>
                 <td style="font-weight:600;color:var(--ink);">${esc(r.title)}</td>
@@ -1673,7 +1944,7 @@ function renderDashboard() {
                 <td>${esc(companyName(r.companyId))}</td>
                 <td>${esc(employeeName(r.createdById) || "—")}</td>
                 <td>${requestStatusPill(r.status)}</td>
-              </tr>`).join("") || `<tr class="empty-row"><td colspan="5">No requests yet.</td></tr>`}
+              </tr>`).join("") || `<tr class="empty-row"><td colspan="5">${esc(t("table.noRequestsYet"))}</td></tr>`}
             </tbody>
           </table>
         </div>
@@ -1730,22 +2001,22 @@ function renderTracker() {
   const rows = filteredGatePasses();
   mount.innerHTML = `
     <div class="page-head">
-      <div><span class="eyebrow">All records</span><h1>Gate Pass Tracker</h1><p>${rows.length} of ${DB.gatePasses.length} gate passes</p></div>
-      <button class="btn btn-primary" id="btnNewGp">+ New Gate Pass</button>
+      <div><span class="eyebrow">${esc(t("tracker.title"))}</span><h1>${esc(t("tracker.title"))}</h1><p>${rows.length} / ${DB.gatePasses.length}</p></div>
+      <button class="btn btn-primary" id="btnNewGp">${esc(t("tracker.newGatePass"))}</button>
     </div>
     <div class="card card-pad toolbar">
-      <input type="text" id="fSearch" placeholder="Search number, company, submitter…" value="${esc(trackerFilters.search)}">
+      <input type="text" id="fSearch" placeholder="${esc(t("companies.searchPlaceholder"))}" value="${esc(trackerFilters.search)}">
       <select id="fStatus">
-        <option value="">All statuses</option>
-        <option value="PENDING">Pending</option><option value="COLLECTED">Collected</option><option value="CANCELLED">Cancelled</option>
+        <option value="">${esc(t("tracker.allStatuses"))}</option>
+        <option value="PENDING">${esc(t("status.gpPending"))}</option><option value="COLLECTED">${esc(t("status.gpCollected"))}</option><option value="CANCELLED">${esc(t("status.gpCancelled"))}</option>
       </select>
-      <select id="fCompany"><option value="">All companies</option>${DB.companies.map((c) => `<option value="${c.id}">${esc(c.name)}</option>`).join("")}</select>
-      <select id="fLocation"><option value="">All locations</option>${LOCATIONS.map((l) => `<option value="${esc(l)}">${esc(l)}</option>`).join("")}</select>
-      <select id="fCollector"><option value="">All collectors</option>${DB.collectors.map((c) => `<option value="${c.id}">${esc(c.name)}</option>`).join("")}</select>
+      <select id="fCompany"><option value="">${esc(t("tracker.allCompanies"))}</option>${DB.companies.map((c) => `<option value="${c.id}">${esc(c.name)}</option>`).join("")}</select>
+      <select id="fLocation"><option value="">${esc(t("tracker.allLocations"))}</option>${LOCATIONS.map((l) => `<option value="${esc(l)}">${esc(l)}</option>`).join("")}</select>
+      <select id="fCollector"><option value="">${esc(t("tracker.allCollectors"))}</option>${DB.collectors.map((c) => `<option value="${c.id}">${esc(c.name)}</option>`).join("")}</select>
     </div>
     <div class="card table-wrap tracker-table">
       <table>
-        <thead><tr><th>Gate Pass #</th><th>Company</th><th>Location</th><th>Type</th><th>Submitted</th><th>Collector</th><th>Collected</th><th>Status</th><th>Delay</th><th class="num">Time</th><th>Remarks</th><th></th></tr></thead>
+        <thead><tr><th>${esc(t("tracker.colNumber"))}</th><th>${esc(t("common.company"))}</th><th>${esc(t("tracker.colLocation"))}</th><th>${esc(t("tracker.colType"))}</th><th>${esc(t("tracker.colSubmitted"))}</th><th>${esc(t("tracker.colCollector"))}</th><th>${esc(t("tracker.colCollected"))}</th><th>${esc(t("common.status"))}</th><th>${esc(t("tracker.colDelay"))}</th><th class="num">${esc(t("tracker.colTime"))}</th><th>${esc(t("tracker.colRemarks"))}</th><th></th></tr></thead>
         <tbody id="trackerBody"></tbody>
       </table>
     </div>
@@ -1782,9 +2053,9 @@ function filteredGatePasses() {
 function renderTrackerBody() {
   const rows = filteredGatePasses();
   const p = document.querySelector("#view-tracker .page-head p");
-  if (p) p.textContent = `${rows.length} of ${DB.gatePasses.length} gate passes`;
+  if (p) p.textContent = `${rows.length} / ${DB.gatePasses.length}`;
   const body = document.getElementById("trackerBody");
-  if (!rows.length) { body.innerHTML = `<tr class="empty-row"><td colspan="12">No gate passes match these filters.</td></tr>`; return; }
+  if (!rows.length) { body.innerHTML = `<tr class="empty-row"><td colspan="12">${esc(t("tracker.noMatch"))}</td></tr>`; return; }
   body.innerHTML = rows.map((g) => {
     const hours = processingHours(g);
     return `<tr>
@@ -1800,9 +2071,9 @@ function renderTrackerBody() {
       <td class="num">${hours !== null ? formatDuration(hours) : "—"}</td>
       <td class="remarks-cell" title="${esc(g.remarks || "")}">${esc(g.remarks || "")}</td>
       <td><div class="actions-cell">
-        <button class="btn-link link-edit" data-act="edit" data-id="${g.id}">Edit</button>
-        ${g.status === "PENDING" ? `<button class="btn-link link-warn" data-act="cancel" data-id="${g.id}">Cancel</button>` : ""}
-        <button class="btn-link link-danger" data-act="delete" data-id="${g.id}">Delete</button>
+        <button class="btn-link link-edit" data-act="edit" data-id="${g.id}">${esc(t("common.edit"))}</button>
+        ${g.status === "PENDING" ? `<button class="btn-link link-warn" data-act="cancel" data-id="${g.id}">${esc(t("workflow.cancel"))}</button>` : ""}
+        <button class="btn-link link-danger" data-act="delete" data-id="${g.id}">${esc(t("common.delete"))}</button>
       </div></td>
     </tr>`;
   }).join("");
@@ -2029,35 +2300,35 @@ function renderCollectors() {
   const perf = computeUnifiedFieldPerformance();
   mount.innerHTML = `
     <div class="page-head">
-      <div><span class="eyebrow">Field team</span><h1>Collector Performance</h1><p>Gate Pass collection + delivery/outside work, per person</p></div>
-      <button class="btn btn-primary" id="btnNewCollector">+ New Collector</button>
+      <div><span class="eyebrow">${esc(t("collectors.title"))}</span><h1>${esc(t("collectors.title"))}</h1><p>${esc(t("collectors.subtitle"))}</p></div>
+      <button class="btn btn-primary" id="btnNewCollector">${esc(t("collectors.newCollector"))}</button>
     </div>
     <div class="card table-wrap">
       <table>
-        <thead><tr><th>Person</th><th class="num">Gate Passes Collected</th><th class="num">Avg. Collection Time</th><th class="num">Deliveries Completed</th><th class="num">Avg. Delivery Time</th><th class="num">Blocked</th><th class="num">Active Now</th><th class="num">Rank</th></tr></thead>
+        <thead><tr><th>${esc(t("collectors.colPerson"))}</th><th class="num">${esc(t("collectors.colGpCollected"))}</th><th class="num">${esc(t("collectors.colGpAvg"))}</th><th class="num">${esc(t("collectors.colDeliveries"))}</th><th class="num">${esc(t("collectors.colDeliveryAvg"))}</th><th class="num">${esc(t("collectors.colBlocked"))}</th><th class="num">${esc(t("collectors.colActiveNow"))}</th><th class="num">${esc(t("collectors.colRank"))}</th></tr></thead>
         <tbody>${perf.length ? perf.map((r) => `
           <tr>
             <td>${esc(r.name)}</td>
             <td class="num">${r.gpCollected || "—"}</td><td class="num">${r.gpAvgHours !== null ? formatDuration(r.gpAvgHours) : "—"}</td>
             <td class="num">${r.dtCompleted || "—"}</td><td class="num">${r.dtAvgHours !== null ? formatDuration(r.dtAvgHours) : "—"}</td>
             <td class="num">${r.dtBlocked || "—"}</td><td class="num">${r.dtActive || "—"}</td>
-            <td class="num">${pillFor("Active").replace("Active", "#" + r.rank)}</td>
-          </tr>`).join("") : `<tr class="empty-row"><td colspan="8">No collections or deliveries recorded yet.</td></tr>`}
+            <td class="num"><span class="pill pill-good">#${r.rank}</span></td>
+          </tr>`).join("") : `<tr class="empty-row"><td colspan="8">${esc(t("collectors.noData"))}</td></tr>`}
         </tbody>
       </table>
     </div>
-    <h2 style="font-size:13px;margin:20px 0 10px;">Manage collectors</h2>
+    <h2 style="font-size:13px;margin:20px 0 10px;">${esc(t("collectors.manage"))}</h2>
     <div class="card table-wrap">
       <table>
-        <thead><tr><th>Name</th><th>Phone</th><th>Email</th><th>Status</th><th class="num">Gate Passes</th><th></th></tr></thead>
+        <thead><tr><th>${esc(t("collectors.colName"))}</th><th>${esc(t("companies.colPhone"))}</th><th>${esc(t("companies.colEmail"))}</th><th>${esc(t("common.status"))}</th><th class="num">${esc(t("collectors.colGatePasses"))}</th><th></th></tr></thead>
         <tbody>${DB.collectors.map((c) => `
           <tr>
             <td>${esc(c.name)}</td><td>${esc(c.phone || "—")}</td><td>${esc(c.email || "—")}</td>
             <td>${pillFor(c.active ? "Active" : "Inactive")}</td>
             <td class="num">${DB.gatePasses.filter((g) => g.collectorId === c.id).length}</td>
             <td><div class="actions-cell">
-              <button class="btn-link link-edit" data-cact="edit" data-id="${c.id}">Edit</button>
-              <button class="btn-link link-danger" data-cact="delete" data-id="${c.id}">Delete</button>
+              <button class="btn-link link-edit" data-cact="edit" data-id="${c.id}">${esc(t("common.edit"))}</button>
+              <button class="btn-link link-danger" data-cact="delete" data-id="${c.id}">${esc(t("common.delete"))}</button>
             </div></td>
           </tr>`).join("")}
         </tbody>
@@ -2083,20 +2354,20 @@ function openCollectorModal(id) {
   const c = id ? DB.collectors.find((x) => x.id === id) : null;
   const overlay = document.getElementById("overlay"), body = document.getElementById("modalBody");
   body.innerHTML = `
-    <div class="kicker">${c ? "Edit record" : "New record"}</div>
-    <h2>${c ? `Edit ${esc(c.name)}` : "New Collector"}</h2>
+    <div class="kicker">${c ? esc(t("common.editRecord")) : esc(t("common.newRecord"))}</div>
+    <h2>${c ? `${esc(t("common.edit"))} ${esc(c.name)}` : t("collectors.newCollector").replace("+ ", "")}</h2>
     <form id="cForm" style="margin-top:14px;">
-      <div class="field"><label>Name</label><input type="text" id="cName" required value="${esc(c ? c.name : "")}"></div>
+      <div class="field"><label>${esc(t("collectors.colName"))}</label><input type="text" id="cName" required value="${esc(c ? c.name : "")}"></div>
       <div class="field-row">
-        <div class="field"><label>Phone</label><input type="text" id="cPhone" value="${esc(c ? c.phone : "")}"></div>
-        <div class="field"><label>Email</label><input type="text" id="cEmail" value="${esc(c ? c.email : "")}"></div>
+        <div class="field"><label>${esc(t("companies.colPhone"))}</label><input type="text" id="cPhone" value="${esc(c ? c.phone : "")}"></div>
+        <div class="field"><label>${esc(t("companies.colEmail"))}</label><input type="text" id="cEmail" value="${esc(c ? c.email : "")}"></div>
       </div>
       <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--ink-2);margin-bottom:8px;">
-        <input type="checkbox" id="cActive" ${!c || c.active ? "checked" : ""}> Active
+        <input type="checkbox" id="cActive" ${!c || c.active ? "checked" : ""}> ${esc(t("collectors.colActive"))}
       </label>
       <div class="modal-actions">
-        <button type="button" class="btn btn-ghost" id="cCancelBtn">Cancel</button>
-        <button type="submit" class="btn btn-primary">Save</button>
+        <button type="button" class="btn btn-ghost" id="cCancelBtn">${esc(t("common.cancel"))}</button>
+        <button type="submit" class="btn btn-primary">${esc(t("common.save"))}</button>
       </div>
     </form>`;
   overlay.classList.add("open");
@@ -2110,10 +2381,9 @@ function openCollectorModal(id) {
 }
 
 /* ---- companies ---- */
-const BILLING_TYPE_LABEL = { MONTHLY_RETAINER: "Monthly Retainer", PER_SERVICE: "Per Service" };
 function billingBadge(type) {
   const cls = type === "MONTHLY_RETAINER" ? "pill-brand" : "pill-info";
-  return `<span class="pill ${cls}">${esc(BILLING_TYPE_LABEL[type] || "Per Service")}</span>`;
+  return `<span class="pill ${cls}">${esc(t(type === "MONTHLY_RETAINER" ? "billing.monthlyRetainer" : "billing.perService"))}</span>`;
 }
 let companyFilters = { search: "", billingType: "", accountManagerId: "" };
 function renderCompanies() {
@@ -2121,24 +2391,24 @@ function renderCompanies() {
   const amEmployees = DB.employees.filter((e) => e.isAM).sort((a, b) => a.name.localeCompare(b.name));
   mount.innerHTML = `
     <div class="page-head">
-      <div><span class="eyebrow">Clients</span><h1>Companies</h1><p>Client companies tracked in the gate pass system</p></div>
-      <button class="btn btn-primary" id="btnNewCompany">+ New Company</button>
+      <div><span class="eyebrow">${esc(t("companies.title"))}</span><h1>${esc(t("companies.title"))}</h1><p>${esc(t("companies.subtitle"))}</p></div>
+      <button class="btn btn-primary" id="btnNewCompany">${esc(t("companies.newCompany"))}</button>
     </div>
     <div class="card card-pad toolbar">
-      <input type="text" id="coSearch" placeholder="Search name, sector, contact…" value="${esc(companyFilters.search)}">
+      <input type="text" id="coSearch" placeholder="${esc(t("companies.searchPlaceholder"))}" value="${esc(companyFilters.search)}">
       <select id="coFilterBilling">
-        <option value="">All billing types</option>
-        <option value="MONTHLY_RETAINER">Monthly Retainer</option>
-        <option value="PER_SERVICE">Per Service</option>
+        <option value="">${esc(t("companies.allBillingTypes"))}</option>
+        <option value="MONTHLY_RETAINER">${esc(t("billing.monthlyRetainer"))}</option>
+        <option value="PER_SERVICE">${esc(t("billing.perService"))}</option>
       </select>
       <select id="coFilterAM">
-        <option value="">All Account Managers</option>
+        <option value="">${esc(t("companies.allAMs"))}</option>
         ${amEmployees.map((e) => `<option value="${e.id}">${esc(e.name)}</option>`).join("")}
       </select>
     </div>
     <div class="card table-wrap">
       <table>
-        <thead><tr><th>Company</th><th>Sector</th><th>Account Manager</th><th>Billing</th><th>Contact</th><th>Phone</th><th>Email</th><th></th></tr></thead>
+        <thead><tr><th>${esc(t("common.company"))}</th><th>${esc(t("companies.colSector"))}</th><th>${esc(t("companies.colAM"))}</th><th>${esc(t("companies.colBilling"))}</th><th>${esc(t("companies.colContact"))}</th><th>${esc(t("companies.colPhone"))}</th><th>${esc(t("companies.colEmail"))}</th><th></th></tr></thead>
         <tbody id="companiesBody"></tbody>
       </table>
     </div>
@@ -2166,7 +2436,7 @@ function filteredCompanies() {
 function renderCompaniesBody() {
   const rows = filteredCompanies();
   const body = document.getElementById("companiesBody");
-  if (!rows.length) { body.innerHTML = `<tr class="empty-row"><td colspan="8">No companies match these filters.</td></tr>`; return; }
+  if (!rows.length) { body.innerHTML = `<tr class="empty-row"><td colspan="8">${esc(t("companies.noMatch"))}</td></tr>`; return; }
   body.innerHTML = rows.map((c) => `
     <tr>
       <td>${esc(c.name)}</td><td>${esc(c.sector || "—")}</td>
@@ -2174,8 +2444,8 @@ function renderCompaniesBody() {
       <td>${billingBadge(c.billingType || "PER_SERVICE")}</td>
       <td>${esc(c.contact || "—")}</td><td>${esc(c.phone || "—")}</td><td>${esc(c.email || "—")}</td>
       <td><div class="actions-cell">
-        <button class="btn-link link-edit" data-coact="edit" data-id="${c.id}">Edit</button>
-        <button class="btn-link link-danger" data-coact="delete" data-id="${c.id}">Delete</button>
+        <button class="btn-link link-edit" data-coact="edit" data-id="${c.id}">${esc(t("common.edit"))}</button>
+        <button class="btn-link link-danger" data-coact="delete" data-id="${c.id}">${esc(t("common.delete"))}</button>
       </div></td>
     </tr>`).join("");
   body.querySelectorAll("[data-coact]").forEach((btn) => {
@@ -2197,31 +2467,31 @@ function openCompanyModal(id) {
   const amEmployees = DB.employees.filter((e) => e.isAM).sort((a, b) => a.name.localeCompare(b.name));
   const overlay = document.getElementById("overlay"), body = document.getElementById("modalBody");
   body.innerHTML = `
-    <div class="kicker">${c ? "Edit record" : "New record"}</div>
-    <h2>${c ? `Edit ${esc(c.name)}` : "New Company"}</h2>
+    <div class="kicker">${c ? esc(t("common.editRecord")) : esc(t("common.newRecord"))}</div>
+    <h2>${c ? `${esc(t("common.edit"))} ${esc(c.name)}` : t("companies.newCompany").replace("+ ", "")}</h2>
     <form id="coForm" style="margin-top:14px;">
-      <div class="field"><label>Company Name</label><input type="text" id="coName" required value="${esc(c ? c.name : "")}"></div>
+      <div class="field"><label>${esc(t("common.company"))}</label><input type="text" id="coName" required value="${esc(c ? c.name : "")}"></div>
       <div class="field-row">
-        <div class="field"><label>Sector</label><input type="text" id="coSector" value="${esc(c ? c.sector : "")}"></div>
-        <div class="field"><label>Account Manager</label>
-          <select id="coAM"><option value="">— Unassigned —</option>${amEmployees.map((e) => `<option value="${e.id}" ${c && c.accountManagerId === e.id ? "selected" : ""}>${esc(e.name)}</option>`).join("")}</select>
+        <div class="field"><label>${esc(t("companies.colSector"))}</label><input type="text" id="coSector" value="${esc(c ? c.sector : "")}"></div>
+        <div class="field"><label>${esc(t("companies.colAM"))}</label>
+          <select id="coAM"><option value="">${esc(t("companies.unassigned"))}</option>${amEmployees.map((e) => `<option value="${e.id}" ${c && c.accountManagerId === e.id ? "selected" : ""}>${esc(e.name)}</option>`).join("")}</select>
         </div>
       </div>
-      <div class="field"><label>Billing Type</label>
+      <div class="field"><label>${esc(t("companies.colBilling"))}</label>
         <select id="coBilling">
-          <option value="PER_SERVICE" ${(!c || (c.billingType || "PER_SERVICE") === "PER_SERVICE") ? "selected" : ""}>Per Service</option>
-          <option value="MONTHLY_RETAINER" ${c && c.billingType === "MONTHLY_RETAINER" ? "selected" : ""}>Monthly Retainer</option>
+          <option value="PER_SERVICE" ${(!c || (c.billingType || "PER_SERVICE") === "PER_SERVICE") ? "selected" : ""}>${esc(t("billing.perService"))}</option>
+          <option value="MONTHLY_RETAINER" ${c && c.billingType === "MONTHLY_RETAINER" ? "selected" : ""}>${esc(t("billing.monthlyRetainer"))}</option>
         </select>
       </div>
-      <div class="field"><label>Contact Person</label><input type="text" id="coContact" value="${esc(c ? c.contact : "")}"></div>
+      <div class="field"><label>${esc(t("companies.colContact"))}</label><input type="text" id="coContact" value="${esc(c ? c.contact : "")}"></div>
       <div class="field-row">
-        <div class="field"><label>Phone</label><input type="text" id="coPhone" value="${esc(c ? c.phone : "")}"></div>
-        <div class="field"><label>Email</label><input type="text" id="coEmail" value="${esc(c ? c.email : "")}"></div>
+        <div class="field"><label>${esc(t("companies.colPhone"))}</label><input type="text" id="coPhone" value="${esc(c ? c.phone : "")}"></div>
+        <div class="field"><label>${esc(t("companies.colEmail"))}</label><input type="text" id="coEmail" value="${esc(c ? c.email : "")}"></div>
       </div>
       <div class="field"><label>Notes</label><textarea id="coNotes" rows="2">${esc(c ? c.notes : "")}</textarea></div>
       <div class="modal-actions">
-        <button type="button" class="btn btn-ghost" id="coCancelBtn">Cancel</button>
-        <button type="submit" class="btn btn-primary">Save</button>
+        <button type="button" class="btn btn-ghost" id="coCancelBtn">${esc(t("common.cancel"))}</button>
+        <button type="submit" class="btn btn-primary">${esc(t("common.save"))}</button>
       </div>
     </form>`;
   overlay.classList.add("open");
@@ -2245,45 +2515,107 @@ function openCompanyModal(id) {
 }
 
 /* ---- analytics / pivot ---- */
+function computePivotByCompanyStatusRequests(requests) {
+  const companies = [...new Set(requests.map((r) => companyName(r.companyId)))].sort();
+  const statuses = ["ASSIGNED_TO_ONLINE", "ONLINE_PROCESSING", "PENDING_DISPATCH", "MISSING_INFO_RETURNED_TO_AM"];
+  const rows = companies.map((company) => {
+    const counts = {};
+    let total = 0;
+    for (const s of statuses) {
+      const n = requests.filter((r) => companyName(r.companyId) === company && r.status === s).length;
+      counts[s] = n; total += n;
+    }
+    return { company, counts, total };
+  });
+  const grand = {};
+  for (const s of statuses) grand[s] = requests.filter((r) => r.status === s).length;
+  return { rows, statuses, grand, grandAll: requests.length };
+}
+function computePivotByCategory(requests) {
+  const categories = ["PRO", "DELIVERY"];
+  return categories.map((cat) => ({ category: cat, count: requests.filter((r) => r.category === cat).length }));
+}
+function computePivotByAM(requests) {
+  const names = [...new Set(requests.map((r) => employeeName(r.createdById) || "—"))].sort();
+  const rows = names.map((name) => ({ name, count: requests.filter((r) => (employeeName(r.createdById) || "—") === name).length }));
+  rows.sort((a, b) => b.count - a.count);
+  return rows;
+}
 function renderAnalytics() {
   const mount = document.getElementById("view-analytics");
   const rows = DB.gatePasses;
   const byCompany = computePivotByCompanyStatus(rows);
   const byCollector = computePivotByCollector(rows);
   const byLocation = computePivotByLocationStatus(rows);
-  const statusLabel = { CANCELLED: "Cancelled", COLLECTED: "Collected", PENDING: "Pending" };
+  const gpStatusLabel = { CANCELLED: t("status.gpCancelled"), COLLECTED: t("status.gpCollected"), PENDING: t("status.gpPending") };
+
+  const requests = DB.serviceRequests;
+  const proByCompany = computePivotByCompanyStatusRequests(requests);
+  const proByCategory = computePivotByCategory(requests);
+  const proByAM = computePivotByAM(requests);
+
   mount.innerHTML = `
-    <div class="page-head"><div><span class="eyebrow">Cross-tabs</span><h1>Analytics</h1><p>Cross-tab reports</p></div></div>
-    <div class="grid pivot-grid">
-      <div class="card table-wrap">
-        <div class="card-pad" style="padding-bottom:0;"><div class="card-title">Gate passes by company &amp; status</div></div>
-        <table>
-          <thead><tr><th>Company</th>${byCompany.statuses.map((s) => `<th class="num">${statusLabel[s]}</th>`).join("")}<th class="num">Grand Total</th></tr></thead>
-          <tbody>
-            ${byCompany.rows.map((r) => `<tr><td>${esc(r.company)}</td>${byCompany.statuses.map((s) => `<td class="num">${r.counts[s] || ""}</td>`).join("")}<td class="num" style="font-weight:700;">${r.total}</td></tr>`).join("")}
-          </tbody>
-          <tfoot><tr style="background:var(--surface-2);font-weight:700;"><td>Grand Total</td>${byCompany.statuses.map((s) => `<td class="num">${byCompany.grand[s]}</td>`).join("")}<td class="num">${byCompany.grandAll}</td></tr></tfoot>
-        </table>
+    <div class="page-head"><div><span class="eyebrow">${esc(t("analytics.title"))}</span><h1>${esc(t("analytics.title"))}</h1><p>${esc(t("analytics.subtitle"))}</p></div></div>
+    <div class="analytics-split">
+      <div class="analytics-col">
+        <h2 style="font-size:15px;font-weight:700;margin:6px 0 12px;">🛂 ${esc(t("analytics.gatePassServices"))}</h2>
+        <div class="card table-wrap" style="margin-bottom:16px;">
+          <div class="card-pad" style="padding-bottom:0;"><div class="card-title">${esc(t("analytics.byCompanyStatus"))}</div></div>
+          <table>
+            <thead><tr><th>${esc(t("common.company"))}</th>${byCompany.statuses.map((s) => `<th class="num">${gpStatusLabel[s]}</th>`).join("")}<th class="num">${esc(t("analytics.grandTotal"))}</th></tr></thead>
+            <tbody>
+              ${byCompany.rows.map((r) => `<tr><td>${esc(r.company)}</td>${byCompany.statuses.map((s) => `<td class="num">${r.counts[s] || ""}</td>`).join("")}<td class="num" style="font-weight:700;">${r.total}</td></tr>`).join("")}
+            </tbody>
+            <tfoot><tr style="background:var(--surface-2);font-weight:700;"><td>${esc(t("analytics.grandTotal"))}</td>${byCompany.statuses.map((s) => `<td class="num">${byCompany.grand[s]}</td>`).join("")}<td class="num">${byCompany.grandAll}</td></tr></tfoot>
+          </table>
+        </div>
+        <div class="card table-wrap" style="margin-bottom:16px;">
+          <div class="card-pad" style="padding-bottom:0;"><div class="card-title">${esc(t("analytics.byCollector"))}</div></div>
+          <table>
+            <thead><tr><th>${esc(t("analytics.rowLabels"))}</th><th class="num">${esc(t("analytics.countGp"))}</th></tr></thead>
+            <tbody>${byCollector.map((r) => `<tr><td>${esc(r.name)}</td><td class="num">${r.count}</td></tr>`).join("")}</tbody>
+            <tfoot><tr style="background:var(--surface-2);font-weight:700;"><td>${esc(t("analytics.grandTotal"))}</td><td class="num">${rows.length}</td></tr></tfoot>
+          </table>
+        </div>
+        <div class="card table-wrap">
+          <div class="card-pad" style="padding-bottom:0;"><div class="card-title">${esc(t("analytics.byLocationStatus"))}</div></div>
+          <table>
+            <thead><tr><th>${esc(t("tracker.colLocation"))}</th>${byLocation.statuses.map((s) => `<th class="num">${gpStatusLabel[s]}</th>`).join("")}<th class="num">${esc(t("analytics.grandTotal"))}</th></tr></thead>
+            <tbody>
+              ${byLocation.rows.map((r) => `<tr><td>${esc(r.location)}</td>${byLocation.statuses.map((s) => `<td class="num">${r.counts[s] || ""}</td>`).join("")}<td class="num" style="font-weight:700;">${r.total}</td></tr>`).join("")}
+            </tbody>
+            <tfoot><tr style="background:var(--surface-2);font-weight:700;"><td>${esc(t("analytics.grandTotal"))}</td>${byLocation.statuses.map((s) => `<td class="num">${byLocation.grand[s]}</td>`).join("")}<td class="num">${byLocation.grandAll}</td></tr></tfoot>
+          </table>
+        </div>
       </div>
-      <div class="card table-wrap">
-        <div class="card-pad" style="padding-bottom:0;"><div class="card-title">Gate passes by collector</div></div>
-        <table>
-          <thead><tr><th>Row Labels</th><th class="num">Count of Gate Pass Number</th></tr></thead>
-          <tbody>${byCollector.map((r) => `<tr><td>${esc(r.name)}</td><td class="num">${r.count}</td></tr>`).join("")}</tbody>
-          <tfoot><tr style="background:var(--surface-2);font-weight:700;"><td>Grand Total</td><td class="num">${rows.length}</td></tr></tfoot>
-        </table>
-      </div>
-    </div>
-    <div style="margin-top:24px;">
-      <div class="card table-wrap">
-        <div class="card-pad" style="padding-bottom:0;"><div class="card-title">Gate passes by location &amp; status</div></div>
-        <table>
-          <thead><tr><th>Location</th>${byLocation.statuses.map((s) => `<th class="num">${statusLabel[s]}</th>`).join("")}<th class="num">Grand Total</th></tr></thead>
-          <tbody>
-            ${byLocation.rows.map((r) => `<tr><td>${esc(r.location)}</td>${byLocation.statuses.map((s) => `<td class="num">${r.counts[s] || ""}</td>`).join("")}<td class="num" style="font-weight:700;">${r.total}</td></tr>`).join("")}
-          </tbody>
-          <tfoot><tr style="background:var(--surface-2);font-weight:700;"><td>Grand Total</td>${byLocation.statuses.map((s) => `<td class="num">${byLocation.grand[s]}</td>`).join("")}<td class="num">${byLocation.grandAll}</td></tr></tfoot>
-        </table>
+      <div class="analytics-col">
+        <h2 style="font-size:15px;font-weight:700;margin:6px 0 12px;">📋 ${esc(t("analytics.proServices"))}</h2>
+        <div class="card table-wrap" style="margin-bottom:16px;">
+          <div class="card-pad" style="padding-bottom:0;"><div class="card-title">${esc(t("analytics.proByCompanyStatus"))}</div></div>
+          <table>
+            <thead><tr><th>${esc(t("common.company"))}</th>${proByCompany.statuses.map((s) => `<th class="num">${esc(t(SERVICE_REQUEST_STATUS_KEY[s]))}</th>`).join("")}<th class="num">${esc(t("analytics.grandTotal"))}</th></tr></thead>
+            <tbody>
+              ${proByCompany.rows.map((r) => `<tr><td>${esc(r.company)}</td>${proByCompany.statuses.map((s) => `<td class="num">${r.counts[s] || ""}</td>`).join("")}<td class="num" style="font-weight:700;">${r.total}</td></tr>`).join("")}
+            </tbody>
+            <tfoot><tr style="background:var(--surface-2);font-weight:700;"><td>${esc(t("analytics.grandTotal"))}</td>${proByCompany.statuses.map((s) => `<td class="num">${proByCompany.grand[s]}</td>`).join("")}<td class="num">${proByCompany.grandAll}</td></tr></tfoot>
+          </table>
+        </div>
+        <div class="card table-wrap" style="margin-bottom:16px;">
+          <div class="card-pad" style="padding-bottom:0;"><div class="card-title">${esc(t("analytics.proByCategory"))}</div></div>
+          <table>
+            <thead><tr><th>${esc(t("table.type"))}</th><th class="num">${esc(t("analytics.countRequests"))}</th></tr></thead>
+            <tbody>${proByCategory.map((r) => `<tr><td>${r.category === "PRO" ? "PRO" : esc(t("kpi.deliveryCategory"))}</td><td class="num">${r.count}</td></tr>`).join("")}</tbody>
+            <tfoot><tr style="background:var(--surface-2);font-weight:700;"><td>${esc(t("analytics.grandTotal"))}</td><td class="num">${requests.length}</td></tr></tfoot>
+          </table>
+        </div>
+        <div class="card table-wrap">
+          <div class="card-pad" style="padding-bottom:0;"><div class="card-title">${esc(t("analytics.proByAM"))}</div></div>
+          <table>
+            <thead><tr><th>${esc(t("analytics.rowLabels"))}</th><th class="num">${esc(t("analytics.countRequests"))}</th></tr></thead>
+            <tbody>${proByAM.map((r) => `<tr><td>${esc(r.name)}</td><td class="num">${r.count}</td></tr>`).join("")}</tbody>
+            <tfoot><tr style="background:var(--surface-2);font-weight:700;"><td>${esc(t("analytics.grandTotal"))}</td><td class="num">${requests.length}</td></tr></tfoot>
+          </table>
+        </div>
       </div>
     </div>
   `;
@@ -2339,57 +2671,7 @@ function openAssignModal(taskId) {
   });
 }
 
-/* ================= online team ================= */
-function renderOnline() {
-  const mount = document.getElementById("view-online");
-  const inPrep = DB.deliveryTasks.filter((t) => t.stage === "ONLINE");
-  const sent = DB.deliveryTasks.filter((t) => t.stage === "DISPATCH");
-  mount.innerHTML = `
-    <div class="page-head">
-      <div><span class="eyebrow">Digital operations</span><h1>Online Team — Order Processing</h1>
-      <p>Validate documents and prepare files before sending to Dispatch</p></div>
-      <button class="btn btn-primary" id="btnNewTask">+ New order / task</button>
-    </div>
-    <div class="grid kpi-row" style="grid-template-columns:repeat(2,1fr);">
-      ${kpiTile("In Preparation", inPrep.length, "", "accent")}
-      ${kpiTile("Sent to Dispatch", sent.length, "")}
-    </div>
-    <div class="section-title">🗂 In preparation — validate &amp; prepare before sending</div>
-    <div class="task-list" id="onlinePrepList"></div>
-    <div class="section-title">⏩ Sent — awaiting MED-DARWISH assignment</div>
-    <div class="task-list" id="onlineSentList"></div>
-  `;
-  document.getElementById("btnNewTask").addEventListener("click", () => openTaskModal());
-  renderOnlinePrep(inPrep);
-  renderOnlineSent(sent);
-}
-function renderOnlinePrep(list) {
-  const mount = document.getElementById("onlinePrepList");
-  if (!list.length) { mount.innerHTML = `<div class="card card-pad empty-card">Nothing in preparation. Use “New order / task” to add one.</div>`; return; }
-  mount.innerHTML = list.map((t) => `
-    <div class="card card-pad task-card">
-      <div>
-        <div class="title-row"><span class="t">${esc(t.title)}</span>${stagePill(t.stage)}</div>
-        ${t.description ? `<div class="desc">${esc(t.description)}</div>` : ""}
-        <div class="meta">${taskMeta(t)} · ${fmtDateTime(t.createdAt)}</div>
-      </div>
-      <div class="task-actions"><button class="btn btn-primary" data-act="send" data-id="${t.id}">Send to Dispatch →</button></div>
-    </div>
-  `).join("");
-  mount.querySelectorAll("[data-act=send]").forEach((b) => b.addEventListener("click", () => updateTaskStage(Number(b.getAttribute("data-id")), "DISPATCH")));
-}
-function renderOnlineSent(list) {
-  const mount = document.getElementById("onlineSentList");
-  if (!list.length) { mount.innerHTML = `<div class="card card-pad empty-card">Nothing waiting on the manager right now.</div>`; return; }
-  mount.innerHTML = list.map((t) => `
-    <div class="card card-pad task-card">
-      <div>
-        <div class="title-row"><span class="t">${esc(t.title)}</span>${stagePill(t.stage)}</div>
-        <div class="meta">${taskMeta(t)}</div>
-      </div>
-    </div>
-  `).join("");
-}
+/* ================= new order/task (used from the Workflow Tracker) ================= */
 function openTaskModal() {
   const onlineEmployees = DB.employees.filter((e) => e.isOnline && e.active);
   const pendingGatePasses = DB.gatePasses.filter((g) => g.status === "PENDING");
@@ -2544,82 +2826,94 @@ function openBlockModal(taskId) {
   });
 }
 
-/* ================= unified kanban =================
+/* ================= unified Workflow Tracker =================
    Merges the old Pending (GatePass) + Dispatch (DeliveryTask) + Deliveries
-   history (DeliveryTask) + Online Queue (ServiceRequest) pages into one
-   3-column board. Each real-world item is exactly ONE card: a ServiceRequest
-   that reaches PENDING_DISPATCH auto-creates a linked DeliveryTask and never
-   changes status again itself (see updateRequestStatus), so it's excluded
-   here — its DeliveryTask card takes over from that point on. Every card has
-   at most one primary button; rare secondary actions (Cancel, Retourner à
-   l'AM, Send back to queue) are a small muted text link instead of a 2nd
-   button. All mutations reuse the existing updateTaskStage/updateRequestStatus/
-   cancelGatePass/openAssignModal/openGatePassModal/openReturnRequestModal —
-   no new business rules. */
+   history (DeliveryTask) + Online Queue (ServiceRequest) + Online Team
+   (DeliveryTask ONLINE/DISPATCH prep) pages into one 3-column board. Each
+   real-world item is exactly ONE card: a ServiceRequest that reaches
+   PENDING_DISPATCH auto-creates a linked DeliveryTask and never changes
+   status again itself (see updateRequestStatus), so it's excluded here —
+   its DeliveryTask card takes over from that point on. Every card has at
+   most one primary button; rare secondary actions (Cancel, Return to AM,
+   Send back to queue) are a small muted text link instead of a 2nd button.
+   All mutations reuse the existing updateTaskStage/updateRequestStatus/
+   cancelGatePass/openAssignModal/openGatePassModal/openReturnRequestModal/
+   openTaskModal — no new business rules.
+
+   Strict data segregation: a plain OPERATOR (not admin tier) sees ONLY
+   their own items — GatePass cards are excluded entirely (not their
+   domain), DeliveryTask cards are scoped to createdById === them, and
+   ServiceRequest cards are scoped to claimedById === them. The admin tier
+   (CEO/SUPER_ADMIN/OPS_ADMIN/AM_LEAD) keeps full/global visibility. */
 function kanbanCard(opts) {
   return Object.assign({ meta: "", badge: "", primary: null, secondary: null, warn: null, flagged: false, readOnlyBadge: null }, opts);
 }
-// French-only label/CSS-class maps used strictly inside the Kanban's card
-// badges — kept separate from STATUS_LABEL/STAGE_LABEL/pillFor (English),
-// which the Tracker and other pages still use, out of scope here.
-const KANBAN_GATE_PASS_PILL_FR = {
-  PENDING: { cls: "pill-warn", label: "En attente" },
-  COLLECTED: { cls: "pill-good", label: "Collecté" },
-  CANCELLED: { cls: "pill-mute", label: "Annulé" }
+const GATE_PASS_PILL_CLASS = { PENDING: "pill-warn", COLLECTED: "pill-good", CANCELLED: "pill-mute" };
+const GATE_PASS_STATUS_KEY = { PENDING: "status.gpPending", COLLECTED: "status.gpCollected", CANCELLED: "status.gpCancelled" };
+const SERVICE_REQUEST_STATUS_KEY = {
+  ASSIGNED_TO_ONLINE: "status.assignedToOnline", ONLINE_PROCESSING: "status.onlineProcessing",
+  PENDING_DISPATCH: "status.pendingDispatch", MISSING_INFO_RETURNED_TO_AM: "status.missingInfo"
 };
-const KANBAN_STATUS_LABEL_FR = {
-  ASSIGNED_TO_ONLINE: "Assignée en ligne", ONLINE_PROCESSING: "En traitement",
-  PENDING_DISPATCH: "Prête pour terrain", MISSING_INFO_RETURNED_TO_AM: "Info manquante (retournée à l'AM)"
+const DELIVERY_STAGE_KEY = {
+  ONLINE: "stage.online", DISPATCH: "stage.dispatch", ASSIGNED: "stage.assigned",
+  IN_PROGRESS: "stage.inProgress", COMPLETED: "stage.completed", BLOCKED: "stage.blocked"
 };
-const KANBAN_STAGE_LABEL_FR = {
-  ONLINE: "Préparation", DISPATCH: "Prêt à assigner", ASSIGNED: "Assigné",
-  IN_PROGRESS: "En cours", COMPLETED: "Terminé", BLOCKED: "Bloqué"
-};
-function kanbanPill(cls, label) { return `<span class="pill ${cls}">${esc(label)}</span>`; }
+function kanbanPill(cls, labelKey) { return `<span class="pill ${cls}">${esc(t(labelKey))}</span>`; }
 function buildKanbanCards() {
   const me = currentEmployee();
+  const role = roleOf(me);
   const canDispatch = can(me, "dispatch_field_assign");
   const viewAllQueue = can(me, "view_all_online_queue");
+  // Admin tier = full global visibility ("Darwish/CEO/decision-makers");
+  // anyone else in a plain OPERATOR seat is scoped to only their own items.
+  const isAdminTier = role === "CEO" || role === "SUPER_ADMIN" || role === "OPS_ADMIN" || role === "AM_LEAD";
+  const isPlainOperator = role === "OPERATOR" && !isAdminTier;
   const pending = [], inProgress = [], done = [];
 
-  DB.gatePasses.forEach((g) => {
-    const gpPill = KANBAN_GATE_PASS_PILL_FR[g.status];
-    if (g.status === "PENDING") {
-      pending.push(kanbanCard({
-        key: `gp-${g.id}`, badge: kanbanPill(gpPill.cls, gpPill.label),
-        title: `🛂 ${g.number}`, meta: `${companyName(g.companyId)} · ${g.location} · en attente depuis ${daysWaiting(g).toFixed(1)}j`,
-        primary: { label: "Marquer collecté", fn: () => openGatePassModal(g.id) },
-        secondary: { label: "Annuler", fn: () => cancelGatePass(g.id) }
-      }));
-    } else {
-      done.push(kanbanCard({
-        key: `gp-${g.id}`, badge: kanbanPill(gpPill.cls, gpPill.label), title: `🛂 ${g.number}`, meta: companyName(g.companyId),
-        sortAt: g.collectionAt || g.submissionAt
-      }));
-    }
-  });
+  if (!isPlainOperator) {
+    DB.gatePasses.forEach((g) => {
+      const cls = GATE_PASS_PILL_CLASS[g.status];
+      const badge = kanbanPill(cls, GATE_PASS_STATUS_KEY[g.status]);
+      if (g.status === "PENDING") {
+        pending.push(kanbanCard({
+          key: `gp-${g.id}`, badge,
+          title: `🛂 ${g.number}`, meta: `${companyName(g.companyId)} · ${g.location} · ${daysWaiting(g).toFixed(1)}d`,
+          primary: { label: t("workflow.markCollected"), fn: () => openGatePassModal(g.id) },
+          secondary: { label: t("workflow.cancel"), fn: () => cancelGatePass(g.id) }
+        }));
+      } else {
+        done.push(kanbanCard({
+          key: `gp-${g.id}`, badge, title: `🛂 ${g.number}`, meta: companyName(g.companyId),
+          sortAt: g.collectionAt || g.submissionAt
+        }));
+      }
+    });
+  }
 
   // A plain Online Operator only ever acted on their own auto-assigned
   // requests here (same scoping as the old Online Queue); the admin tier
-  // sees everyone's. MISSING_INFO cards stay visible to all (read-only) —
-  // they were always in the old Dispatch board's supervisory table.
+  // sees everyone's. MISSING_INFO cards stay visible only to admin tier —
+  // a plain operator has no business seeing another AM's returned request.
   DB.serviceRequests.forEach((r) => {
+    const isMine = me && r.claimedById === me.id;
     if (r.status === "ASSIGNED_TO_ONLINE" || r.status === "ONLINE_PROCESSING") {
-      if (!viewAllQueue && !(me && r.claimedById === me.id)) return;
+      if (!viewAllQueue && !isMine) return;
+    } else if (r.status === "MISSING_INFO_RETURNED_TO_AM" && isPlainOperator) {
+      return;
     }
-    const srBadge = kanbanPill(STATUS_PILL[r.status], KANBAN_STATUS_LABEL_FR[r.status]);
+    const srBadge = kanbanPill(STATUS_PILL[r.status], SERVICE_REQUEST_STATUS_KEY[r.status]);
     if (r.status === "ASSIGNED_TO_ONLINE") {
       pending.push(kanbanCard({
         key: `sr-${r.id}`, badge: srBadge, flagged: r.flaggedForManager,
-        title: r.title, meta: `${requestMeta(r)} · demandé par ${esc(employeeName(r.createdById))}`,
-        primary: { label: "Prendre en charge", fn: () => updateRequestStatus(r.id, "ONLINE_PROCESSING") }
+        title: r.title, meta: `${requestMeta(r)} · ${t("table.requestedBy")}: ${esc(employeeName(r.createdById))}`,
+        primary: { label: t("workflow.startProcessing"), fn: () => updateRequestStatus(r.id, "ONLINE_PROCESSING") }
       }));
     } else if (r.status === "ONLINE_PROCESSING") {
       inProgress.push(kanbanCard({
         key: `sr-${r.id}`, badge: srBadge, flagged: r.flaggedForManager,
         title: r.title, meta: requestMeta(r),
-        primary: { label: "Prêt pour Dispatch", fn: () => updateRequestStatus(r.id, "PENDING_DISPATCH") },
-        secondary: { label: "Retourner à l'AM", fn: () => openReturnRequestModal(r.id) }
+        primary: { label: t("workflow.readyForDispatch"), fn: () => updateRequestStatus(r.id, "PENDING_DISPATCH") },
+        secondary: { label: t("workflow.returnToAM"), fn: () => openReturnRequestModal(r.id) }
       }));
     } else if (r.status === "MISSING_INFO_RETURNED_TO_AM") {
       inProgress.push(kanbanCard({
@@ -2627,35 +2921,39 @@ function buildKanbanCards() {
         title: r.title, meta: requestMeta(r), warn: r.returnComment ? `⚠ ${r.returnComment}` : null
       }));
     }
-    // PENDING_DISPATCH intentionally excluded — représentée par sa DeliveryTask ci-dessous.
+    // PENDING_DISPATCH intentionally excluded — represented by its DeliveryTask below.
   });
 
-  DB.deliveryTasks.forEach((t) => {
-    const dtBadge = kanbanPill(STAGE_PILL[t.stage], KANBAN_STAGE_LABEL_FR[t.stage]);
-    if (t.stage === "ONLINE") {
-      pending.push(kanbanCard({ key: `dt-${t.id}`, badge: dtBadge, title: t.title, meta: taskMeta(t) }));
-    } else if (t.stage === "DISPATCH") {
+  DB.deliveryTasks.forEach((t2) => {
+    if (isPlainOperator && t2.createdById !== (me && me.id)) return;
+    const dtBadge = kanbanPill(STAGE_PILL[t2.stage], DELIVERY_STAGE_KEY[t2.stage]);
+    if (t2.stage === "ONLINE") {
       pending.push(kanbanCard({
-        key: `dt-${t.id}`, badge: dtBadge, title: t.title, meta: taskMeta(t),
-        primary: canDispatch ? { label: "Assigner un agent", fn: () => openAssignModal(t.id) } : null,
-        readOnlyBadge: canDispatch ? null : "En attente d'assignation"
+        key: `dt-${t2.id}`, badge: dtBadge, title: t2.title, meta: taskMeta(t2),
+        primary: { label: t("workflow.sendToDispatch"), fn: () => updateTaskStage(t2.id, "DISPATCH") }
       }));
-    } else if (t.stage === "ASSIGNED" || t.stage === "IN_PROGRESS") {
+    } else if (t2.stage === "DISPATCH") {
+      pending.push(kanbanCard({
+        key: `dt-${t2.id}`, badge: dtBadge, title: t2.title, meta: taskMeta(t2),
+        primary: canDispatch ? { label: t("workflow.assignAgent"), fn: () => openAssignModal(t2.id) } : null,
+        readOnlyBadge: canDispatch ? null : t("workflow.waitingForDispatch")
+      }));
+    } else if (t2.stage === "ASSIGNED" || t2.stage === "IN_PROGRESS") {
       inProgress.push(kanbanCard({
-        key: `dt-${t.id}`, badge: dtBadge, title: t.title,
-        meta: `${taskMeta(t)} · Agent : ${employeeName(t.assignedToId) || "—"} · Départ : ${fmtDateTime(t.scheduledAt)}`,
-        flagged: isOverdue(t),
-        primary: canDispatch ? { label: "Réassigner", fn: () => openAssignModal(t.id) } : null
+        key: `dt-${t2.id}`, badge: dtBadge, title: t2.title,
+        meta: `${taskMeta(t2)} · ${employeeName(t2.assignedToId) || "—"} · ${fmtDateTime(t2.scheduledAt)}`,
+        flagged: isOverdue(t2),
+        primary: canDispatch ? { label: t("workflow.reassign"), fn: () => openAssignModal(t2.id) } : null
       }));
-    } else if (t.stage === "BLOCKED") {
+    } else if (t2.stage === "BLOCKED") {
       inProgress.push(kanbanCard({
-        key: `dt-${t.id}`, badge: dtBadge, title: t.title, meta: taskMeta(t),
-        warn: t.blockedReason ? `⚠ ${t.blockedReason}` : null,
-        primary: canDispatch ? { label: "Résoudre et réassigner", fn: () => openAssignModal(t.id) } : null,
-        secondary: canDispatch ? { label: "Renvoyer en file d'attente", fn: () => updateTaskStage(t.id, "DISPATCH") } : null
+        key: `dt-${t2.id}`, badge: dtBadge, title: t2.title, meta: taskMeta(t2),
+        warn: t2.blockedReason ? `⚠ ${t2.blockedReason}` : null,
+        primary: canDispatch ? { label: t("workflow.resolveReassign"), fn: () => openAssignModal(t2.id) } : null,
+        secondary: canDispatch ? { label: t("workflow.sendBackToQueue"), fn: () => updateTaskStage(t2.id, "DISPATCH") } : null
       }));
-    } else if (t.stage === "COMPLETED") {
-      done.push(kanbanCard({ key: `dt-${t.id}`, badge: dtBadge, title: t.title, meta: taskMeta(t), sortAt: t.completedAt || t.createdAt }));
+    } else if (t2.stage === "COMPLETED") {
+      done.push(kanbanCard({ key: `dt-${t2.id}`, badge: dtBadge, title: t2.title, meta: taskMeta(t2), sortAt: t2.completedAt || t2.createdAt }));
     }
   });
 
@@ -2666,7 +2964,7 @@ function kanbanCardHtml(c) {
   return `
     <div class="card card-pad task-card kanban-card">
       <div>
-        <div class="title-row"><span class="t">${esc(c.title)}</span>${c.badge}${c.flagged ? `<span title="Nécessite attention">🚩</span>` : ""}</div>
+        <div class="title-row"><span class="t">${esc(c.title)}</span>${c.badge}${c.flagged ? `<span title="${esc(t("workflow.needsAttention"))}">🚩</span>` : ""}</div>
         ${c.meta ? `<div class="meta">${esc(c.meta)}</div>` : ""}
         ${c.warn ? `<div class="danger-box">${esc(c.warn)}</div>` : ""}
       </div>
@@ -2679,32 +2977,35 @@ function kanbanCardHtml(c) {
 }
 function renderKanban() {
   const mount = document.getElementById("view-" + currentView);
+  const me = currentEmployee();
+  const canCreateTask = can(me, "update_field_status") || (me && me.isOnline);
   const { pending, inProgress, done } = buildKanbanCards();
   const byKey = {};
   [...pending, ...inProgress, ...done].forEach((c) => { byKey[c.key] = c; });
 
   mount.innerHTML = `
     <div class="page-head">
-      <div><span class="eyebrow">Opérations</span><h1>Suivi des Dossiers</h1>
-      <p>Gate Pass, PRO Services et livraisons terrain — chaque dossier suivi en un seul tableau.</p></div>
+      <div><span class="eyebrow">${esc(t("nav.workflow"))}</span><h1>${esc(t("workflow.title"))}</h1>
+      <p>${esc(t("workflow.subtitle"))}</p></div>
+      ${canCreateTask ? `<button class="btn btn-primary" id="btnWfNewTask">${esc(t("workflow.newTask"))}</button>` : ""}
     </div>
     <div class="grid kpi-row" style="grid-template-columns:repeat(3,1fr);">
-      ${kpiTile("En Attente", pending.length, "", "warn")}
-      ${kpiTile("En Cours", inProgress.length, "")}
-      ${kpiTile("Prêt / Terminé", done.length, "", "good")}
+      ${kpiTile(t("workflow.colPending"), pending.length, "", "warn")}
+      ${kpiTile(t("workflow.colInProgress"), inProgress.length, "")}
+      ${kpiTile(t("workflow.colDone"), done.length, "", "good")}
     </div>
     <div class="kanban-grid">
       <div class="kanban-col">
-        <div class="kanban-col-title">🕓 En Attente <span class="kanban-count">${pending.length}</span></div>
-        <div class="kanban-col-body">${pending.length ? pending.map(kanbanCardHtml).join("") : `<div class="card card-pad empty-card">Rien en attente.</div>`}</div>
+        <div class="kanban-col-title">🕓 ${esc(t("workflow.colPending"))} <span class="kanban-count">${pending.length}</span></div>
+        <div class="kanban-col-body">${pending.length ? pending.map(kanbanCardHtml).join("") : `<div class="card card-pad empty-card">${esc(t("workflow.emptyPending"))}</div>`}</div>
       </div>
       <div class="kanban-col">
-        <div class="kanban-col-title">⚙️ En Cours <span class="kanban-count">${inProgress.length}</span></div>
-        <div class="kanban-col-body">${inProgress.length ? inProgress.map(kanbanCardHtml).join("") : `<div class="card card-pad empty-card">Rien en cours.</div>`}</div>
+        <div class="kanban-col-title">⚙️ ${esc(t("workflow.colInProgress"))} <span class="kanban-count">${inProgress.length}</span></div>
+        <div class="kanban-col-body">${inProgress.length ? inProgress.map(kanbanCardHtml).join("") : `<div class="card card-pad empty-card">${esc(t("workflow.emptyInProgress"))}</div>`}</div>
       </div>
       <div class="kanban-col">
-        <div class="kanban-col-title">✅ Prêt / Terminé <span class="kanban-count">${done.length}</span></div>
-        <div class="kanban-col-body">${done.length ? done.map(kanbanCardHtml).join("") : `<div class="card card-pad empty-card">Rien de terminé récemment.</div>`}</div>
+        <div class="kanban-col-title">✅ ${esc(t("workflow.colDone"))} <span class="kanban-count">${done.length}</span></div>
+        <div class="kanban-col-body">${done.length ? done.map(kanbanCardHtml).join("") : `<div class="card card-pad empty-card">${esc(t("workflow.emptyDone"))}</div>`}</div>
       </div>
     </div>
   `;
@@ -2713,6 +3014,9 @@ function renderKanban() {
     const action = card && (btn.getAttribute("data-kact") === "primary" ? card.primary : card.secondary);
     if (action) btn.addEventListener("click", action.fn);
   });
+  if (canCreateTask) {
+    document.getElementById("btnWfNewTask").addEventListener("click", () => openTaskModal());
+  }
 }
 
 /* ================= account managers ================= */
@@ -3176,15 +3480,15 @@ function companyImportSummaryTable(summary) {
   return `
     <div class="card table-wrap">
       <table>
-        <thead><tr><th>Column</th><th>Matched Employee</th><th>Companies</th><th>New</th><th>Re-linked</th><th>Already linked</th><th>Sample</th></tr></thead>
+        <thead><tr><th>${esc(t("import.colColumn"))}</th><th>${esc(t("import.colMatched"))}</th><th>${esc(t("import.colCompanies"))}</th><th>${esc(t("import.colNew"))}</th><th>${esc(t("import.colRelinked"))}</th><th>${esc(t("import.colAlreadyLinked"))}</th><th>${esc(t("import.colSample"))}</th></tr></thead>
         <tbody>
           ${summary.columns.map((c) => `<tr style="${!c.matchedEmployee ? "background:var(--critical-bg);" : ""}">
             <td style="font-weight:600;">${esc(c.amRawName)}</td>
-            <td>${c.matchedEmployee ? esc(c.matchedEmployee) : `<span style="color:var(--critical);">No matching Account Manager — skipped</span>`}</td>
+            <td>${c.matchedEmployee ? esc(c.matchedEmployee) : `<span style="color:var(--critical);">${esc(t("import.noMatch"))}</span>`}</td>
             <td>${c.companiesFound}</td><td>${c.toCreate}</td><td>${c.toLink}</td><td>${c.alreadyLinked}</td>
             <td style="max-width:220px;">
-              <span style="color:var(--ink-2);">${c.sampleNames.map((n) => esc(n)).join(", ")}${c.companiesFound > c.sampleNames.length ? ` +${c.companiesFound - c.sampleNames.length} more` : ""}</span>
-              ${c.duplicateCount ? `<div style="margin-top:2px;color:var(--critical);font-size:11px;">⚠ ${c.duplicateCount} duplicate name${c.duplicateCount > 1 ? "s" : ""} in this column</div>` : ""}
+              <span style="color:var(--ink-2);">${c.sampleNames.map((n) => esc(n)).join(", ")}${c.companiesFound > c.sampleNames.length ? ` +${c.companiesFound - c.sampleNames.length} ${esc(t("import.moreSuffix"))}` : ""}</span>
+              ${c.duplicateCount ? `<div style="margin-top:2px;color:var(--critical);font-size:11px;">⚠ ${c.duplicateCount} ${esc(t("import.duplicateNames"))}</div>` : ""}
             </td>
           </tr>`).join("")}
         </tbody>
@@ -3197,7 +3501,7 @@ function renderCompanyImport() {
   const me = currentEmployee();
   if (!can(me, "import_companies")) {
     mount.innerHTML = `
-      <div class="page-head"><div><span class="eyebrow">Import Companies</span><h1>Import Companies</h1></div></div>
+      <div class="page-head"><div><span class="eyebrow">${esc(t("import.title"))}</span><h1>${esc(t("import.title"))}</h1></div></div>
       <div class="card card-pad" style="max-width:460px;">
         🔒 Access restricted to the Operations Admin, Super Admin, and CEO.
       </div>
@@ -3206,26 +3510,26 @@ function renderCompanyImport() {
   }
   mount.innerHTML = `
     <div class="page-head">
-      <div><span class="eyebrow">Import Companies</span><h1>Import Companies</h1>
-      <p>Paste or upload the AM allocation as CSV (one Account Manager name per column header, company names down the rows)</p></div>
+      <div><span class="eyebrow">${esc(t("import.title"))}</span><h1>${esc(t("import.title"))}</h1>
+      <p>${esc(t("import.subtitle"))}</p></div>
     </div>
     <div class="card card-pad" style="max-width:600px;margin-bottom:16px;">
-      <div style="font-size:12.5px;font-weight:700;color:var(--ink);margin-bottom:8px;">📋 How this works</div>
+      <div style="font-size:12.5px;font-weight:700;color:var(--ink);margin-bottom:8px;">📋 ${esc(t("import.howItWorks"))}</div>
       <ol style="margin:0 0 0 18px;padding:0;font-size:12.5px;color:var(--ink-2);line-height:1.7;">
-        <li>Your file needs <strong>one column per Account Manager</strong> — the column header must be their name (e.g. <code>Violetta</code>, <code>Abegail</code>).</li>
-        <li>List each Account Manager's <strong>company names</strong> in the rows below their column header, one per row.</li>
-        <li>Upload the <code>.csv</code> file, or paste the same content as text.</li>
-        <li>Click <strong>Preview</strong> first — nothing is saved yet. Review the summary: which columns matched a real Account Manager, how many companies are new vs. already linked, and a sample of the names found.</li>
-        <li>Only once the preview looks right, click <strong>Apply Import</strong> to save it.</li>
+        <li>${esc(t("import.step1"))}</li>
+        <li>${esc(t("import.step2"))}</li>
+        <li>${esc(t("import.step3"))}</li>
+        <li>${esc(t("import.step4"))}</li>
+        <li>${esc(t("import.step5"))}</li>
       </ol>
     </div>
     <div class="card card-pad" style="max-width:600px;margin-bottom:20px;">
-      <div class="field"><label>CSV file</label><input type="file" id="ciFile" accept=".csv,.txt"></div>
-      <div class="field"><label>…or paste CSV text</label><textarea id="ciText" rows="6" placeholder="Violetta,Abegail,Vongai&#10;ABB AG,AL HAMAD TRADING,ACTIVE EVENTS"></textarea></div>
+      <div class="field"><label>${esc(t("import.csvFile"))}</label><input type="file" id="ciFile" accept=".csv,.txt"></div>
+      <div class="field"><label>${esc(t("import.orPaste"))}</label><textarea id="ciText" rows="6" placeholder="Violetta,Abegail,Vongai&#10;ABB AG,AL HAMAD TRADING,ACTIVE EVENTS"></textarea></div>
       <p class="err-msg" id="ciErr" style="display:none;"></p>
       <div class="modal-actions" style="justify-content:flex-start;">
-        <button type="button" class="btn btn-ghost" id="ciPreviewBtn">Preview</button>
-        <button type="button" class="btn btn-primary" id="ciApplyBtn" disabled>Apply Import</button>
+        <button type="button" class="btn btn-ghost" id="ciPreviewBtn">${esc(t("import.preview"))}</button>
+        <button type="button" class="btn btn-primary" id="ciApplyBtn" disabled>${esc(t("import.apply"))}</button>
       </div>
     </div>
     <div id="ciResults"></div>
@@ -3242,12 +3546,12 @@ function renderCompanyImport() {
   let lastPreview = null;
   document.getElementById("ciPreviewBtn").addEventListener("click", () => {
     const text = textArea.value.trim();
-    if (!text) { showErr("ciErr", "Provide a CSV file or paste CSV text first."); return; }
+    if (!text) { showErr("ciErr", t("import.provideFileFirst")); return; }
     document.getElementById("ciErr").style.display = "none";
     lastPreview = runCompanyImport(text, true);
     document.getElementById("ciApplyBtn").disabled = false;
     document.getElementById("ciResults").innerHTML = `
-      <h2 style="font-size:13px;font-weight:700;color:var(--ink);margin-bottom:10px;">Preview — ${lastPreview.totalCompanies} companies, ${lastPreview.totalCreated} new, ${lastPreview.totalLinked} re-linked</h2>
+      <h2 style="font-size:13px;font-weight:700;color:var(--ink);margin-bottom:10px;">${esc(t("import.preview"))} — ${lastPreview.totalCompanies} ${esc(t("import.colCompanies")).toLowerCase()}, ${lastPreview.totalCreated} ${esc(t("import.colNew")).toLowerCase()}, ${lastPreview.totalLinked} ${esc(t("import.colRelinked")).toLowerCase()}</h2>
       ${companyImportSummaryTable(lastPreview)}
     `;
   });
@@ -3257,13 +3561,15 @@ function renderCompanyImport() {
     const applied = runCompanyImport(text, false);
     document.getElementById("ciApplyBtn").disabled = true;
     document.getElementById("ciResults").innerHTML = `
-      <h2 style="font-size:13px;font-weight:700;color:var(--good);margin-bottom:10px;">✓ Import applied — ${applied.totalCreated} companies created, ${applied.totalLinked} re-linked to a new AM</h2>
+      <h2 style="font-size:13px;font-weight:700;color:var(--good);margin-bottom:10px;">✓ ${esc(t("import.apply"))} — ${applied.totalCreated} ${esc(t("import.colNew")).toLowerCase()}, ${applied.totalLinked} ${esc(t("import.colRelinked")).toLowerCase()}</h2>
       ${companyImportSummaryTable(applied)}
     `;
   });
 }
 
 /* ================= boot ================= */
+document.documentElement.setAttribute("dir", currentLang === "ar" ? "rtl" : "ltr");
+document.documentElement.setAttribute("lang", currentLang);
 document.getElementById("loginLogo").src = document.querySelector(".sidebar-brand img").src;
 if (currentEmployee()) {
   enterApp();
