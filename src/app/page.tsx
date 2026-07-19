@@ -16,13 +16,18 @@ import {
   EvolutionLineChart,
   CollectorBarChart,
 } from "@/components/charts";
+import { DashboardQuickActions } from "@/components/dashboard-quick-actions";
+import { PUBLIC_EMPLOYEE_SELECT } from "@/lib/employee-select";
+import { CompanyDTO, EmployeeDTO } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
 export default async function DashboardPage() {
-  const gatePasses = (await prisma.gatePass.findMany({
-    include: { company: true, collector: true },
-  })) as GatePassWithRelations[];
+  const [gatePasses, amEmployees, companies] = await Promise.all([
+    prisma.gatePass.findMany({ include: { company: true, collector: true } }) as Promise<GatePassWithRelations[]>,
+    prisma.employee.findMany({ where: { active: true, isAM: true }, orderBy: { name: "asc" }, select: PUBLIC_EMPLOYEE_SELECT }),
+    prisma.company.findMany({ orderBy: { name: "asc" } }),
+  ]);
 
   const now = new Date();
   const kpis = computeKpis(gatePasses, now);
@@ -37,6 +42,12 @@ export default async function DashboardPage() {
       <SectionHeader
         title="🛂 Gate Pass Dashboard"
         subtitle="Submission & collection tracking · updates automatically"
+        action={
+          <DashboardQuickActions
+            amEmployees={JSON.parse(JSON.stringify(amEmployees)) as EmployeeDTO[]}
+            companies={JSON.parse(JSON.stringify(companies)) as CompanyDTO[]}
+          />
+        }
       />
 
       <HeroBand>
