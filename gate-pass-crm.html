@@ -299,6 +299,14 @@
   .info-box { background: var(--surface-2); border-radius: 8px; padding: 8px 11px; font-size: 12px; color: var(--ink-2); margin-top: 8px; }
   .danger-box { background: var(--critical-bg); border-radius: 8px; padding: 8px 11px; font-size: 12px; color: var(--critical); margin-top: 8px; }
   .empty-card { text-align: center; padding: 26px; color: var(--muted); font-size: 13px; }
+  /* ---------- unified kanban board ---------- */
+  .kanban-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; align-items: start; }
+  @media (max-width: 900px) { .kanban-grid { grid-template-columns: 1fr; } }
+  .kanban-col-title { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 700; color: var(--ink); margin-bottom: 10px; }
+  .kanban-count { font-size: 11px; font-weight: 700; color: var(--muted); background: var(--surface-2); border-radius: 100px; padding: 2px 8px; }
+  .kanban-col-body { display: flex; flex-direction: column; gap: 10px; }
+  .kanban-card { display: flex; flex-direction: column; align-items: stretch; }
+  .kanban-card .task-actions { justify-content: flex-start; margin-top: 8px; }
   .chip-row { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; }
   .chip { all: unset; cursor: pointer; padding: 7px 14px; border-radius: 100px; font-size: 12px; font-weight: 600; background: var(--surface-2); color: var(--ink-2); }
   .chip.active { background: var(--brand); color: #fff; }
@@ -406,17 +414,14 @@
     <div class="danger-box" id="accessDeniedBanner" style="display:none;margin-bottom:16px;"></div>
     <div class="view" id="view-dashboard"></div>
     <div class="view" id="view-tracker"></div>
-    <div class="view" id="view-pending"></div>
     <div class="view" id="view-collectors"></div>
     <div class="view" id="view-companies"></div>
     <div class="view" id="view-analytics"></div>
     <div class="view" id="view-account-managers"></div>
-    <div class="view" id="view-online-queue"></div>
     <div class="view" id="view-company-import"></div>
-    <div class="view" id="view-dispatch"></div>
+    <div class="view" id="view-kanban"></div>
     <div class="view" id="view-online"></div>
     <div class="view" id="view-field"></div>
-    <div class="view" id="view-deliveries"></div>
     <div class="footnote">Static, self-contained build — data lives in this browser's local storage only.</div>
   </main>
 </div>
@@ -546,9 +551,12 @@ function can(e, permission) {
 // AM/OPERATOR removed from account-managers/online-queue: those pages are
 // now merged into their own "/" Dashboard; the dedicated pages stay
 // reachable for the admin tier only.
+// Pending + Dispatch + Deliveries + Online Queue are merged into a single
+// "kanban" view (see renderKanban) — same role set as the old /dispatch,
+// the broadest of the four. Plain AMs lose read access (they never acted
+// on this board anyway; their own work lives on the Account Managers page).
 const VIEW_ACCESS_RULES = {
-  dispatch: ["OPS_ADMIN", "OPERATOR", "AM_LEAD"],
-  "online-queue": ["OPS_ADMIN"],
+  kanban: ["OPS_ADMIN", "OPERATOR", "AM_LEAD"],
   online: ["OPS_ADMIN", "OPERATOR"],
   "company-import": ["OPS_ADMIN"],
   "account-managers": ["OPS_ADMIN", "AM_LEAD"]
@@ -1360,17 +1368,14 @@ function renderHBars(mount, rows) {
 const NAV_ITEMS = [
   { id: "dashboard", label: "Dashboard", n: "01" },
   { id: "tracker", label: "Gate Pass Tracker", n: "02" },
-  { id: "pending", label: "Pending", n: "03" },
-  { id: "collectors", label: "Collector Performance", n: "04" },
-  { id: "companies", label: "Companies", n: "05" },
-  { id: "analytics", label: "Analytics", n: "06" },
-  { id: "account-managers", label: "Account Managers", n: "07" },
-  { id: "online-queue", label: "Online Queue", n: "08" },
-  { id: "company-import", label: "Import Companies", n: "09" },
-  { id: "dispatch", label: "Dispatch", n: "10" },
-  { id: "online", label: "Online Team", n: "11" },
-  { id: "field", label: "Field Team", n: "12" },
-  { id: "deliveries", label: "Deliveries", n: "13" }
+  { id: "collectors", label: "Collector Performance", n: "03" },
+  { id: "companies", label: "Companies", n: "04" },
+  { id: "analytics", label: "Analytics", n: "05" },
+  { id: "account-managers", label: "Account Managers", n: "06" },
+  { id: "company-import", label: "Import Companies", n: "07" },
+  { id: "kanban", label: "Kanban", n: "08" },
+  { id: "online", label: "Online Team", n: "09" },
+  { id: "field", label: "Field Team", n: "10" }
 ];
 let currentView = "dashboard";
 
@@ -1497,17 +1502,14 @@ function switchView(id) {
 function renderView(id) {
   if (id === "dashboard") renderDashboard();
   else if (id === "tracker") renderTracker();
-  else if (id === "pending") renderPending();
   else if (id === "collectors") renderCollectors();
   else if (id === "companies") renderCompanies();
   else if (id === "analytics") renderAnalytics();
   else if (id === "account-managers") renderAccountManagers();
-  else if (id === "online-queue") renderOnlineQueue();
   else if (id === "company-import") renderCompanyImport();
-  else if (id === "dispatch") renderDispatch();
+  else if (id === "kanban") renderKanban();
   else if (id === "online") renderOnline();
   else if (id === "field") renderField();
-  else if (id === "deliveries") renderDeliveries();
 }
 function renderAll() { renderView(currentView); }
 
@@ -1521,7 +1523,7 @@ function renderDashboard() {
   const me = currentEmployee();
   const role = roleOf(me);
   if (role === "AM") { renderAccountManagers(); return; }
-  if (role === "OPERATOR") { renderOnlineQueue(); return; }
+  if (role === "OPERATOR") { renderKanban(); return; }
 
   const mount = document.getElementById("view-dashboard");
   if (!can(me, "view_dashboard_stats")) {
@@ -1872,48 +1874,6 @@ function showErr(id, msg) { const el = document.getElementById(id); el.textConte
 function closeModal() { document.getElementById("overlay").classList.remove("open"); document.getElementById("modalBody").innerHTML = ""; }
 document.getElementById("overlay").addEventListener("click", (e) => { if (e.target.id === "overlay") closeModal(); });
 
-/* ---- pending ---- */
-function renderPending() {
-  const mount = document.getElementById("view-pending");
-  const now = new Date();
-  const rows = DB.gatePasses
-    .filter((g) => g.status === "PENDING")
-    .map((g) => ({ gp: g, days: daysWaiting(g, now), prio: priority(g, now) }))
-    .sort((a, b) => b.days - a.days);
-  const overdue = rows.filter((r) => r.days > 2).length;
-  mount.innerHTML = `
-    <div class="page-head"><div><span class="eyebrow">Awaiting collection</span><h1>Pending Gate Passes</h1><p>Sorted by longest waiting time first</p></div></div>
-    <div class="grid kpi-row" style="grid-template-columns:repeat(2,1fr); max-width:520px;">
-      ${kpiTile("Total pending", rows.length, "", "warn")}
-      ${kpiTile("Overdue (>48h)", overdue, "", "crit")}
-    </div>
-    <div class="card table-wrap" style="margin-top:14px;">
-      <table>
-        <thead><tr><th>Gate Pass #</th><th>Company</th><th>Location</th><th>Submission</th><th class="num">Days waiting</th><th>Priority</th><th></th></tr></thead>
-        <tbody>
-          ${rows.length ? rows.map((r) => `
-            <tr>
-              <td class="mono-cell">${esc(r.gp.number)}</td>
-              <td>${esc(companyName(r.gp.companyId))}</td>
-              <td>${esc(r.gp.location)}</td>
-              <td class="mono-cell">${fmtDateTime(r.gp.submissionAt)}</td>
-              <td class="num">${r.days.toFixed(1)}</td>
-              <td>${pillFor(r.prio)}</td>
-              <td><div class="actions-cell">
-                <button class="btn-link" style="color:var(--good);" data-act="collect" data-id="${r.gp.id}">Mark Collected</button>
-                <button class="btn-link link-danger" data-act="cancel" data-id="${r.gp.id}">Cancel</button>
-              </div></td>
-            </tr>`).join("") : `<tr class="empty-row"><td colspan="7">No pending gate passes. 🎉</td></tr>`}
-        </tbody>
-      </table>
-    </div>
-  `;
-  mount.querySelectorAll("[data-act]").forEach((btn) => {
-    const id = Number(btn.getAttribute("data-id"));
-    const act = btn.getAttribute("data-act");
-    btn.addEventListener("click", () => { if (act === "collect") openGatePassModal(id); else cancelGatePass(id); });
-  });
-}
 
 /* ---- collectors ---- */
 function renderCollectors() {
@@ -2122,159 +2082,6 @@ function renderAnalytics() {
 }
 
 /* ================= dispatch (MED-DARWISH) ================= */
-function renderDispatch() {
-  const mount = document.getElementById("view-dispatch");
-  const tasks = DB.deliveryTasks.filter((t) => t.stage !== "COMPLETED");
-  const now = new Date();
-  const byStage = (s) => tasks.filter((t) => t.stage === s);
-  const overdue = tasks.filter((t) => isOverdue(t, now)).length;
-  const canDispatch = can(currentEmployee(), "dispatch_field_assign");
-
-  const startOfToday = new Date();
-  startOfToday.setHours(0, 0, 0, 0);
-  const completedToday = DB.deliveryTasks.filter(
-    (t) => t.stage === "COMPLETED" && t.completedAt && new Date(t.completedAt) >= startOfToday
-  ).length;
-  const pendingGatePasses = DB.gatePasses.filter((g) => g.status === "PENDING");
-  const pendingServiceRequests = DB.serviceRequests.filter((r) =>
-    ["ASSIGNED_TO_ONLINE", "ONLINE_PROCESSING", "MISSING_INFO_RETURNED_TO_AM"].includes(r.status)
-  );
-
-  mount.innerHTML = `
-    <div class="page-head">
-      <div><span class="eyebrow">Manager supervision</span><h1>Dispatch — Manager Supervision</h1>
-      <p>${canDispatch ? "Assign field agents, set instructions, and validate deliveries." : "🔒 View only — assigning field agents is exclusive to MED-DARWISH, ELENA, and the CEO."}</p></div>
-    </div>
-    <div class="hero-band">
-      <div class="hero-stats">
-        ${heroStat("Active tasks", tasks.length)}
-        ${heroStat("Online prep", byStage("ONLINE").length)}
-        ${heroStat("Ready to dispatch", byStage("DISPATCH").length, "t-brand")}
-        ${heroStat("Assigned", byStage("ASSIGNED").length, "t-warn")}
-        ${heroStat("In progress", byStage("IN_PROGRESS").length, "t-good")}
-        ${heroStat("Blocked", byStage("BLOCKED").length, "t-crit")}
-        ${heroStat("Overdue", overdue, "t-crit")}
-      </div>
-    </div>
-
-    <div class="section-title">📅 Today's Tracker</div>
-    <div class="grid kpi-row" style="grid-template-columns:repeat(4,1fr);">
-      ${kpiTile("Completed Today", completedToday, "", "good")}
-      ${kpiTile("Missions In Progress", byStage("IN_PROGRESS").length, "")}
-      ${kpiTile("Blocked", byStage("BLOCKED").length, "", "crit")}
-      ${kpiTile("All Pending (Gate Passes + PRO)", pendingGatePasses.length + pendingServiceRequests.length, "")}
-    </div>
-
-    <div class="section-title">🗂️ All Pending Requests</div>
-    <div class="card table-wrap table-wide">
-      <table>
-        <thead><tr><th>Request</th><th>Type</th><th>Company</th><th>With</th><th>Status</th></tr></thead>
-        <tbody>
-          ${pendingServiceRequests.map((r) => `<tr>
-            <td style="font-weight:600;color:var(--ink);">${esc(r.title)}</td>
-            <td>${esc(r.category === "PRO" ? (r.serviceType || "PRO service") : "Delivery")}</td>
-            <td>${esc(companyName(r.companyId))}</td>
-            <td>${esc(employeeName(r.claimedById) || employeeName(r.createdById))}</td>
-            <td>${requestStatusPill(r.status)}</td>
-          </tr>`).join("")}
-          ${pendingGatePasses.map((g) => `<tr>
-            <td style="font-weight:600;color:var(--ink);">Gate Pass · ${esc(g.number)}</td>
-            <td>${esc(g.location)}</td>
-            <td>${esc(companyName(g.companyId))}</td>
-            <td>${esc(g.submittedBy)}</td>
-            <td><span class="pill pill-warn">Pending</span></td>
-          </tr>`).join("")}
-          ${pendingServiceRequests.length === 0 && pendingGatePasses.length === 0
-            ? `<tr class="empty-row"><td colspan="5">Nothing pending — everything is either dispatched or completed.</td></tr>`
-            : ""}
-        </tbody>
-      </table>
-    </div>
-
-    <div class="section-title">🟣 Ready for Dispatch — needs assignment</div>
-    <div class="task-list" id="dispatchReadyList"></div>
-
-    <div class="section-title">🚚 Assigned &amp; In Progress</div>
-    <div class="task-list" id="dispatchActiveList"></div>
-
-    <div class="section-title">🔴 Blocked</div>
-    <div class="task-list" id="dispatchBlockedList"></div>
-
-    <div class="section-title">💻 In Online Preparation</div>
-    <div class="card table-wrap table-wide">
-      <table>
-        <thead><tr><th>Task</th><th>Company</th><th>Prepared by</th><th>Created</th></tr></thead>
-        <tbody>
-          ${byStage("ONLINE").map((t) => `<tr>
-            <td>${esc(t.title)}</td>
-            <td>${esc(companyName(t.companyId))}</td>
-            <td>${esc(employeeName(t.createdById) || "—")}</td>
-            <td class="mono-cell">${fmtDateTime(t.createdAt)}</td>
-          </tr>`).join("") || `<tr class="empty-row"><td colspan="4">Nothing in preparation right now.</td></tr>`}
-        </tbody>
-      </table>
-    </div>
-  `;
-  renderDispatchReady(byStage("DISPATCH"));
-  renderDispatchActive([...byStage("ASSIGNED"), ...byStage("IN_PROGRESS")]);
-  renderDispatchBlocked(byStage("BLOCKED"));
-}
-function renderDispatchReady(list) {
-  const mount = document.getElementById("dispatchReadyList");
-  if (!list.length) { mount.innerHTML = `<div class="card card-pad empty-card">Nothing waiting for dispatch right now.</div>`; return; }
-  const canDispatch = can(currentEmployee(), "dispatch_field_assign");
-  mount.innerHTML = list.map((t) => `
-    <div class="card card-pad task-card">
-      <div>
-        <div class="title-row"><span class="t">${esc(t.title)}</span>${stagePill(t.stage)}</div>
-        ${t.description ? `<div class="desc">${esc(t.description)}</div>` : ""}
-        <div class="meta">${taskMeta(t)}</div>
-      </div>
-      <div class="task-actions">${canDispatch ? `<button class="btn btn-primary" data-act="assign" data-id="${t.id}">Assign agent</button>` : `<span class="pill pill-brand">Waiting for dispatch</span>`}</div>
-    </div>
-  `).join("");
-  mount.querySelectorAll("[data-act=assign]").forEach((b) => b.addEventListener("click", () => openAssignModal(Number(b.getAttribute("data-id")))));
-}
-function renderDispatchActive(list) {
-  const mount = document.getElementById("dispatchActiveList");
-  if (!list.length) { mount.innerHTML = `<div class="card card-pad empty-card">No missions currently assigned or in progress.</div>`; return; }
-  const canDispatch = can(currentEmployee(), "dispatch_field_assign");
-  mount.innerHTML = list.map((t) => `
-    <div class="card card-pad task-card">
-      <div>
-        <div class="title-row"><span class="t">${esc(t.title)}</span>${stagePill(t.stage)}</div>
-        <div class="meta">${taskMeta(t)}</div>
-        <div class="meta">Agent: <strong>${esc(employeeName(t.assignedToId) || "—")}</strong> · Departure: ${fmtDateTime(t.scheduledAt)}</div>
-        ${t.instructions ? `<div class="info-box">“${esc(t.instructions)}”</div>` : ""}
-      </div>
-      <div class="task-actions">${canDispatch ? `<button class="btn btn-ghost" data-act="reassign" data-id="${t.id}">Reassign</button>` : ""}</div>
-    </div>
-  `).join("");
-  mount.querySelectorAll("[data-act=reassign]").forEach((b) => b.addEventListener("click", () => openAssignModal(Number(b.getAttribute("data-id")))));
-}
-function renderDispatchBlocked(list) {
-  const mount = document.getElementById("dispatchBlockedList");
-  if (!list.length) { mount.innerHTML = `<div class="card card-pad empty-card">No blockers reported.</div>`; return; }
-  const canDispatch = can(currentEmployee(), "dispatch_field_assign");
-  mount.innerHTML = list.map((t) => `
-    <div class="card card-pad task-card">
-      <div>
-        <div class="title-row"><span class="t">${esc(t.title)}</span>${stagePill(t.stage)}</div>
-        <div class="meta">${taskMeta(t)}</div>
-        <div class="meta">Agent: <strong>${esc(employeeName(t.assignedToId) || "—")}</strong></div>
-        ${t.blockedReason ? `<div class="danger-box">⚠ ${esc(t.blockedReason)}</div>` : ""}
-      </div>
-      <div class="task-actions">
-        ${canDispatch ? `
-          <button class="btn btn-primary" data-act="resolve" data-id="${t.id}">Resolve &amp; reassign</button>
-          <button class="btn btn-ghost" data-act="requeue" data-id="${t.id}">Send back to queue</button>
-        ` : ""}
-      </div>
-    </div>
-  `).join("");
-  mount.querySelectorAll("[data-act=resolve]").forEach((b) => b.addEventListener("click", () => openAssignModal(Number(b.getAttribute("data-id")))));
-  mount.querySelectorAll("[data-act=requeue]").forEach((b) => b.addEventListener("click", () => updateTaskStage(Number(b.getAttribute("data-id")), "DISPATCH")));
-}
 function openAssignModal(taskId) {
   if (!can(currentEmployee(), "dispatch_field_assign")) return;
   const t = DB.deliveryTasks.find((x) => x.id === taskId);
@@ -2529,55 +2336,155 @@ function openBlockModal(taskId) {
   });
 }
 
-/* ================= delivery tracking history ================= */
-let deliveryFilter = "ALL";
-function renderDeliveries() {
-  const mount = document.getElementById("view-deliveries");
-  const tasks = DB.deliveryTasks
-    .filter((t) => t.stage === "COMPLETED" || t.stage === "BLOCKED")
-    .slice()
-    .sort((a, b) => new Date(b.completedAt || b.createdAt) - new Date(a.completedAt || a.createdAt));
-  const completed = tasks.filter((t) => t.stage === "COMPLETED");
-  const blocked = tasks.filter((t) => t.stage === "BLOCKED");
-  const durations = completed.filter((t) => t.startedAt && t.completedAt).map((t) => (new Date(t.completedAt) - new Date(t.startedAt)) / 36e5);
-  const avgHours = durations.length ? durations.reduce((a, b) => a + b, 0) / durations.length : null;
-  const rows = tasks.filter((t) => (deliveryFilter === "ALL" ? true : t.stage === deliveryFilter));
-  mount.innerHTML = `
-    <div class="page-head">
-      <div><span class="eyebrow">Delivery tracking</span><h1>Delivery Tracking</h1><p>History of completed and blocked missions</p></div>
-    </div>
-    <div class="grid kpi-row" style="grid-template-columns:repeat(3,1fr);">
-      ${kpiTile("Completed", completed.length, "", "good")}
-      ${kpiTile("Currently Blocked", blocked.length, "", "crit")}
-      ${kpiTile("Avg. Turnaround", avgHours !== null ? `${avgHours.toFixed(1)} h` : "—", "from start to completion", "accent")}
-    </div>
-    <div class="chip-row">
-      <button class="chip ${deliveryFilter === "ALL" ? "active" : ""}" data-filter="ALL">All</button>
-      <button class="chip ${deliveryFilter === "COMPLETED" ? "active" : ""}" data-filter="COMPLETED">Completed</button>
-      <button class="chip ${deliveryFilter === "BLOCKED" ? "active" : ""}" data-filter="BLOCKED">Blocked</button>
-    </div>
-    <div class="card table-wrap table-wide">
-      <table>
-        <thead><tr><th>Task</th><th>Company / Gate Pass</th><th>Agent</th><th>Date</th><th>Time</th><th>Duration</th><th>Status</th></tr></thead>
-        <tbody>
-          ${rows.map((t) => {
-            const finalAt = t.completedAt || t.createdAt;
-            const gpNum = gatePassNumber(t.gatePassId);
-            return `<tr>
-              <td>${esc(t.title)}</td>
-              <td>${esc(companyName(t.companyId))}${gpNum ? ` · ${esc(gpNum)}` : ""}</td>
-              <td>${esc(employeeName(t.assignedToId) || "—")}</td>
-              <td class="mono-cell">${fmtDate(finalAt)}</td>
-              <td class="mono-cell">${fmtTime(finalAt)}</td>
-              <td>${taskDuration(t.startedAt, t.completedAt)}</td>
-              <td>${stagePill(t.stage)}</td>
-            </tr>`;
-          }).join("") || `<tr class="empty-row"><td colspan="7">No delivery history yet.</td></tr>`}
-        </tbody>
-      </table>
+/* ================= unified kanban =================
+   Merges the old Pending (GatePass) + Dispatch (DeliveryTask) + Deliveries
+   history (DeliveryTask) + Online Queue (ServiceRequest) pages into one
+   3-column board. Each real-world item is exactly ONE card: a ServiceRequest
+   that reaches PENDING_DISPATCH auto-creates a linked DeliveryTask and never
+   changes status again itself (see updateRequestStatus), so it's excluded
+   here — its DeliveryTask card takes over from that point on. Every card has
+   at most one primary button; rare secondary actions (Cancel, Retourner à
+   l'AM, Send back to queue) are a small muted text link instead of a 2nd
+   button. All mutations reuse the existing updateTaskStage/updateRequestStatus/
+   cancelGatePass/openAssignModal/openGatePassModal/openReturnRequestModal —
+   no new business rules. */
+function kanbanCard(opts) {
+  return Object.assign({ meta: "", badge: "", primary: null, secondary: null, warn: null, flagged: false, readOnlyBadge: null }, opts);
+}
+function buildKanbanCards() {
+  const me = currentEmployee();
+  const canDispatch = can(me, "dispatch_field_assign");
+  const viewAllQueue = can(me, "view_all_online_queue");
+  const pending = [], inProgress = [], done = [];
+
+  DB.gatePasses.forEach((g) => {
+    if (g.status === "PENDING") {
+      pending.push(kanbanCard({
+        key: `gp-${g.id}`, badge: pillFor("PENDING"),
+        title: `🛂 ${g.number}`, meta: `${companyName(g.companyId)} · ${g.location} · waiting ${daysWaiting(g).toFixed(1)}d`,
+        primary: { label: "Mark Collected", fn: () => openGatePassModal(g.id) },
+        secondary: { label: "Cancel", fn: () => cancelGatePass(g.id) }
+      }));
+    } else {
+      done.push(kanbanCard({
+        key: `gp-${g.id}`, badge: pillFor(g.status), title: `🛂 ${g.number}`, meta: companyName(g.companyId),
+        sortAt: g.collectionAt || g.submissionAt
+      }));
+    }
+  });
+
+  // A plain Online Operator only ever acted on their own auto-assigned
+  // requests here (same scoping as the old Online Queue); the admin tier
+  // sees everyone's. MISSING_INFO cards stay visible to all (read-only) —
+  // they were always in the old Dispatch board's supervisory table.
+  DB.serviceRequests.forEach((r) => {
+    if (r.status === "ASSIGNED_TO_ONLINE" || r.status === "ONLINE_PROCESSING") {
+      if (!viewAllQueue && !(me && r.claimedById === me.id)) return;
+    }
+    if (r.status === "ASSIGNED_TO_ONLINE") {
+      pending.push(kanbanCard({
+        key: `sr-${r.id}`, badge: requestStatusPill(r.status), flagged: r.flaggedForManager,
+        title: r.title, meta: `${requestMeta(r)} · requested by ${esc(employeeName(r.createdById))}`,
+        primary: { label: "Start processing", fn: () => updateRequestStatus(r.id, "ONLINE_PROCESSING") }
+      }));
+    } else if (r.status === "ONLINE_PROCESSING") {
+      inProgress.push(kanbanCard({
+        key: `sr-${r.id}`, badge: requestStatusPill(r.status), flagged: r.flaggedForManager,
+        title: r.title, meta: requestMeta(r),
+        primary: { label: "Prêt pour Dispatch", fn: () => updateRequestStatus(r.id, "PENDING_DISPATCH") },
+        secondary: { label: "Retourner à l'AM", fn: () => openReturnRequestModal(r.id) }
+      }));
+    } else if (r.status === "MISSING_INFO_RETURNED_TO_AM") {
+      inProgress.push(kanbanCard({
+        key: `sr-${r.id}`, badge: requestStatusPill(r.status),
+        title: r.title, meta: requestMeta(r), warn: r.returnComment ? `⚠ ${r.returnComment}` : null
+      }));
+    }
+    // PENDING_DISPATCH intentionally excluded — represented by its DeliveryTask below.
+  });
+
+  DB.deliveryTasks.forEach((t) => {
+    if (t.stage === "ONLINE") {
+      pending.push(kanbanCard({ key: `dt-${t.id}`, badge: stagePill(t.stage), title: t.title, meta: taskMeta(t) }));
+    } else if (t.stage === "DISPATCH") {
+      pending.push(kanbanCard({
+        key: `dt-${t.id}`, badge: stagePill(t.stage), title: t.title, meta: taskMeta(t),
+        primary: canDispatch ? { label: "Assign agent", fn: () => openAssignModal(t.id) } : null,
+        readOnlyBadge: canDispatch ? null : "Waiting for dispatch"
+      }));
+    } else if (t.stage === "ASSIGNED" || t.stage === "IN_PROGRESS") {
+      inProgress.push(kanbanCard({
+        key: `dt-${t.id}`, badge: stagePill(t.stage), title: t.title,
+        meta: `${taskMeta(t)} · Agent: ${employeeName(t.assignedToId) || "—"} · Departure: ${fmtDateTime(t.scheduledAt)}`,
+        flagged: isOverdue(t),
+        primary: canDispatch ? { label: "Reassign", fn: () => openAssignModal(t.id) } : null
+      }));
+    } else if (t.stage === "BLOCKED") {
+      inProgress.push(kanbanCard({
+        key: `dt-${t.id}`, badge: stagePill(t.stage), title: t.title, meta: taskMeta(t),
+        warn: t.blockedReason ? `⚠ ${t.blockedReason}` : null,
+        primary: canDispatch ? { label: "Resolve & reassign", fn: () => openAssignModal(t.id) } : null,
+        secondary: canDispatch ? { label: "Send back to queue", fn: () => updateTaskStage(t.id, "DISPATCH") } : null
+      }));
+    } else if (t.stage === "COMPLETED") {
+      done.push(kanbanCard({ key: `dt-${t.id}`, badge: stagePill(t.stage), title: t.title, meta: taskMeta(t), sortAt: t.completedAt || t.createdAt }));
+    }
+  });
+
+  done.sort((a, b) => new Date(b.sortAt || 0) - new Date(a.sortAt || 0));
+  return { pending, inProgress, done: done.slice(0, 30) };
+}
+function kanbanCardHtml(c) {
+  return `
+    <div class="card card-pad task-card kanban-card">
+      <div>
+        <div class="title-row"><span class="t">${esc(c.title)}</span>${c.badge}${c.flagged ? `<span title="Needs attention">🚩</span>` : ""}</div>
+        ${c.meta ? `<div class="meta">${esc(c.meta)}</div>` : ""}
+        ${c.warn ? `<div class="danger-box">${esc(c.warn)}</div>` : ""}
+      </div>
+      <div class="task-actions">
+        ${c.primary ? `<button class="btn btn-primary" data-kact="primary" data-key="${c.key}">${esc(c.primary.label)}</button>` : c.readOnlyBadge ? `<span class="pill pill-brand">${esc(c.readOnlyBadge)}</span>` : ""}
+        ${c.secondary ? `<button class="btn-link link-danger" data-kact="secondary" data-key="${c.key}">${esc(c.secondary.label)}</button>` : ""}
+      </div>
     </div>
   `;
-  mount.querySelectorAll("[data-filter]").forEach((b) => b.addEventListener("click", () => { deliveryFilter = b.getAttribute("data-filter"); renderDeliveries(); }));
+}
+function renderKanban() {
+  const mount = document.getElementById("view-" + currentView);
+  const { pending, inProgress, done } = buildKanbanCards();
+  const byKey = {};
+  [...pending, ...inProgress, ...done].forEach((c) => { byKey[c.key] = c; });
+
+  mount.innerHTML = `
+    <div class="page-head">
+      <div><span class="eyebrow">Operations</span><h1>Kanban — Gate Pass &amp; PRO Services</h1>
+      <p>Every request in one board — Pending, Dispatch, Deliveries and the Online Queue, merged.</p></div>
+    </div>
+    <div class="grid kpi-row" style="grid-template-columns:repeat(3,1fr);">
+      ${kpiTile("En Attente", pending.length, "", "warn")}
+      ${kpiTile("En Cours", inProgress.length, "")}
+      ${kpiTile("Prêt / Terminé", done.length, "", "good")}
+    </div>
+    <div class="kanban-grid">
+      <div class="kanban-col">
+        <div class="kanban-col-title">🕓 En Attente <span class="kanban-count">${pending.length}</span></div>
+        <div class="kanban-col-body">${pending.length ? pending.map(kanbanCardHtml).join("") : `<div class="card card-pad empty-card">Rien en attente.</div>`}</div>
+      </div>
+      <div class="kanban-col">
+        <div class="kanban-col-title">⚙️ En Cours <span class="kanban-count">${inProgress.length}</span></div>
+        <div class="kanban-col-body">${inProgress.length ? inProgress.map(kanbanCardHtml).join("") : `<div class="card card-pad empty-card">Rien en cours.</div>`}</div>
+      </div>
+      <div class="kanban-col">
+        <div class="kanban-col-title">✅ Prêt / Terminé <span class="kanban-count">${done.length}</span></div>
+        <div class="kanban-col-body">${done.length ? done.map(kanbanCardHtml).join("") : `<div class="card card-pad empty-card">Rien de terminé récemment.</div>`}</div>
+      </div>
+    </div>
+  `;
+  mount.querySelectorAll("[data-kact]").forEach((btn) => {
+    const card = byKey[btn.getAttribute("data-key")];
+    const action = card && (btn.getAttribute("data-kact") === "primary" ? card.primary : card.secondary);
+    if (action) btn.addEventListener("click", action.fn);
+  });
 }
 
 /* ================= account managers ================= */
@@ -2880,50 +2787,6 @@ function openNewGatePassRequestModal() {
   });
 }
 
-/* ================= online queue ================= */
-function renderOnlineQueue() {
-  const mount = document.getElementById("view-" + currentView);
-  const onlineEmployees = DB.employees.filter((e) => e.isOnline && e.active);
-  const me = currentEmployee();
-  const viewAll = can(me, "view_all_online_queue");
-  const requests = DB.serviceRequests.filter((r) => r.status === "ASSIGNED_TO_ONLINE" || r.status === "ONLINE_PROCESSING");
-  const visible = viewAll ? requests : requests.filter((r) => me && r.claimedById === me.id);
-
-  if (!viewAll && !me) {
-    mount.innerHTML = `
-      <div class="page-head"><div><span class="eyebrow">Online Operations</span><h1>Online Queue</h1></div></div>
-      <div class="card card-pad" style="max-width:420px;">🔒 This account doesn't have Online Operations access.</div>
-    `;
-    return;
-  }
-
-  const toStart = visible.filter((r) => r.status === "ASSIGNED_TO_ONLINE").sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
-  const inProgress = visible.filter((r) => r.status === "ONLINE_PROCESSING");
-
-  mount.innerHTML = `
-    <div class="page-head">
-      <div><span class="eyebrow">Online Operations</span><h1>Online Queue — Account Manager requests</h1>
-      <p>${viewAll ? "Full queue — every Online Operator's auto-assigned requests" : `Requests auto-assigned to ${esc(me.name)} via the binome routing`}</p></div>
-      <div id="oqBell"></div>
-    </div>
-    <div class="grid kpi-row" style="grid-template-columns:repeat(3,1fr);">
-      ${kpiTile("To Start", toStart.length, "")}
-      ${kpiTile("In Progress", inProgress.length, "", "warn")}
-      ${kpiTile("Flagged for Manager", visible.filter((r) => r.flaggedForManager).length, "", "crit")}
-    </div>
-    <div class="section-title">📨 To start</div>
-    <div class="task-list" id="oqIncomingList"></div>
-    <div class="section-title">🗂 In progress</div>
-    <div class="task-list" id="oqMineList"></div>
-  `;
-  renderOQIncoming(toStart, viewAll, onlineEmployees);
-  renderOQMine(inProgress, viewAll, onlineEmployees);
-  if (me && me.isOnline) {
-    const myNew = requests.filter((r) => r.claimedById === me.id && r.status === "ASSIGNED_TO_ONLINE");
-    renderNotificationBell("oqBell", me.id, myNew);
-  }
-}
-
 /* ---- notification bell (near-real-time alert center for Online Operators) ----
    The parent view polls and re-renders on an interval; this just tracks which
    of the operator's newly-assigned requests have already been seen. Reusable
@@ -2966,71 +2829,6 @@ function renderNotificationBell(mountId, employeeId, requests) {
     }
     renderNotificationBell(mountId, employeeId, requests);
   });
-}
-function requestReassignSelect(r, onlineEmployees) {
-  return `
-    <div style="margin-top:8px;display:flex;align-items:center;gap:6px;">
-      <span style="font-size:11px;color:var(--muted);">Assigned to:</span>
-      <select class="reassign-select" data-id="${r.id}" style="font-size:11px;padding:3px 6px;border-radius:6px;border:1px solid var(--border-strong);background:var(--surface);color:var(--ink);">
-        <option value="">Unassigned</option>
-        ${onlineEmployees.map((e) => `<option value="${e.id}" ${r.claimedById === e.id ? "selected" : ""}>${esc(e.name)}</option>`).join("")}
-      </select>
-    </div>
-  `;
-}
-function renderOQIncoming(list, viewAll, onlineEmployees) {
-  const mount = document.getElementById("oqIncomingList");
-  if (!list.length) { mount.innerHTML = `<div class="card card-pad empty-card">Nothing waiting to start.</div>`; return; }
-  mount.innerHTML = list.map((r) => `
-    <div class="card card-pad task-card">
-      <div>
-        <div class="title-row"><span class="t">${esc(r.title)}</span>${requestStatusPill(r.status)}${r.flaggedForManager ? `<span title="Flagged for MED-DARWISH">🚩</span>` : ""}</div>
-        ${r.description ? `<div class="desc">${esc(r.description)}</div>` : ""}
-        <div class="meta">${requestMeta(r)} · requested by ${esc(employeeName(r.createdById))} · ${fmtDateTime(r.createdAt)}</div>
-        ${r.attachments ? `<div class="meta">📎 ${esc(r.attachments)}</div>` : ""}
-        ${r.assignmentNote ? `<div class="meta" style="font-style:italic;">${esc(r.assignmentNote)}</div>` : ""}
-        ${viewAll ? requestReassignSelect(r, onlineEmployees) : ""}
-      </div>
-      <div class="task-actions"><button class="btn btn-primary" data-act="start" data-id="${r.id}">Start processing</button></div>
-    </div>
-  `).join("");
-  mount.querySelectorAll("[data-act=start]").forEach((b) => b.addEventListener("click", () => updateRequestStatus(Number(b.getAttribute("data-id")), "ONLINE_PROCESSING")));
-  mount.querySelectorAll(".reassign-select").forEach((s) => s.addEventListener("change", (e) => reassignRequest(Number(e.target.getAttribute("data-id")), e.target.value ? Number(e.target.value) : null)));
-}
-function reassignRequest(requestId, operatorId) {
-  const r = DB.serviceRequests.find((x) => x.id === requestId);
-  if (!r) return;
-  const me = currentEmployee();
-  r.claimedById = operatorId;
-  r.claimedAt = operatorId ? (r.claimedAt || new Date().toISOString()) : null;
-  r.assignmentNote = `Manually reassigned by ${me ? me.name : "an administrator"}.`;
-  DB.requestHistory.push({
-    id: DB.nextIds.requestHistory++, requestId: r.id, fromStatus: r.status, toStatus: r.status,
-    changedById: me ? me.id : null, comment: r.assignmentNote, createdAt: new Date().toISOString()
-  });
-  saveState(); renderAll();
-}
-function renderOQMine(list, viewAll, onlineEmployees) {
-  const mount = document.getElementById("oqMineList");
-  if (!list.length) { mount.innerHTML = `<div class="card card-pad empty-card">Nothing in progress.</div>`; return; }
-  mount.innerHTML = list.map((r) => `
-    <div class="card card-pad task-card">
-      <div>
-        <div class="title-row"><span class="t">${esc(r.title)}</span>${requestStatusPill(r.status)}${r.flaggedForManager ? `<span title="Flagged for MED-DARWISH">🚩</span>` : ""}</div>
-        ${r.description ? `<div class="desc">${esc(r.description)}</div>` : ""}
-        <div class="meta">${requestMeta(r)} · requested by ${esc(employeeName(r.createdById))}${r.claimedById ? ` · claimed by ${esc(employeeName(r.claimedById))}` : ""}</div>
-        ${r.attachments ? `<div class="meta">📎 ${esc(r.attachments)}</div>` : ""}
-        ${viewAll ? requestReassignSelect(r, onlineEmployees) : ""}
-      </div>
-      <div class="task-actions">
-        <button class="btn btn-success" data-act="ready" data-id="${r.id}">Prêt pour Dispatch</button>
-        <button class="btn btn-danger-ghost" data-act="return" data-id="${r.id}">Retourner à l'AM</button>
-      </div>
-    </div>
-  `).join("");
-  mount.querySelectorAll("[data-act=ready]").forEach((b) => b.addEventListener("click", () => updateRequestStatus(Number(b.getAttribute("data-id")), "PENDING_DISPATCH")));
-  mount.querySelectorAll("[data-act=return]").forEach((b) => b.addEventListener("click", () => openReturnRequestModal(Number(b.getAttribute("data-id")))));
-  mount.querySelectorAll(".reassign-select").forEach((s) => s.addEventListener("change", (e) => reassignRequest(Number(e.target.getAttribute("data-id")), e.target.value ? Number(e.target.value) : null)));
 }
 
 function openReturnRequestModal(requestId) {
@@ -3221,10 +3019,13 @@ if (currentEmployee()) {
 
 // Near-real-time notifications: re-check on an interval so a newly
 // auto-assigned request lights up the bell without a manual refresh,
-// whether the operator is on the Online Queue or the main Dashboard.
+// whether the operator is on the Kanban or the main Dashboard.
 setInterval(() => {
   if (!currentEmployee()) return;
-  if (currentView === "online-queue") renderOnlineQueue();
-  else if (currentView === "dashboard") renderDashboardActions();
+  if (currentView === "kanban") renderKanban();
+  else if (currentView === "dashboard") {
+    if (roleOf(currentEmployee()) === "OPERATOR") renderKanban();
+    else renderDashboardActions();
+  }
 }, 12000);
 </script>
