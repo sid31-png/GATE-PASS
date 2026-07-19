@@ -480,6 +480,30 @@ const PRO_SERVICE_CATALOG = [
 // avoid offering the same thing twice in the generic PRO service dropdown.
 const PRO_SERVICE_CATALOG_NO_GATE_PASS = PRO_SERVICE_CATALOG.filter((g) => g.group !== "Gate Passes");
 
+/* ================= Gate Pass request family (Gate Pass / DVC / Offshore Medical Card) ================= */
+// Only these 4 accounts are eligible for this request family — every other
+// company only has PRO services available.
+const GATE_PASS_ELIGIBLE_COMPANIES = ["EY Consulting", "Tenaris Global", "Tenaris Investment", "Welltec"];
+// Not a blanket AM-role permission — only these two named AMs, plus the
+// admin tier, may file a Gate Pass family request.
+const GATE_PASS_CREATOR_AM_NAMES = ["Violetta", "Abegail"];
+function canCreateGatePassRequest(e) {
+  if (!e) return false;
+  const role = roleOf(e);
+  if (role === "CEO" || role === "SUPER_ADMIN" || role === "OPS_ADMIN" || role === "AM_LEAD") return true;
+  return GATE_PASS_CREATOR_AM_NAMES.includes(e.name);
+}
+const GATE_PASS_REQUEST_KINDS = [
+  { value: "GATE_PASS", label: "Gate Pass" },
+  { value: "DVC", label: "DVC (Declaration Valid Contract) — tracking only" },
+  { value: "OFFSHORE_MEDICAL", label: "Offshore Medical Card" }
+];
+// serviceType values only the Gate Pass modal can produce — used to detect
+// a gate-pass-family request for stats purposes.
+const GATE_PASS_FAMILY_SERVICE_TYPES = [
+  "Permanent Gate Pass", "Temporary Gate Pass", "DVC (Declaration Valid Contract)", "Offshore Medical Card"
+];
+
 /* ================= RBAC =================
    Role hierarchy (highest to lowest): CEO > SUPER_ADMIN > OPS_ADMIN > AM_LEAD
    > OPERATOR > AM > FIELD (no login) > UNASSIGNED. Mirrors src/lib/rbac.ts. */
@@ -506,8 +530,8 @@ const ROLE_LABEL = {
 // blocked/resumed) — also open to Online Operators and Ops Admin.
 const ROLE_PERMISSIONS = {
   CEO: [], SUPER_ADMIN: [],
-  OPS_ADMIN: ["view_all_online_queue", "reassign_requests", "import_companies", "update_field_status"],
-  AM_LEAD: ["view_all_am_requests", "create_service_request", "dispatch_field_assign"],
+  OPS_ADMIN: ["view_all_online_queue", "reassign_requests", "import_companies", "update_field_status", "view_dashboard_stats"],
+  AM_LEAD: ["view_all_am_requests", "create_service_request", "dispatch_field_assign", "view_dashboard_stats"],
   OPERATOR: ["update_field_status"],
   AM: ["create_service_request"],
   FIELD: [], UNASSIGNED: []
@@ -519,12 +543,15 @@ function can(e, permission) {
 }
 // Page-level access rules for the pre-dashboard route guard (mirrors
 // src/lib/route-access.ts). CEO/SUPER_ADMIN are always implicitly allowed.
+// AM/OPERATOR removed from account-managers/online-queue: those pages are
+// now merged into their own "/" Dashboard; the dedicated pages stay
+// reachable for the admin tier only.
 const VIEW_ACCESS_RULES = {
   dispatch: ["OPS_ADMIN", "OPERATOR", "AM_LEAD"],
-  "online-queue": ["OPS_ADMIN", "OPERATOR"],
+  "online-queue": ["OPS_ADMIN"],
   online: ["OPS_ADMIN", "OPERATOR"],
   "company-import": ["OPS_ADMIN"],
-  "account-managers": ["OPS_ADMIN", "AM_LEAD", "AM"]
+  "account-managers": ["OPS_ADMIN", "AM_LEAD"]
 };
 function isViewAllowed(id, role) {
   if (role === "CEO" || role === "SUPER_ADMIN") return true;
@@ -1485,17 +1512,51 @@ function renderView(id) {
 function renderAll() { renderView(currentView); }
 
 /* ---- dashboard ---- */
+// Role-aware "/" Dashboard: a plain AM gets the Account Managers content, an
+// Online Operator gets the Online Queue content, and everyone else (only if
+// they hold view_dashboard_stats — CEO/SUPER_ADMIN/OPS_ADMIN/AM_LEAD) gets the
+// stats view, now split 50/50 into a Gate Pass Overview and a PRO Services
+// Overview instead of being Gate-Pass-only.
 function renderDashboard() {
+  const me = currentEmployee();
+  const role = roleOf(me);
+  if (role === "AM") { renderAccountManagers(); return; }
+  if (role === "OPERATOR") { renderOnlineQueue(); return; }
+
   const mount = document.getElementById("view-dashboard");
+  if (!can(me, "view_dashboard_stats")) {
+    mount.innerHTML = `
+      <div class="page-head"><div><span class="eyebrow">Overview</span><h1>Dashboard</h1></div></div>
+      <div class="card card-pad" style="max-width:420px;">🔒 This account doesn't have a dashboard view configured.</div>
+    `;
+    return;
+  }
+
   const now = new Date();
   const rows = DB.gatePasses;
   const k = computeKpis(rows, now);
+  const reqs = DB.serviceRequests;
+  const proByStatus = (s) => reqs.filter((r) => r.status === s).length;
+  const proStats = {
+    total: reqs.length,
+    assignedToOnline: proByStatus("ASSIGNED_TO_ONLINE"),
+    onlineProcessing: proByStatus("ONLINE_PROCESSING"),
+    pendingDispatch: proByStatus("PENDING_DISPATCH"),
+    missingInfo: proByStatus("MISSING_INFO_RETURNED_TO_AM"),
+    gatePassFamily: reqs.filter((r) => r.serviceType && GATE_PASS_FAMILY_SERVICE_TYPES.includes(r.serviceType)).length,
+    proCategory: reqs.filter((r) => r.category === "PRO").length,
+    deliveryCategory: reqs.filter((r) => r.category === "DELIVERY").length,
+    flagged: reqs.filter((r) => r.flaggedForManager).length
+  };
+  const recentRequests = reqs.slice().sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).slice(0, 8);
+
   mount.innerHTML = `
     <div class="page-head">
-      <div><span class="eyebrow">Overview</span><h1>Gate Pass Dashboard</h1>
-      <p>Submission &amp; collection tracking · updates automatically</p></div>
+      <div><span class="eyebrow">Overview</span><h1>Dashboard</h1>
+      <p>Gate Pass &amp; PRO Services overview · updates automatically</p></div>
       <div id="dashActions" style="display:flex;align-items:center;gap:8px;"></div>
     </div>
+    <h2 style="font-size:15px;font-weight:700;margin:6px 0 10px;">🛂 Gate Pass Overview</h2>
     <div class="hero-band">
       <div class="hero-stats">
         ${heroStat("Total submitted", k.total)}
@@ -1524,6 +1585,37 @@ function renderDashboard() {
       <div class="card card-pad"><div class="card-title">Monthly trend</div><div id="chart-monthly"></div></div>
     </div>
     <div class="card card-pad" style="margin-top:14px;"><div class="card-title">Collector performance</div><div id="chart-collectors"></div></div>
+
+    <h2 style="font-size:15px;font-weight:700;margin:32px 0 10px;">📋 PRO Services Overview</h2>
+    <div class="hero-band">
+      <div class="hero-stats">
+        ${heroStat("Total requests", proStats.total)}
+        ${heroStat("Assigned to Online", proStats.assignedToOnline)}
+        ${heroStat("Online Processing", proStats.onlineProcessing, "t-warn")}
+        ${heroStat("Pending Dispatch", proStats.pendingDispatch, "t-good")}
+        ${heroStat("Missing Info", proStats.missingInfo, "t-crit")}
+      </div>
+    </div>
+    <div class="grid kpi-row" style="grid-template-columns:repeat(4,1fr);">
+      ${kpiTile("Gate Pass Family", proStats.gatePassFamily, "")}
+      ${kpiTile("PRO Category", proStats.proCategory, "")}
+      ${kpiTile("Delivery Category", proStats.deliveryCategory, "")}
+      ${kpiTile("Flagged for Manager", proStats.flagged, "", "crit")}
+    </div>
+    <div class="card table-wrap table-wide" style="margin-top:14px;">
+      <table>
+        <thead><tr><th>Request</th><th>Type</th><th>Company</th><th>Requested by</th><th>Status</th></tr></thead>
+        <tbody>
+          ${recentRequests.map((r) => `<tr>
+            <td style="font-weight:600;color:var(--ink);">${esc(r.title)}</td>
+            <td>${esc(r.serviceType || (r.category === "PRO" ? "PRO service" : "Delivery"))}</td>
+            <td>${esc(companyName(r.companyId))}</td>
+            <td>${esc(employeeName(r.createdById) || "—")}</td>
+            <td>${requestStatusPill(r.status)}</td>
+          </tr>`).join("") || `<tr class="empty-row"><td colspan="5">No requests yet.</td></tr>`}
+        </tbody>
+      </table>
+    </div>
   `;
   renderCompareBars(document.getElementById("chart-compare"), [
     { label: "Submitted", value: k.total, color: "var(--navy-light)" },
@@ -1544,14 +1636,17 @@ function renderDashboardActions() {
   if (!mount) return;
   const me = currentEmployee();
   const canCreate = can(me, "create_service_request");
+  const showGatePassButton = canCreateGatePassRequest(me);
   const showBell = Boolean(me && me.isOnline);
   mount.innerHTML = `${showBell ? `<div id="dashBell"></div>` : ""}${canCreate ? `
     <button class="btn btn-primary" id="btnDashProRequest">+ PRO Service Request</button>
-    <button class="btn btn-ghost" id="btnDashGatePassRequest" style="border:1px solid var(--brand);color:var(--brand);">+ Gate Pass Request</button>
+    ${showGatePassButton ? `<button class="btn btn-ghost" id="btnDashGatePassRequest" style="border:1px solid var(--brand);color:var(--brand);">+ Gate Pass Request</button>` : ""}
   ` : ""}`;
   if (canCreate) {
     document.getElementById("btnDashProRequest").addEventListener("click", () => openNewRequestModal());
-    document.getElementById("btnDashGatePassRequest").addEventListener("click", () => openNewGatePassRequestModal());
+    if (showGatePassButton) {
+      document.getElementById("btnDashGatePassRequest").addEventListener("click", () => openNewGatePassRequestModal());
+    }
   }
   if (showBell) {
     const myNew = DB.serviceRequests.filter((r) => r.claimedById === me.id && r.status === "ASSIGNED_TO_ONLINE");
@@ -2487,7 +2582,7 @@ function renderDeliveries() {
 
 /* ================= account managers ================= */
 function renderAccountManagers() {
-  const mount = document.getElementById("view-account-managers");
+  const mount = document.getElementById("view-" + currentView);
   const me = currentEmployee();
   const seesAll = can(me, "view_all_am_requests");
   const isPlainAM = Boolean(me && me.isAM && !me.isAMLead);
@@ -2504,6 +2599,7 @@ function renderAccountManagers() {
 
   const byStatus = (s) => visible.filter((r) => r.status === s).length;
   const canCreate = can(me, "create_service_request");
+  const showGatePassButton = canCreateGatePassRequest(me);
 
   mount.innerHTML = `
     <div class="page-head">
@@ -2512,7 +2608,7 @@ function renderAccountManagers() {
       ${canCreate ? `
         <div style="display:flex;gap:8px;">
           <button class="btn btn-primary" id="btnNewProRequest">+ PRO Service Request</button>
-          <button class="btn btn-ghost" id="btnNewGatePassRequest" style="border:1px solid var(--brand);color:var(--brand);">+ Gate Pass Request</button>
+          ${showGatePassButton ? `<button class="btn btn-ghost" id="btnNewGatePassRequest" style="border:1px solid var(--brand);color:var(--brand);">+ Gate Pass Request</button>` : ""}
         </div>
       ` : ""}
     </div>
@@ -2545,7 +2641,9 @@ function renderAccountManagers() {
   `;
   if (canCreate) {
     document.getElementById("btnNewProRequest").addEventListener("click", () => openNewRequestModal());
-    document.getElementById("btnNewGatePassRequest").addEventListener("click", () => openNewGatePassRequestModal());
+    if (showGatePassButton) {
+      document.getElementById("btnNewGatePassRequest").addEventListener("click", () => openNewGatePassRequestModal());
+    }
   }
   mount.querySelectorAll("[data-act=resubmit]").forEach((b) => b.addEventListener("click", () => {
     const r = DB.serviceRequests.find((x) => x.id === Number(b.getAttribute("data-id")));
@@ -2643,18 +2741,24 @@ function openNewRequestModal() {
 }
 function openNewGatePassRequestModal() {
   const me = currentEmployee();
-  if (!can(me, "create_service_request")) return;
+  if (!canCreateGatePassRequest(me)) return;
   const amEmployees = DB.employees.filter((e) => e.isAM && !e.isAMLead);
   const role = roleOf(me);
   const canPickAnyAM = role === "AM_LEAD" || role === "CEO" || role === "SUPER_ADMIN";
+  const eligibleCompanies = DB.companies.filter((c) => GATE_PASS_ELIGIBLE_COMPANIES.includes(c.name)).slice().sort((a, b) => a.name.localeCompare(b.name));
   const overlay = document.getElementById("overlay");
   const body = document.getElementById("modalBody");
   body.innerHTML = `
     <div class="kicker">New record</div>
-    <h2>New Gate Pass request</h2>
-    <p style="font-size:12px;color:var(--ink-2);margin:4px 0 14px;">Site access request — it will be routed to the Online Operations queue.</p>
+    <h2>New Gate Pass / DVC / Offshore Medical request</h2>
+    <p style="font-size:12px;color:var(--ink-2);margin:4px 0 14px;">Only available for EY Consulting, Tenaris Global, Tenaris Investment, and Welltec — it will be routed to the Online Operations queue.</p>
     <form id="gpReqForm" style="margin-top:14px;">
-      <div class="field-row">
+      <div class="field"><label>Request type</label>
+        <select id="gpKind" required>
+          ${GATE_PASS_REQUEST_KINDS.map((k) => `<option value="${k.value}">${esc(k.label)}</option>`).join("")}
+        </select>
+      </div>
+      <div class="field-row" id="gpLocationRow">
         <div class="field"><label>Site / Location</label>
           <select id="gpLocation" required>
             <option value="">Select site…</option>
@@ -2670,7 +2774,7 @@ function openNewGatePassRequestModal() {
           ` : `<div class="field-readonly">${esc(me.name)} (you)</div>`}
         </div>
       </div>
-      <div class="field-row" style="grid-template-columns:1fr 1fr 1fr;">
+      <div class="field-row" id="gpGatePassFieldsRow" style="grid-template-columns:1fr 1fr 1fr;">
         <div class="field"><label>Gate pass type</label>
           <select id="gpType" required>
             <option value="">—</option>
@@ -2692,7 +2796,7 @@ function openNewGatePassRequestModal() {
       </div>
       <div class="field-row">
         <div class="field"><label>Company</label>
-          <select id="gpCompany"><option value="">—</option>${DB.companies.slice().sort((a, b) => a.name.localeCompare(b.name)).map((c) => `<option value="${c.id}">${esc(c.name)}</option>`).join("")}</select>
+          <select id="gpCompany" required><option value="">Select company…</option>${eligibleCompanies.map((c) => `<option value="${c.id}">${esc(c.name)}</option>`).join("")}</select>
         </div>
         <div class="field"><label>Client name</label><input type="text" id="gpClient"></div>
       </div>
@@ -2707,29 +2811,56 @@ function openNewGatePassRequestModal() {
     </form>
   `;
   overlay.classList.add("open");
+  const kindSelect = document.getElementById("gpKind");
+  const locationRow = document.getElementById("gpLocationRow");
+  const gatePassFieldsRow = document.getElementById("gpGatePassFieldsRow");
+  function syncKindFields() {
+    const isGatePass = kindSelect.value === "GATE_PASS";
+    gatePassFieldsRow.style.display = isGatePass ? "" : "none";
+    document.getElementById("gpLocation").required = isGatePass;
+    document.getElementById("gpType").required = isGatePass;
+    document.getElementById("gpRequestType").required = isGatePass;
+    document.getElementById("gpPassCategory").required = isGatePass;
+    // "Requested by" stays visible regardless of kind; only the site/location
+    // select is gate-pass-specific within that row.
+    document.getElementById("gpLocation").closest(".field").style.display = isGatePass ? "" : "none";
+  }
+  kindSelect.addEventListener("change", syncKindFields);
+  syncKindFields();
   document.getElementById("gpCancelBtn").addEventListener("click", closeModal);
   document.getElementById("gpReqForm").addEventListener("submit", (e) => {
     e.preventDefault();
-    const location = document.getElementById("gpLocation").value;
-    const gatePassType = document.getElementById("gpType").value;
-    const requestType = document.getElementById("gpRequestType").value;
-    const passCategory = document.getElementById("gpPassCategory").value;
-    if (!location || !gatePassType || !requestType || !passCategory) {
+    const kind = kindSelect.value;
+    const isGatePass = kind === "GATE_PASS";
+    const location = isGatePass ? document.getElementById("gpLocation").value : "";
+    const gatePassType = isGatePass ? document.getElementById("gpType").value : "";
+    const requestType = isGatePass ? document.getElementById("gpRequestType").value : "";
+    const passCategory = isGatePass ? document.getElementById("gpPassCategory").value : "";
+    if (isGatePass && (!location || !gatePassType || !requestType || !passCategory)) {
       showErr("gpErr", "Please fill in the site, gate pass type, request type, and pass category.");
       return;
     }
     const createdByVal = canPickAnyAM ? document.getElementById("gpCreatedBy").value : String(me.id);
     if (!createdByVal) { showErr("gpErr", "Please select which Account Manager is filing this request."); return; }
     const companyVal = document.getElementById("gpCompany").value;
-    const companyIdNum = companyVal ? Number(companyVal) : null;
-    const serviceType = gatePassType === "Permanent" ? "Permanent Gate Pass" : "Temporary Gate Pass";
-    const title = `${requestType === "Lost Gate Pass" ? "Lost" : "New"} ${serviceType} — ${location}`;
+    if (!companyVal) { showErr("gpErr", "Please select the company (only the 4 Gate Pass accounts are eligible)."); return; }
+    const companyIdNum = Number(companyVal);
+    const serviceType = isGatePass
+      ? (gatePassType === "Permanent" ? "Permanent Gate Pass" : "Temporary Gate Pass")
+      : kind === "DVC" ? "DVC (Declaration Valid Contract)" : "Offshore Medical Card";
+    const companyLabel = eligibleCompanies.find((c) => c.id === companyIdNum)?.name || "—";
+    const title = isGatePass
+      ? `${requestType === "Lost Gate Pass" ? "Lost" : "New"} ${serviceType} — ${location}`
+      : `${serviceType} — ${companyLabel}`;
     const resolution = resolveOnlineOperator(companyIdNum, Number(createdByVal));
     const id = DB.nextIds.serviceRequest++;
     const createdAt = new Date().toISOString();
     DB.serviceRequests.push({
       id, title, category: "PRO", serviceType,
-      location, gatePassType, requestType, passCategory,
+      location: isGatePass ? location : null,
+      gatePassType: isGatePass ? gatePassType : null,
+      requestType: isGatePass ? requestType : null,
+      passCategory: isGatePass ? passCategory : null,
       companyId: companyIdNum,
       clientName: document.getElementById("gpClient").value.trim() || null,
       description: document.getElementById("gpDesc").value.trim() || null,
@@ -2751,7 +2882,7 @@ function openNewGatePassRequestModal() {
 
 /* ================= online queue ================= */
 function renderOnlineQueue() {
-  const mount = document.getElementById("view-online-queue");
+  const mount = document.getElementById("view-" + currentView);
   const onlineEmployees = DB.employees.filter((e) => e.isOnline && e.active);
   const me = currentEmployee();
   const viewAll = can(me, "view_all_online_queue");
