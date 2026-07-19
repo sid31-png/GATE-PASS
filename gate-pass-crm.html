@@ -1492,6 +1492,7 @@ function renderDashboard() {
     <div class="page-head">
       <div><span class="eyebrow">Overview</span><h1>Gate Pass Dashboard</h1>
       <p>Submission &amp; collection tracking · updates automatically</p></div>
+      <div id="dashActions" style="display:flex;align-items:center;gap:8px;"></div>
     </div>
     <div class="hero-band">
       <div class="hero-stats">
@@ -1531,6 +1532,29 @@ function renderDashboard() {
   renderLineSeries(document.getElementById("chart-weekly"), seriesBuckets(rows, "week", 8, now));
   renderLineSeries(document.getElementById("chart-monthly"), seriesBuckets(rows, "month", 12, now));
   renderHBars(document.getElementById("chart-collectors"), computeCollectorPerformance(rows));
+  renderDashboardActions();
+}
+// Surfaces the same "create a request" buttons (Account Managers page) and
+// notification bell (Online Queue page) directly on the main Dashboard, so
+// every user has them without navigating to a dedicated page first.
+function renderDashboardActions() {
+  const mount = document.getElementById("dashActions");
+  if (!mount) return;
+  const me = currentEmployee();
+  const canCreate = can(me, "create_service_request");
+  const showBell = Boolean(me && me.isOnline);
+  mount.innerHTML = `${showBell ? `<div id="dashBell"></div>` : ""}${canCreate ? `
+    <button class="btn btn-primary" id="btnDashProRequest">+ PRO Service Request</button>
+    <button class="btn btn-ghost" id="btnDashGatePassRequest" style="border:1px solid var(--brand);color:var(--brand);">+ Gate Pass Request</button>
+  ` : ""}`;
+  if (canCreate) {
+    document.getElementById("btnDashProRequest").addEventListener("click", () => openNewRequestModal());
+    document.getElementById("btnDashGatePassRequest").addEventListener("click", () => openNewGatePassRequestModal());
+  }
+  if (showBell) {
+    const myNew = DB.serviceRequests.filter((r) => r.claimedById === me.id && r.status === "ASSIGNED_TO_ONLINE");
+    renderNotificationBell("dashBell", me.id, myNew);
+  }
 }
 function heroStat(label, value, tone) {
   return `<div class="hero-stat"><div class="lbl">${esc(label)}</div><div class="val ${tone || ""}">${esc(value)}</div></div>`;
@@ -2763,16 +2787,17 @@ function renderOnlineQueue() {
   renderOQMine(inProgress, viewAll, onlineEmployees);
   if (me && me.isOnline) {
     const myNew = requests.filter((r) => r.claimedById === me.id && r.status === "ASSIGNED_TO_ONLINE");
-    renderNotificationBell(me.id, myNew);
+    renderNotificationBell("oqBell", me.id, myNew);
   }
 }
 
 /* ---- notification bell (near-real-time alert center for Online Operators) ----
    The parent view polls and re-renders on an interval; this just tracks which
-   of the operator's newly-assigned requests have already been seen. */
+   of the operator's newly-assigned requests have already been seen. Reusable
+   from any view (Online Queue, Dashboard, …) via the mountId parameter. */
 let notifBellOpen = false;
-function renderNotificationBell(employeeId, requests) {
-  const mount = document.getElementById("oqBell");
+function renderNotificationBell(mountId, employeeId, requests) {
+  const mount = document.getElementById(mountId);
   if (!mount) return;
   const storageKey = `gatepass-notif-seen-${employeeId}`;
   let seenIds = [];
@@ -2806,7 +2831,7 @@ function renderNotificationBell(employeeId, requests) {
     if (notifBellOpen) {
       try { localStorage.setItem(storageKey, JSON.stringify(requests.map((r) => r.id))); } catch (e) { /* ignore */ }
     }
-    renderNotificationBell(employeeId, requests);
+    renderNotificationBell(mountId, employeeId, requests);
   });
 }
 function requestReassignSelect(r, onlineEmployees) {
@@ -3061,9 +3086,12 @@ if (currentEmployee()) {
   renderLoginCard();
 }
 
-// Near-real-time notifications: re-check the Online Queue on an interval so
-// a newly auto-assigned request lights up the bell without a manual refresh.
+// Near-real-time notifications: re-check on an interval so a newly
+// auto-assigned request lights up the bell without a manual refresh,
+// whether the operator is on the Online Queue or the main Dashboard.
 setInterval(() => {
-  if (currentView === "online-queue" && currentEmployee()) renderOnlineQueue();
+  if (!currentEmployee()) return;
+  if (currentView === "online-queue") renderOnlineQueue();
+  else if (currentView === "dashboard") renderDashboardActions();
 }, 12000);
 </script>
