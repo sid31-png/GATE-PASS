@@ -2145,19 +2145,22 @@ function nextGpNumber() {
 }
 function openGatePassModal(id) {
   const gp = id ? DB.gatePasses.find((g) => g.id === id) : null;
+  const eligibleCompanies = DB.companies.filter((c) => GATE_PASS_ELIGIBLE_COMPANIES.includes(c.name)).slice().sort((a, b) => a.name.localeCompare(b.name));
   const overlay = document.getElementById("overlay");
   const body = document.getElementById("modalBody");
   body.innerHTML = `
     <div class="kicker">${gp ? "Edit record" : "New record"}</div>
     <h2>${gp ? `Edit ${esc(gp.number)}` : "New Gate Pass"}</h2>
+    <p style="font-size:12px;color:var(--ink-2);margin:4px 0 14px;">Only available for EY Consulting, Tenaris Global, Tenaris Investment, and Welltec.</p>
     <form id="gpForm" style="margin-top:14px;">
-      <div class="field">
-        <label>Company</label>
-        <select id="gpCompany"><option value="">— Select existing —</option>${DB.companies.map((c) => `<option value="${c.id}" ${gp && gp.companyId === c.id ? "selected" : ""}>${esc(c.name)}</option>`).join("")}</select>
-        <input type="text" id="gpNewCompany" placeholder="Or type a new company name" style="margin-top:8px;">
-      </div>
-      <div class="field"><label>Location</label>
-        <select id="gpLocation">${LOCATIONS.map((l) => `<option ${gp && gp.location === l ? "selected" : ""}>${esc(l)}</option>`).join("")}</select>
+      <div class="field-row">
+        <div class="field">
+          <label>Company</label>
+          <select id="gpCompany" required><option value="">Select company…</option>${eligibleCompanies.map((c) => `<option value="${c.id}" ${gp && gp.companyId === c.id ? "selected" : ""}>${esc(c.name)}</option>`).join("")}</select>
+        </div>
+        <div class="field"><label>Location</label>
+          <select id="gpLocation">${LOCATIONS.map((l) => `<option ${gp && gp.location === l ? "selected" : ""}>${esc(l)}</option>`).join("")}</select>
+        </div>
       </div>
       <div class="field-row" style="grid-template-columns:1fr 1fr 1fr;">
         <div class="field"><label>Gate Pass Type</label>
@@ -2170,9 +2173,11 @@ function openGatePassModal(id) {
           <select id="gpPassCategory">${PASS_CATEGORIES.map((c) => `<option ${gp && gp.passCategory === c ? "selected" : ""}>${c}</option>`).join("")}</select>
         </div>
       </div>
-      <div class="field"><label>Submitted By</label><input type="text" id="gpSubmittedBy" required value="${esc(gp ? gp.submittedBy : "")}"></div>
-      <div class="field"><label>Submission Date &amp; Time</label>
-        <input type="datetime-local" id="gpSubmissionAt" required value="${toLocalInput(gp ? gp.submissionAt : new Date().toISOString())}"></div>
+      <div class="field-row">
+        <div class="field"><label>Submitted By</label><input type="text" id="gpSubmittedBy" required value="${esc(gp ? gp.submittedBy : "")}"></div>
+        <div class="field"><label>Submission Date &amp; Time</label>
+          <input type="datetime-local" id="gpSubmissionAt" required value="${toLocalInput(gp ? gp.submissionAt : new Date().toISOString())}"></div>
+      </div>
       <div class="field"><label>Status</label>
         <select id="gpStatus">
           <option value="PENDING" ${gp && gp.status === "PENDING" ? "selected" : ""}>Pending</option>
@@ -2190,6 +2195,7 @@ function openGatePassModal(id) {
         </div>
       </div>
       <div class="field"><label>Remarks</label><textarea id="gpRemarks" rows="2">${esc(gp ? gp.remarks : "")}</textarea></div>
+      ${attachmentDropzoneHtml("gpAttachDropzone", "gpAttachmentsField")}
       <p class="err-msg" id="gpErr" style="display:none;"></p>
       <div class="modal-actions">
         <button type="button" class="btn btn-ghost" id="gpCancelBtn">Cancel</button>
@@ -2198,6 +2204,8 @@ function openGatePassModal(id) {
     </form>
   `;
   overlay.classList.add("open");
+  initAttachmentDropzone("gpAttachDropzone", "gpAttachmentsField");
+  if (gp && gp.attachments) document.getElementById("gpAttachmentsField").value = gp.attachments;
   const statusSel = document.getElementById("gpStatus");
   const collectBox = document.getElementById("collectBox");
   const syncCollectBox = () => { collectBox.style.display = statusSel.value === "COLLECTED" ? "block" : "none"; };
@@ -2207,17 +2215,8 @@ function openGatePassModal(id) {
   document.getElementById("gpForm").addEventListener("submit", (e) => {
     e.preventDefault();
     const companySel = document.getElementById("gpCompany").value;
-    const newCompany = document.getElementById("gpNewCompany").value.trim();
-    let companyId = companySel ? Number(companySel) : null;
-    if (!companyId && newCompany) {
-      const existing = DB.companies.find((c) => c.name.toLowerCase() === newCompany.toLowerCase());
-      if (existing) companyId = existing.id;
-      else {
-        companyId = DB.nextIds.company++;
-        DB.companies.push({ id: companyId, name: newCompany, sector: null, contact: null, phone: null, email: null, notes: null, billingType: "PER_SERVICE" });
-      }
-    }
-    if (!companyId) { showErr("gpErr", "Select or type a company."); return; }
+    if (!companySel) { showErr("gpErr", "Please select the company (only the 4 Gate Pass accounts are eligible)."); return; }
+    const companyId = Number(companySel);
     const status = statusSel.value;
     const collectorVal = document.getElementById("gpCollector").value;
     const collectionAtVal = document.getElementById("gpCollectionAt").value;
@@ -2232,7 +2231,8 @@ function openGatePassModal(id) {
       status,
       collectorId: status === "COLLECTED" && collectorVal ? Number(collectorVal) : null,
       collectionAt: status === "COLLECTED" && collectionAtVal ? new Date(collectionAtVal).toISOString() : null,
-      remarks: document.getElementById("gpRemarks").value.trim() || null
+      remarks: document.getElementById("gpRemarks").value.trim() || null,
+      attachments: document.getElementById("gpAttachmentsField").value.trim() || null
     };
     if (gp) Object.assign(gp, record);
     else DB.gatePasses.push({ id: DB.nextIds.gatePass++, number: nextGpNumber(), ...record });
@@ -3311,15 +3311,19 @@ function openNewGatePassRequestModal() {
   const locationRow = document.getElementById("gpLocationRow");
   const gatePassFieldsRow = document.getElementById("gpGatePassFieldsRow");
   function syncKindFields() {
-    const isGatePass = kindSelect.value === "GATE_PASS";
+    const kind = kindSelect.value;
+    const isGatePass = kind === "GATE_PASS";
+    // Site/Location applies to both Gate Pass and DVC requests — only the
+    // Offshore Medical Card kind has no site to record.
+    const needsLocation = isGatePass || kind === "DVC";
     gatePassFieldsRow.style.display = isGatePass ? "" : "none";
-    document.getElementById("gpLocation").required = isGatePass;
     document.getElementById("gpType").required = isGatePass;
     document.getElementById("gpRequestType").required = isGatePass;
     document.getElementById("gpPassCategory").required = isGatePass;
+    document.getElementById("gpLocation").required = needsLocation;
     // "Requested by" stays visible regardless of kind; only the site/location
-    // select is gate-pass-specific within that row.
-    document.getElementById("gpLocation").closest(".field").style.display = isGatePass ? "" : "none";
+    // select is conditional within that row.
+    document.getElementById("gpLocation").closest(".field").style.display = needsLocation ? "" : "none";
   }
   kindSelect.addEventListener("change", syncKindFields);
   syncKindFields();
@@ -3328,12 +3332,17 @@ function openNewGatePassRequestModal() {
     e.preventDefault();
     const kind = kindSelect.value;
     const isGatePass = kind === "GATE_PASS";
-    const location = isGatePass ? document.getElementById("gpLocation").value : "";
+    const needsLocation = isGatePass || kind === "DVC";
+    const location = needsLocation ? document.getElementById("gpLocation").value : "";
     const gatePassType = isGatePass ? document.getElementById("gpType").value : "";
     const requestType = isGatePass ? document.getElementById("gpRequestType").value : "";
     const passCategory = isGatePass ? document.getElementById("gpPassCategory").value : "";
     if (isGatePass && (!location || !gatePassType || !requestType || !passCategory)) {
       showErr("gpErr", "Please fill in the site, gate pass type, request type, and pass category.");
+      return;
+    }
+    if (kind === "DVC" && !location) {
+      showErr("gpErr", "Please select the site / location.");
       return;
     }
     const createdByVal = canPickAnyAM ? document.getElementById("gpCreatedBy").value : String(me.id);
@@ -3347,13 +3356,15 @@ function openNewGatePassRequestModal() {
     const companyLabel = eligibleCompanies.find((c) => c.id === companyIdNum)?.name || "—";
     const title = isGatePass
       ? `${requestType === "Lost Gate Pass" ? "Lost" : "New"} ${serviceType} — ${location}`
-      : `${serviceType} — ${companyLabel}`;
+      : kind === "DVC"
+        ? `${serviceType} — ${companyLabel} (${location})`
+        : `${serviceType} — ${companyLabel}`;
     const resolution = resolveOnlineOperator(companyIdNum, Number(createdByVal));
     const id = DB.nextIds.serviceRequest++;
     const createdAt = new Date().toISOString();
     DB.serviceRequests.push({
       id, title, category: "PRO", serviceType,
-      location: isGatePass ? location : null,
+      location: needsLocation ? location : null,
       gatePassType: isGatePass ? gatePassType : null,
       requestType: isGatePass ? requestType : null,
       passCategory: isGatePass ? passCategory : null,
