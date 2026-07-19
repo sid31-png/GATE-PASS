@@ -106,7 +106,42 @@
   button { font-family: inherit; }
   a { color: inherit; }
 
-  .app { display: flex; min-height: 100vh; }
+  .app { display: none; min-height: 100vh; }
+  .app.authed { display: flex; }
+
+  /* ---------- pre-dashboard login screen ---------- */
+  .login-screen {
+    display: none; min-height: 100vh; align-items: center; justify-content: center;
+    padding: 40px 16px; background: linear-gradient(135deg, var(--navy-deep), var(--navy));
+  }
+  .login-screen.open { display: flex; }
+  .login-wrap { width: 100%; max-width: 640px; }
+  .login-head { display: flex; flex-direction: column; align-items: center; text-align: center; margin-bottom: 28px; }
+  .login-head img { height: 46px; width: auto; background: #fff; border-radius: 14px; padding: 10px 16px; box-shadow: var(--shadow); }
+  .login-head h1 { margin-top: 18px; font-size: 22px; color: #fff; }
+  .login-head p { margin-top: 4px; font-size: 13px; color: rgba(255,255,255,.6); }
+  .login-card { background: #fff; border-radius: 18px; padding: 26px; box-shadow: 0 20px 50px rgba(0,0,0,.35); }
+  .login-profiles-group { margin-bottom: 20px; }
+  .login-profiles-group:last-child { margin-bottom: 0; }
+  .login-profiles-label { font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin-bottom: 8px; }
+  .login-profiles-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .login-profile-btn {
+    all: unset; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 8px;
+    padding: 14px 10px; border-radius: 12px; border: 1px solid var(--border); text-align: center;
+  }
+  .login-profile-btn:hover { border-color: var(--brand); background: var(--brand-soft); }
+  .login-profile-avatar {
+    width: 44px; height: 44px; border-radius: 100px; background: var(--brand-soft); color: var(--brand);
+    display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px;
+  }
+  .login-profile-name { font-size: 13px; font-weight: 600; color: var(--ink); }
+  .login-back { all: unset; cursor: pointer; font-size: 12px; font-weight: 600; color: var(--navy-light); margin-bottom: 16px; display: inline-block; }
+  .login-selected { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; }
+  .login-selected .login-profile-avatar { width: 48px; height: 48px; font-size: 15px; }
+  .login-selected .name { font-weight: 700; color: var(--ink); font-size: 15px; }
+  .login-selected .role { font-size: 12px; color: var(--ink-2); }
+  .login-foot { margin-top: 22px; text-align: center; font-size: 11.5px; color: rgba(255,255,255,.4); }
+  .login-demo-hint { margin-top: 14px; font-size: 11px; color: var(--muted); text-align: center; }
 
   /* ---------- sidebar (fixed light brand shell, both themes) ---------- */
   .sidebar {
@@ -307,6 +342,7 @@
   .field { margin-bottom: 13px; }
   .field label { display: block; font-size: 12px; font-weight: 600; color: var(--ink-2); margin-bottom: 5px; }
   .field input, .field select, .field textarea { width: 100%; }
+  .field-readonly { padding: 8px 10px; border-radius: 8px; background: var(--surface-2); color: var(--ink-2); font-size: 13px; }
   .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
   .modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 16px; }
   .collect-box { background: var(--surface-2); border-radius: 8px; padding: 12px; margin-bottom: 13px; }
@@ -330,7 +366,19 @@
   .footnote { margin-top: 26px; font-size: 11.5px; color: var(--muted); }
 </style>
 
-<div class="app">
+<div class="login-screen" id="loginScreen">
+  <div class="login-wrap">
+    <div class="login-head">
+      <img id="loginLogo" alt="RCH">
+      <h1>Gate Pass &amp; Delivery CRM</h1>
+      <p>Select your profile to sign in</p>
+    </div>
+    <div class="login-card" id="loginCard"></div>
+    <div class="login-foot">RCH Business Solutions · Access is restricted by role</div>
+  </div>
+</div>
+
+<div class="app" id="appRoot">
   <aside class="sidebar">
     <div class="sidebar-brand">
       <img src="data:image/png;base64,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" alt="RCH" />
@@ -338,8 +386,11 @@
     </div>
     <div class="current-user-box">
       <label>Signed in as</label>
-      <select id="currentUserSelect"><option value="">Select your account…</option></select>
-      <div class="role" id="currentUserRole"></div>
+      <div id="currentUserName" style="font-size:13px;font-weight:700;color:var(--ink);"></div>
+      <div style="margin-top:4px;display:flex;align-items:center;justify-content:space-between;gap:8px;">
+        <span class="role" id="currentUserRole"></span>
+        <button id="logoutBtn" style="all:unset;cursor:pointer;font-size:10.5px;font-weight:700;color:var(--muted);">Log out</button>
+      </div>
     </div>
     <nav class="nav" id="nav"></nav>
     <div class="sidebar-foot">
@@ -350,6 +401,7 @@
 
   <main class="main">
     <div class="mobile-nav" id="mobileNav"></div>
+    <div class="danger-box" id="accessDeniedBanner" style="display:none;margin-bottom:16px;"></div>
     <div class="view" id="view-dashboard"></div>
     <div class="view" id="view-tracker"></div>
     <div class="view" id="view-pending"></div>
@@ -386,32 +438,49 @@ const LOCATIONS = ["Doha Towers", "Mesaieed", "Ras Laffan", "Dukhan", "Offshore"
 const GATE_PASS_TYPES = ["Permanent", "Temporary"];
 const REQUEST_TYPES = ["New Gate Pass", "Lost Gate Pass"];
 const PASS_CATEGORIES = ["Main", "Supplementary"];
-const STORAGE_KEY = "gatepass-crm-state-v7";
+const STORAGE_KEY = "gatepass-crm-state-v8";
 
 /* ================= delivery / dispatch seed ================= */
+// `password` is the demo login password for login-capable profiles (used only
+// by the client-side pre-dashboard login screen below — see the security
+// note next to LOGIN_STATE_KEY for why this is NOT real security).
+const DEMO_PW = "@Rch2026";
 const SEED_EMPLOYEES = [
-  { name: "MED-DARWISH", isManager: true, isOpsAdmin: false, isOnline: false, isField: false, isAM: false, isAMLead: false },
-  { name: "ALAA", isManager: false, isOpsAdmin: false, isOnline: true, isField: true, isAM: false, isAMLead: false },
-  { name: "AHMED", isManager: false, isOpsAdmin: true, isOnline: true, isField: false, isAM: false, isAMLead: false },
-  { name: "SAMIM", isManager: false, isOpsAdmin: false, isOnline: true, isField: true, isAM: false, isAMLead: false },
-  { name: "TAHA", isManager: false, isOpsAdmin: false, isOnline: true, isField: true, isAM: false, isAMLead: false },
-  { name: "MUJEEB", isManager: false, isOpsAdmin: false, isOnline: true, isField: true, isAM: false, isAMLead: false },
-  { name: "SALAH", isManager: false, isOpsAdmin: false, isOnline: false, isField: true, isAM: false, isAMLead: false },
-  { name: "MED-HUSSAIN", isManager: false, isOpsAdmin: false, isOnline: false, isField: true, isAM: false, isAMLead: false },
-  { name: "ABIN", isManager: false, isOpsAdmin: false, isOnline: false, isField: true, isAM: false, isAMLead: false },
-  { name: "AITA", isManager: false, isOpsAdmin: false, isOnline: false, isField: true, isAM: false, isAMLead: false },
-  { name: "ELENA", isManager: false, isOpsAdmin: false, isOnline: false, isField: false, isAM: true, isAMLead: true },
-  { name: "Violetta", isManager: false, isOpsAdmin: false, isOnline: false, isField: false, isAM: true, isAMLead: false },
-  { name: "Abegail", isManager: false, isOpsAdmin: false, isOnline: false, isField: false, isAM: true, isAMLead: false },
-  { name: "Vongai", isManager: false, isOpsAdmin: false, isOnline: false, isField: false, isAM: true, isAMLead: false },
-  { name: "Nasma", isManager: false, isOpsAdmin: false, isOnline: false, isField: false, isAM: true, isAMLead: false },
-  { name: "Roxana", isManager: false, isOpsAdmin: false, isOnline: false, isField: false, isAM: true, isAMLead: false },
-  { name: "Gabriela", isManager: false, isOpsAdmin: false, isOnline: false, isField: false, isAM: true, isAMLead: false }
+  { name: "Tayseer", isCEO: true, isManager: false, isOpsAdmin: false, isOnline: false, isField: false, isAM: false, isAMLead: false, password: "Tayseer" + DEMO_PW },
+  { name: "MED-DARWISH", isCEO: false, isManager: true, isOpsAdmin: false, isOnline: false, isField: false, isAM: false, isAMLead: false, password: "MedDarwish" + DEMO_PW },
+  { name: "ALAA", isCEO: false, isManager: false, isOpsAdmin: false, isOnline: true, isField: true, isAM: false, isAMLead: false, password: "Alaa" + DEMO_PW },
+  { name: "AHMED", isCEO: false, isManager: false, isOpsAdmin: true, isOnline: true, isField: false, isAM: false, isAMLead: false, password: "Ahmed" + DEMO_PW },
+  { name: "SAMIM", isCEO: false, isManager: false, isOpsAdmin: false, isOnline: true, isField: true, isAM: false, isAMLead: false, password: "Samim" + DEMO_PW },
+  { name: "TAHA", isCEO: false, isManager: false, isOpsAdmin: false, isOnline: true, isField: true, isAM: false, isAMLead: false, password: "Taha" + DEMO_PW },
+  { name: "MUJEEB", isCEO: false, isManager: false, isOpsAdmin: false, isOnline: true, isField: true, isAM: false, isAMLead: false, password: "Mujeeb" + DEMO_PW },
+  { name: "SALAH", isCEO: false, isManager: false, isOpsAdmin: false, isOnline: false, isField: true, isAM: false, isAMLead: false },
+  { name: "MED-HUSSAIN", isCEO: false, isManager: false, isOpsAdmin: false, isOnline: false, isField: true, isAM: false, isAMLead: false },
+  { name: "ABIN", isCEO: false, isManager: false, isOpsAdmin: false, isOnline: false, isField: true, isAM: false, isAMLead: false },
+  { name: "AITA", isCEO: false, isManager: false, isOpsAdmin: false, isOnline: false, isField: true, isAM: false, isAMLead: false },
+  { name: "ELENA", isCEO: false, isManager: false, isOpsAdmin: false, isOnline: false, isField: false, isAM: true, isAMLead: true, password: "Elena" + DEMO_PW },
+  { name: "Violetta", isCEO: false, isManager: false, isOpsAdmin: false, isOnline: false, isField: false, isAM: true, isAMLead: false, password: "Violetta" + DEMO_PW },
+  { name: "Abegail", isCEO: false, isManager: false, isOpsAdmin: false, isOnline: false, isField: false, isAM: true, isAMLead: false, password: "Abegail" + DEMO_PW },
+  { name: "Vongai", isCEO: false, isManager: false, isOpsAdmin: false, isOnline: false, isField: false, isAM: true, isAMLead: false, password: "Vongai" + DEMO_PW },
+  { name: "Nasma", isCEO: false, isManager: false, isOpsAdmin: false, isOnline: false, isField: false, isAM: true, isAMLead: false, password: "Nasma" + DEMO_PW },
+  { name: "Roxana", isCEO: false, isManager: false, isOpsAdmin: false, isOnline: false, isField: false, isAM: true, isAMLead: false, password: "Roxana" + DEMO_PW },
+  { name: "Gabriela", isCEO: false, isManager: false, isOpsAdmin: false, isOnline: false, isField: false, isAM: true, isAMLead: false, password: "Gabriela" + DEMO_PW }
 ];
 
-/* ================= RBAC ================= */
+/* ================= PRO services catalog ================= */
+const PRO_SERVICE_CATALOG = [
+  { group: "Gate Passes", services: ["Permanent Gate Pass", "Temporary Gate Pass"] },
+  { group: "Creation & Licenses", services: ["Commercial Registration (CR)", "Computer Card (Establishment Card)", "Trade License (Municipality)", "Chamber of Commerce Registration"] },
+  { group: "Visas & Immigration", services: ["Work Visa Quota", "Qatar ID (QID) / Residency Permit", "Family Visa", "Business Visit Visa", "Sponsorship Transfer", "Visa Cancellation"] },
+  { group: "Ministerial Relations", services: ["Employment Contract (Ministry of Labour)", "MOFA Legalization", "Contract Attestation (Ministry of Justice)"] },
+  { group: "Attestations & Translations", services: ["Certified Arabic Translation", "Degree / Corporate Document Attestation"] }
+];
+
+/* ================= RBAC =================
+   Role hierarchy (highest to lowest): CEO > SUPER_ADMIN > OPS_ADMIN > AM_LEAD
+   > OPERATOR > AM > FIELD (no login) > UNASSIGNED. Mirrors src/lib/rbac.ts. */
 function roleOf(e) {
   if (!e) return "UNASSIGNED";
+  if (e.isCEO) return "CEO";
   if (e.isManager) return "SUPER_ADMIN";
   if (e.isOpsAdmin) return "OPS_ADMIN";
   if (e.isAMLead) return "AM_LEAD";
@@ -421,16 +490,42 @@ function roleOf(e) {
   return "UNASSIGNED";
 }
 const ROLE_LABEL = {
-  SUPER_ADMIN: "Super Admin", OPS_ADMIN: "Operations Admin", OPERATOR: "Online Operator",
+  CEO: "CEO", SUPER_ADMIN: "Super Admin", OPS_ADMIN: "Operations Admin", OPERATOR: "Online Operator",
   AM_LEAD: "Account Manager Lead", AM: "Account Manager", FIELD: "Field Agent", UNASSIGNED: "Unassigned"
 };
+// CEO/SUPER_ADMIN bypass this table entirely (see `can` below).
+// dispatch_field_assign = assigning/reassigning a field agent + instructions,
+// and validating (completing) a delivery — exclusive to CEO/SUPER_ADMIN.
+// update_field_status = relaying a field agent's own progress (started/
+// blocked/resumed) — also open to Online Operators and Ops Admin.
 const ROLE_PERMISSIONS = {
-  SUPER_ADMIN: ["view_all_online_queue", "reassign_requests", "import_companies", "view_all_am_requests"],
-  OPS_ADMIN: ["view_all_online_queue", "reassign_requests", "import_companies"],
-  AM_LEAD: ["view_all_am_requests"],
-  OPERATOR: [], AM: [], FIELD: [], UNASSIGNED: []
+  CEO: [], SUPER_ADMIN: [],
+  OPS_ADMIN: ["view_all_online_queue", "reassign_requests", "import_companies", "update_field_status"],
+  AM_LEAD: ["view_all_am_requests", "create_service_request"],
+  OPERATOR: ["update_field_status"],
+  AM: ["create_service_request"],
+  FIELD: [], UNASSIGNED: []
 };
-function can(e, permission) { return ROLE_PERMISSIONS[roleOf(e)].includes(permission); }
+function can(e, permission) {
+  const role = roleOf(e);
+  if (role === "CEO" || role === "SUPER_ADMIN") return true;
+  return ROLE_PERMISSIONS[role].includes(permission);
+}
+// Page-level access rules for the pre-dashboard route guard (mirrors
+// src/lib/route-access.ts). CEO/SUPER_ADMIN are always implicitly allowed.
+const VIEW_ACCESS_RULES = {
+  dispatch: ["OPS_ADMIN", "OPERATOR"],
+  "online-queue": ["OPS_ADMIN", "OPERATOR"],
+  online: ["OPS_ADMIN", "OPERATOR"],
+  "company-import": ["OPS_ADMIN"],
+  "account-managers": ["OPS_ADMIN", "AM_LEAD", "AM"]
+};
+function isViewAllowed(id, role) {
+  if (role === "CEO" || role === "SUPER_ADMIN") return true;
+  const rule = VIEW_ACCESS_RULES[id];
+  if (!rule) return true;
+  return rule.includes(role);
+}
 
 /* ================= AM <-> Online Operator binome dispatch config ================= */
 // Default binomes. A single operator name is a fixed pair; multiple names round-robin.
@@ -569,8 +664,8 @@ function buildInitialState() {
     const id = employees.length + 1;
     employeeId.set(e.name, id);
     employees.push({
-      id, name: e.name, isManager: e.isManager, isOpsAdmin: e.isOpsAdmin, isOnline: e.isOnline, isField: e.isField,
-      isAM: e.isAM, isAMLead: e.isAMLead, phone: null, email: null, active: true
+      id, name: e.name, isCEO: Boolean(e.isCEO), isManager: e.isManager, isOpsAdmin: e.isOpsAdmin, isOnline: e.isOnline, isField: e.isField,
+      isAM: e.isAM, isAMLead: e.isAMLead, password: e.password || null, phone: null, email: null, active: true
     });
   }
 
@@ -1237,27 +1332,103 @@ const NAV_ITEMS = [
   { id: "collectors", label: "Collector Performance", n: "04" },
   { id: "companies", label: "Companies", n: "05" },
   { id: "analytics", label: "Analytics", n: "06" },
-  { id: "account-managers", label: "Account Managers", n: "07", roles: ["AM", "AM_LEAD", "OPS_ADMIN", "SUPER_ADMIN"] },
-  { id: "online-queue", label: "Online Queue", n: "08", roles: ["OPERATOR", "OPS_ADMIN", "SUPER_ADMIN"] },
-  { id: "company-import", label: "Import Companies", n: "09", roles: ["OPS_ADMIN", "SUPER_ADMIN"] },
+  { id: "account-managers", label: "Account Managers", n: "07" },
+  { id: "online-queue", label: "Online Queue", n: "08" },
+  { id: "company-import", label: "Import Companies", n: "09" },
   { id: "dispatch", label: "Dispatch", n: "10" },
   { id: "online", label: "Online Team", n: "11" },
   { id: "field", label: "Field Team", n: "12" },
   { id: "deliveries", label: "Deliveries", n: "13" }
 ];
 let currentView = "dashboard";
+
+/* ================= pre-dashboard login (client-side only) =================
+   SECURITY NOTE: this is a static, self-contained HTML file with no server —
+   there is nothing to keep the password check confidential. Anyone can open
+   dev tools or view-source and read SEED_EMPLOYEES.password directly, or just
+   flip `authedEmployeeId` in localStorage. This screen exists to mirror the
+   Next.js app's real (server-verified, hashed-password, HMAC-session) login
+   UX for demoing the profile-and-role flow, NOT to provide actual security.
+   Treat this file as trusted-users-only, same as before this change. */
+const AUTH_STORAGE_KEY = "gatepass-authed-employee-id";
 let currentEmployeeId = (function () {
   try {
-    const raw = localStorage.getItem("gatepass-current-employee");
+    const raw = localStorage.getItem(AUTH_STORAGE_KEY);
     return raw ? Number(raw) : null;
   } catch (e) { return null; }
 })();
+let loginSelectedId = null;
 function currentEmployee() { return DB.employees.find((e) => e.id === currentEmployeeId) || null; }
 function currentRole() { return roleOf(currentEmployee()); }
 
+function renderLoginCard() {
+  const card = document.getElementById("loginCard");
+  const loginable = DB.employees.filter((e) => e.password);
+  if (!loginSelectedId) {
+    const groups = ["CEO", "SUPER_ADMIN", "OPS_ADMIN", "AM_LEAD", "AM", "OPERATOR"]
+      .map((role) => ({ role, list: loginable.filter((e) => roleOf(e) === role) }))
+      .filter((g) => g.list.length);
+    card.innerHTML = groups.map((g) => `
+      <div class="login-profiles-group">
+        <div class="login-profiles-label">${ROLE_LABEL[g.role]}</div>
+        <div class="login-profiles-grid">
+          ${g.list.map((e) => `
+            <button class="login-profile-btn" data-id="${e.id}">
+              <span class="login-profile-avatar">${esc(e.name.slice(0, 2).toUpperCase())}</span>
+              <span class="login-profile-name">${esc(e.name)}</span>
+            </button>
+          `).join("")}
+        </div>
+      </div>
+    `).join("");
+    card.querySelectorAll("[data-id]").forEach((btn) => {
+      btn.addEventListener("click", () => { loginSelectedId = Number(btn.getAttribute("data-id")); renderLoginCard(); });
+    });
+    return;
+  }
+  const e = DB.employees.find((x) => x.id === loginSelectedId);
+  card.innerHTML = `
+    <button class="login-back" id="loginBackBtn">← Choose a different profile</button>
+    <div class="login-selected">
+      <span class="login-profile-avatar">${esc(e.name.slice(0, 2).toUpperCase())}</span>
+      <div><div class="name">${esc(e.name)}</div><div class="role">${ROLE_LABEL[roleOf(e)]}</div></div>
+    </div>
+    <form id="loginForm">
+      <div class="field"><label>Password</label><input type="password" id="loginPassword" autofocus placeholder="Enter your password"></div>
+      <p class="err-msg" id="loginErr" style="display:none;"></p>
+      <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center;margin-top:6px;">Sign in</button>
+    </form>
+    <div class="login-demo-hint">Demo password: ${esc(e.name.replace(/[^a-zA-Z]/g, ""))}@Rch2026</div>
+  `;
+  document.getElementById("loginBackBtn").addEventListener("click", () => { loginSelectedId = null; renderLoginCard(); });
+  document.getElementById("loginForm").addEventListener("submit", (ev) => {
+    ev.preventDefault();
+    const pw = document.getElementById("loginPassword").value;
+    if (pw !== e.password) { showErr("loginErr", "Invalid profile or password."); return; }
+    currentEmployeeId = e.id;
+    try { localStorage.setItem(AUTH_STORAGE_KEY, String(e.id)); } catch (err) { /* ignore */ }
+    loginSelectedId = null;
+    enterApp();
+  });
+}
+function enterApp() {
+  document.getElementById("loginScreen").classList.remove("open");
+  document.getElementById("appRoot").classList.add("authed");
+  setupNav();
+  if (!isViewAllowed(currentView, currentRole())) currentView = "dashboard";
+  switchView(currentView);
+}
+function logout() {
+  currentEmployeeId = null;
+  try { localStorage.removeItem(AUTH_STORAGE_KEY); } catch (err) { /* ignore */ }
+  document.getElementById("appRoot").classList.remove("authed");
+  document.getElementById("loginScreen").classList.add("open");
+  renderLoginCard();
+}
+
 function setupNav() {
   const role = currentRole();
-  const visibleItems = NAV_ITEMS.filter((it) => !it.roles || it.roles.includes(role));
+  const visibleItems = NAV_ITEMS.filter((it) => isViewAllowed(it.id, role));
   const nav = document.getElementById("nav");
   nav.innerHTML = visibleItems.map((it) => `<button data-view="${it.id}"><span class="n">${it.n}</span>${esc(it.label)}</button>`).join("");
   const mnav = document.getElementById("mobileNav");
@@ -1269,27 +1440,21 @@ function setupNav() {
   document.getElementById("resetBtn").addEventListener("click", () => {
     if (confirm("Reset all data back to the original 30 seeded gate passes? Local edits will be lost.")) resetState();
   });
-
-  const userSelect = document.getElementById("currentUserSelect");
-  userSelect.innerHTML =
-    `<option value="">Select your account…</option>` +
-    DB.employees.map((e) => `<option value="${e.id}" ${e.id === currentEmployeeId ? "selected" : ""}>${esc(e.name)}</option>`).join("");
-  document.getElementById("currentUserRole").textContent = currentEmployeeId ? ROLE_LABEL[role] : "";
-  userSelect.onchange = (e) => {
-    currentEmployeeId = e.target.value ? Number(e.target.value) : null;
-    try {
-      if (currentEmployeeId) localStorage.setItem("gatepass-current-employee", String(currentEmployeeId));
-      else localStorage.removeItem("gatepass-current-employee");
-    } catch (err) { /* ignore */ }
-    setupNav();
-    if (!NAV_ITEMS.find((it) => it.id === currentView && (!it.roles || it.roles.includes(currentRole())))) {
-      switchView("dashboard");
-    } else {
-      renderView(currentView);
-    }
-  };
+  const me = currentEmployee();
+  document.getElementById("currentUserName").textContent = me ? me.name : "—";
+  document.getElementById("currentUserRole").textContent = ROLE_LABEL[role];
+  document.getElementById("logoutBtn").onclick = logout;
 }
 function switchView(id) {
+  const role = currentRole();
+  const banner = document.getElementById("accessDeniedBanner");
+  if (!isViewAllowed(id, role)) {
+    banner.style.display = "block";
+    banner.textContent = `🔒 Access restricted — your role doesn't have permission to view "${id}".`;
+    id = "dashboard";
+  } else {
+    banner.style.display = "none";
+  }
   currentView = id;
   document.querySelectorAll(".view").forEach((v) => v.classList.remove("active"));
   document.getElementById("view-" + id).classList.add("active");
@@ -1840,10 +2005,11 @@ function renderDispatch() {
   const byStage = (s) => tasks.filter((t) => t.stage === s);
   const manager = managerEmployee();
   const overdue = tasks.filter((t) => isOverdue(t, now)).length;
+  const canDispatch = can(currentEmployee(), "dispatch_field_assign");
   mount.innerHTML = `
     <div class="page-head">
-      <div><span class="eyebrow">Manager supervision</span><h1>Dispatch — MED-DARWISH</h1>
-      <p>${manager ? `Signed in as ${esc(manager.name)}` : "Real-time operations view"}</p></div>
+      <div><span class="eyebrow">Manager supervision</span><h1>Dispatch — Manager Supervision</h1>
+      <p>${canDispatch ? "Assign field agents, set instructions, and validate deliveries." : "🔒 View only — assigning field agents is exclusive to MED-DARWISH and the CEO."}</p></div>
     </div>
     <div class="hero-band">
       <div class="hero-stats">
@@ -1888,6 +2054,7 @@ function renderDispatch() {
 function renderDispatchReady(list) {
   const mount = document.getElementById("dispatchReadyList");
   if (!list.length) { mount.innerHTML = `<div class="card card-pad empty-card">Nothing waiting for dispatch right now.</div>`; return; }
+  const canDispatch = can(currentEmployee(), "dispatch_field_assign");
   mount.innerHTML = list.map((t) => `
     <div class="card card-pad task-card">
       <div>
@@ -1895,7 +2062,7 @@ function renderDispatchReady(list) {
         ${t.description ? `<div class="desc">${esc(t.description)}</div>` : ""}
         <div class="meta">${taskMeta(t)}</div>
       </div>
-      <div class="task-actions"><button class="btn btn-primary" data-act="assign" data-id="${t.id}">Assign agent</button></div>
+      <div class="task-actions">${canDispatch ? `<button class="btn btn-primary" data-act="assign" data-id="${t.id}">Assign agent</button>` : `<span class="pill pill-brand">Waiting for dispatch</span>`}</div>
     </div>
   `).join("");
   mount.querySelectorAll("[data-act=assign]").forEach((b) => b.addEventListener("click", () => openAssignModal(Number(b.getAttribute("data-id")))));
@@ -1903,6 +2070,7 @@ function renderDispatchReady(list) {
 function renderDispatchActive(list) {
   const mount = document.getElementById("dispatchActiveList");
   if (!list.length) { mount.innerHTML = `<div class="card card-pad empty-card">No missions currently assigned or in progress.</div>`; return; }
+  const canDispatch = can(currentEmployee(), "dispatch_field_assign");
   mount.innerHTML = list.map((t) => `
     <div class="card card-pad task-card">
       <div>
@@ -1911,7 +2079,7 @@ function renderDispatchActive(list) {
         <div class="meta">Agent: <strong>${esc(employeeName(t.assignedToId) || "—")}</strong> · Departure: ${fmtDateTime(t.scheduledAt)}</div>
         ${t.instructions ? `<div class="info-box">“${esc(t.instructions)}”</div>` : ""}
       </div>
-      <div class="task-actions"><button class="btn btn-ghost" data-act="reassign" data-id="${t.id}">Reassign</button></div>
+      <div class="task-actions">${canDispatch ? `<button class="btn btn-ghost" data-act="reassign" data-id="${t.id}">Reassign</button>` : ""}</div>
     </div>
   `).join("");
   mount.querySelectorAll("[data-act=reassign]").forEach((b) => b.addEventListener("click", () => openAssignModal(Number(b.getAttribute("data-id")))));
@@ -1919,6 +2087,7 @@ function renderDispatchActive(list) {
 function renderDispatchBlocked(list) {
   const mount = document.getElementById("dispatchBlockedList");
   if (!list.length) { mount.innerHTML = `<div class="card card-pad empty-card">No blockers reported.</div>`; return; }
+  const canDispatch = can(currentEmployee(), "dispatch_field_assign");
   mount.innerHTML = list.map((t) => `
     <div class="card card-pad task-card">
       <div>
@@ -1928,8 +2097,10 @@ function renderDispatchBlocked(list) {
         ${t.blockedReason ? `<div class="danger-box">⚠ ${esc(t.blockedReason)}</div>` : ""}
       </div>
       <div class="task-actions">
-        <button class="btn btn-primary" data-act="resolve" data-id="${t.id}">Resolve &amp; reassign</button>
-        <button class="btn btn-ghost" data-act="requeue" data-id="${t.id}">Send back to queue</button>
+        ${canDispatch ? `
+          <button class="btn btn-primary" data-act="resolve" data-id="${t.id}">Resolve &amp; reassign</button>
+          <button class="btn btn-ghost" data-act="requeue" data-id="${t.id}">Send back to queue</button>
+        ` : ""}
       </div>
     </div>
   `).join("");
@@ -1937,6 +2108,7 @@ function renderDispatchBlocked(list) {
   mount.querySelectorAll("[data-act=requeue]").forEach((b) => b.addEventListener("click", () => updateTaskStage(Number(b.getAttribute("data-id")), "DISPATCH")));
 }
 function openAssignModal(taskId) {
+  if (!can(currentEmployee(), "dispatch_field_assign")) return;
   const t = DB.deliveryTasks.find((x) => x.id === taskId);
   if (!t) return;
   const fieldEmployees = DB.employees.filter((e) => e.isField && e.active);
@@ -2101,9 +2273,10 @@ function renderField() {
   const filtered = fieldAgentFilter ? tasks.filter((t) => employeeName(t.assignedToId) === fieldAgentFilter) : tasks;
   const order = { ASSIGNED: 0, IN_PROGRESS: 1, BLOCKED: 2 };
   const sorted = filtered.slice().sort((a, b) => (order[a.stage] ?? 3) - (order[b.stage] ?? 3));
+  const canLogProgress = can(currentEmployee(), "update_field_status");
   mount.innerHTML = `
     <div class="page-head">
-      <div><span class="eyebrow">Field &amp; government trips</span><h1>Field Missions</h1><p>Today's deliveries &amp; government trips</p></div>
+      <div><span class="eyebrow">Field &amp; government trips</span><h1>Field Missions</h1><p>${canLogProgress ? "Today's deliveries &amp; government trips" : "🔒 View only — status updates are entered by MED-DARWISH or an Online Operator."}</p></div>
     </div>
     <div class="card card-pad field-select-card">
       <div class="field" style="margin-bottom:0;">
@@ -2129,6 +2302,9 @@ function renderFieldTasks(list) {
     mount.innerHTML = `<div class="card card-pad empty-card">No missions ${fieldAgentFilter ? `for ${esc(fieldAgentFilter)}` : ""} right now. 🎉</div>`;
     return;
   }
+  const me = currentEmployee();
+  const canValidate = can(me, "dispatch_field_assign");
+  const canLogProgress = can(me, "update_field_status");
   mount.innerHTML = list.map((t) => `
     <div class="card card-pad">
       <div class="title-row" style="justify-content:space-between;"><span class="t">${esc(t.title)}</span>${stagePill(t.stage)}</div>
@@ -2137,17 +2313,19 @@ function renderFieldTasks(list) {
       <div class="meta">Departure: ${fmtDateTime(t.scheduledAt)}${!fieldAgentFilter && t.assignedToId ? ` · ${esc(employeeName(t.assignedToId))}` : ""}</div>
       ${t.instructions ? `<div class="info-box">📋 ${esc(t.instructions)}</div>` : ""}
       ${t.blockedReason ? `<div class="danger-box">⚠ ${esc(t.blockedReason)}</div>` : ""}
+      ${(canLogProgress || canValidate) ? `
       <div class="task-actions" style="margin-top:12px;">
-        ${t.stage === "ASSIGNED" ? `
+        ${t.stage === "ASSIGNED" && canLogProgress ? `
           <button class="btn btn-primary" data-act="start" data-id="${t.id}" style="flex:1;justify-content:center;">▶ Start mission</button>
           <button class="btn btn-danger-ghost" data-act="block" data-id="${t.id}">Blocked</button>
         ` : ""}
         ${t.stage === "IN_PROGRESS" ? `
-          <button class="btn btn-success" data-act="complete" data-id="${t.id}" style="flex:1;justify-content:center;">✓ Mark completed</button>
-          <button class="btn btn-danger-ghost" data-act="block" data-id="${t.id}">Blocked</button>
+          ${canValidate ? `<button class="btn btn-success" data-act="complete" data-id="${t.id}" style="flex:1;justify-content:center;">✓ Mark completed</button>` : ""}
+          ${canLogProgress ? `<button class="btn btn-danger-ghost" data-act="block" data-id="${t.id}">Blocked</button>` : ""}
         ` : ""}
-        ${t.stage === "BLOCKED" ? `<button class="btn btn-primary" data-act="resume" data-id="${t.id}" style="flex:1;justify-content:center;">↻ Resume mission</button>` : ""}
+        ${t.stage === "BLOCKED" && canLogProgress ? `<button class="btn btn-primary" data-act="resume" data-id="${t.id}" style="flex:1;justify-content:center;">↻ Resume mission</button>` : ""}
       </div>
+      ` : ""}
     </div>
   `).join("");
   mount.querySelectorAll("[data-act=start]").forEach((b) => b.addEventListener("click", () => updateTaskStage(Number(b.getAttribute("data-id")), "IN_PROGRESS")));
@@ -2246,20 +2424,19 @@ function renderAccountManagers() {
   if (!seesAll && !isPlainAM) {
     mount.innerHTML = `
       <div class="page-head"><div><span class="eyebrow">Account Managers</span><h1>Account Managers</h1></div></div>
-      <div class="card card-pad" style="max-width:420px;">
-        ${me ? "This account doesn't have Account Manager access. Switch your account in the sidebar if you have the right role." : "Select your account in the sidebar (“Signed in as”) to see your requests."}
-      </div>
+      <div class="card card-pad" style="max-width:420px;">🔒 This account doesn't have Account Manager access.</div>
     `;
     return;
   }
 
   const byStatus = (s) => visible.filter((r) => r.status === s).length;
+  const canCreate = can(me, "create_service_request");
 
   mount.innerHTML = `
     <div class="page-head">
       <div><span class="eyebrow">Account Managers</span><h1>Account Managers</h1>
       <p>${seesAll ? "Global view — all Account Managers' requests" : `${esc(me.name)}'s requests`}</p></div>
-      <button class="btn btn-primary" id="btnNewRequest">+ New request</button>
+      ${canCreate ? `<button class="btn btn-primary" id="btnNewRequest">+ New request</button>` : ""}
     </div>
     <div class="grid kpi-row" style="grid-template-columns:repeat(4,1fr);">
       ${kpiTile("Assigned to Online", byStatus("ASSIGNED_TO_ONLINE"), "")}
@@ -2277,7 +2454,7 @@ function renderAccountManagers() {
               ${r.status === "MISSING_INFO_RETURNED_TO_AM" && r.returnComment ? `<div class="danger-box" style="max-width:260px;">⚠ ${esc(r.returnComment)}</div>` : ""}
               ${r.claimedById ? `<div class="meta">${r.status === "ASSIGNED_TO_ONLINE" ? "Auto-assigned to " : "Handled by "}${esc(employeeName(r.claimedById))}</div>` : ""}
             </td>
-            <td>${r.category === "PRO" ? "PRO service" : "Delivery"}</td>
+            <td>${r.category === "PRO" ? "PRO service" : "Delivery"}${r.serviceType ? `<div class="meta">${esc(r.serviceType)}</div>` : ""}</td>
             <td>${esc(companyName(r.companyId))}${r.clientName ? `<div class="meta">${esc(r.clientName)}</div>` : ""}</td>
             ${seesAll ? `<td>${esc(employeeName(r.createdById))}</td>` : ""}
             <td>${requestStatusPill(r.status)}</td>
@@ -2288,15 +2465,18 @@ function renderAccountManagers() {
       </table>
     </div>
   `;
-  document.getElementById("btnNewRequest").addEventListener("click", () => openNewRequestModal());
+  if (canCreate) document.getElementById("btnNewRequest").addEventListener("click", () => openNewRequestModal());
   mount.querySelectorAll("[data-act=resubmit]").forEach((b) => b.addEventListener("click", () => {
     const r = DB.serviceRequests.find((x) => x.id === Number(b.getAttribute("data-id")));
     if (r) updateRequestStatus(r.id, "ASSIGNED_TO_ONLINE", { changedById: r.createdById });
   }));
 }
 function openNewRequestModal() {
-  const amEmployees = DB.employees.filter((e) => e.isAM && !e.isAMLead);
   const me = currentEmployee();
+  if (!can(me, "create_service_request")) return;
+  const amEmployees = DB.employees.filter((e) => e.isAM && !e.isAMLead);
+  const role = roleOf(me);
+  const canPickAnyAM = role === "AM_LEAD" || role === "CEO" || role === "SUPER_ADMIN";
   const overlay = document.getElementById("overlay");
   const body = document.getElementById("modalBody");
   body.innerHTML = `
@@ -2311,11 +2491,20 @@ function openNewRequestModal() {
           <select id="reqCategory"><option value="PRO">PRO service</option><option value="DELIVERY">Delivery</option></select>
         </div>
         <div class="field"><label>Requested by</label>
-          <select id="reqCreatedBy" required>
-            <option value="">Select AM…</option>
-            ${amEmployees.map((e) => `<option value="${e.id}" ${me && me.id === e.id ? "selected" : ""}>${esc(e.name)}</option>`).join("")}
-          </select>
+          ${canPickAnyAM ? `
+            <select id="reqCreatedBy" required>
+              <option value="">Select AM…</option>
+              ${amEmployees.map((e) => `<option value="${e.id}" ${me && me.id === e.id ? "selected" : ""}>${esc(e.name)}</option>`).join("")}
+            </select>
+          ` : `<div class="field-readonly">${esc(me.name)} (you)</div>`}
         </div>
+      </div>
+      <div class="field" id="reqServiceTypeField">
+        <label>PRO service type</label>
+        <select id="reqServiceType">
+          <option value="">— Select a service —</option>
+          ${PRO_SERVICE_CATALOG.map((g) => `<optgroup label="${esc(g.group)}">${g.services.map((s) => `<option value="${esc(s)}">${esc(s)}</option>`).join("")}</optgroup>`).join("")}
+        </select>
       </div>
       <div class="field-row">
         <div class="field"><label>Company</label>
@@ -2335,19 +2524,24 @@ function openNewRequestModal() {
   `;
   overlay.classList.add("open");
   document.getElementById("reqCancelBtn").addEventListener("click", closeModal);
+  document.getElementById("reqCategory").addEventListener("change", (e) => {
+    document.getElementById("reqServiceTypeField").style.display = e.target.value === "PRO" ? "" : "none";
+  });
   document.getElementById("reqForm").addEventListener("submit", (e) => {
     e.preventDefault();
     const title = document.getElementById("reqTitle").value.trim();
     if (!title) { showErr("reqErr", "A title is required."); return; }
-    const createdByVal = document.getElementById("reqCreatedBy").value;
+    const createdByVal = canPickAnyAM ? document.getElementById("reqCreatedBy").value : String(me.id);
     if (!createdByVal) { showErr("reqErr", "Please select which Account Manager is filing this request."); return; }
+    const category = document.getElementById("reqCategory").value;
     const companyVal = document.getElementById("reqCompany").value;
     const companyIdNum = companyVal ? Number(companyVal) : null;
     const resolution = resolveOnlineOperator(companyIdNum, Number(createdByVal));
     const id = DB.nextIds.serviceRequest++;
     const createdAt = new Date().toISOString();
     DB.serviceRequests.push({
-      id, title, category: document.getElementById("reqCategory").value,
+      id, title, category,
+      serviceType: category === "PRO" ? (document.getElementById("reqServiceType").value || null) : null,
       companyId: companyIdNum,
       clientName: document.getElementById("reqClient").value.trim() || null,
       description: document.getElementById("reqDesc").value.trim() || null,
@@ -2379,7 +2573,7 @@ function renderOnlineQueue() {
   if (!viewAll && !me) {
     mount.innerHTML = `
       <div class="page-head"><div><span class="eyebrow">Online Operations</span><h1>Online Queue</h1></div></div>
-      <div class="card card-pad" style="max-width:420px;">Select your account in the sidebar (“Signed in as”) to see the requests auto-assigned to you.</div>
+      <div class="card card-pad" style="max-width:420px;">🔒 This account doesn't have Online Operations access.</div>
     `;
     return;
   }
@@ -2593,7 +2787,7 @@ function renderCompanyImport() {
     mount.innerHTML = `
       <div class="page-head"><div><span class="eyebrow">Import Companies</span><h1>Import Companies</h1></div></div>
       <div class="card card-pad" style="max-width:460px;">
-        🔒 Access restricted to Operations Admin (Ahmed) and Super Admin (MED-DARWISH). Switch your account in the sidebar if you have the right role.
+        🔒 Access restricted to the Operations Admin, Super Admin, and CEO.
       </div>
     `;
     return;
@@ -2648,6 +2842,12 @@ function renderCompanyImport() {
 }
 
 /* ================= boot ================= */
-setupNav();
-switchView("dashboard");
+document.getElementById("loginLogo").src = document.querySelector(".sidebar-brand img").src;
+if (currentEmployee()) {
+  enterApp();
+} else {
+  currentEmployeeId = null;
+  document.getElementById("loginScreen").classList.add("open");
+  renderLoginCard();
+}
 </script>
